@@ -56,9 +56,10 @@ return [
      | This option is for the app's API scopes.
      */
     'api_scopes' => env('SHOPIFY_API_SCOPES', implode(',', [
-        'read_products',
-        'read_customers',
         'read_locales',
+        'read_orders',
+        'read_products',
+        'read_themes',
     ])),
 
     /*

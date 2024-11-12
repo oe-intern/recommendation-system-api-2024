@@ -14,7 +14,7 @@ embedded_app_direct_api_access = true
 
 [access_scopes]
 # Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
-scopes = "read_products,read_customers,read_locales"
+scopes = "read_locales, read_orders, read_products, read_themes"
 
 [auth]
 redirect_urls = [
