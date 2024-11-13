@@ -13,6 +13,7 @@
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.9",
         "malzariey/filament-daterangepicker-filter": "^3.1",
+        "mongodb/laravel-mongodb": "^5.1",
         "shopify/shopify-api": "~5.7.0",
         "symfony/psr-http-message-bridge": "^7.1",
         "z3d0x/filament-logger": "^0.7.2"
