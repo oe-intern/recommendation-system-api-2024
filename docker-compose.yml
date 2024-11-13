@@ -43,10 +43,11 @@ services:
         depends_on:
             - pgsql
             - redis
+            - mongo
     pgsql:
         image: 'postgres:15'
         ports:
-            - '${FORWARD_DB_PORT:-5432}:5432'
+            - '${FORWARD_DB_PORT:-5902}:5432'
         environment:
             PGPASSWORD: '${DB_PASSWORD:-secret}'
             POSTGRES_DB: '${DB_DATABASE}'
@@ -71,7 +72,7 @@ services:
     redis:
         image: 'redis:alpine'
         ports:
-            - '${FORWARD_REDIS_PORT:-6379}:6379'
+            - '${FORWARD_REDIS_PORT:-5903}:6379'
         volumes:
             - 'sail-redis:/data'
         networks:
@@ -83,6 +84,25 @@ services:
                 - ping
             retries: 3
             timeout: 5s
+    mongo:
+        image: 'mongo:5.0'
+        ports:
+            - '${FORWARD_MONGO_PORT:-27016}:27017'
+        volumes:
+            - 'sail-mongo:/data/db'
+        environment:
+            MONGO_INITDB_ROOT_USERNAME: '${MONGO_USERNAME}'
+            MONGO_INITDB_ROOT_PASSWORD: '${MONGO_PASSWORD}'
+        networks:
+            - sail
+        healthcheck:
+            test:
+                - CMD
+                - mongo
+                - --eval
+                - 'db.runCommand({ connectionStatus: 1 })'
+            retries: 3
+            timeout: 5s
 networks:
     sail:
         driver: bridge
@@ -92,4 +112,6 @@ volumes:
     sail-pgsql:
         driver: local
     sail-redis:
+        driver: local
+    sail-mongo:
         driver: local
