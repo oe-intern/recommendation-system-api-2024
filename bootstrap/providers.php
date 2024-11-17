@@ -6,4 +6,5 @@ return [
     App\Providers\Filament\AdminPanelProvider::class,
     App\Providers\QueryServiceProvider::class,
     App\Providers\ShopifyServiceProvider::class,
+    App\Providers\TransformProvider::class,
 ];

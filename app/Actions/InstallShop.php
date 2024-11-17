@@ -9,6 +9,7 @@ use App\Objects\Values\NullAccessToken;
 use App\Objects\Values\UserDomain;
 use App\Objects\Values\UserId;
 use Shopify\Auth\Session;
+use App\Jobs\ProcessShopInstalledData;
 
 class InstallShop
 {
@@ -50,6 +51,8 @@ class InstallShop
             $user->restore();
             $this->user_command->setAccessToken($user->getId(), AccessToken::fromNative($session->getAccessToken()));
         }
+
+        ProcessShopInstalledData::dispatch($domain->toNative());
 
         return $user->getId();
     }

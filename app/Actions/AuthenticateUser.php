@@ -3,11 +3,18 @@
 namespace App\Actions;
 
 use App\Objects\Values\UserDomain;
+use App\Services\Shopify\UserContext;
 use Illuminate\Http\Request;
 use Shopify\Auth\OAuth;
+use App\Models\User;
 
 class AuthenticateUser
 {
+    /**
+     * @var User
+     */
+    protected User $user;
+
     /**
      * @var InstallShop
      */
@@ -44,10 +51,14 @@ class AuthenticateUser
             ['App\Lib\CookieHandler', 'saveShopifyCookie'],
         );
 
+        $domain = UserDomain::fromNative($request->query('shop'));
+        $user_context = app(UserContext::class);
+        $user_context->setShopifySession($session);
+
         // Install the shop
         $user_id = call_user_func(
             $this->install_shop,
-            UserDomain::fromNative($request->query('shop')),
+            $domain,
             $session
         );
 
