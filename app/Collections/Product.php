@@ -17,7 +17,7 @@ class Product extends MongoCollection
      * @var array
      */
     protected $fillable = [
-        '_id',
+        'id',
         'title',
         'handle',
         'categoryId',
@@ -39,7 +39,14 @@ class Product extends MongoCollection
      *
      * @var string
      */
-    protected $primaryKey = '_id';
+    protected $primaryKey = 'id';
+
+    /**
+     * Indicates if the IDs are auto-incrementing.
+     *
+     * @var bool
+     */
+    public $incrementing = false;
 
     /**
      * The "type" of the primary key ID.

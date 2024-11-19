@@ -28,7 +28,7 @@ class Product implements IShopifyTransform
     public function shopifyDataToCollectionData(array $data): array
     {
         return ([
-            '_id' => data_get($data, 'id'),
+            'id' => data_get($data, 'id'),
             'title' => data_get($data, 'title'),
             'handle' => data_get($data, 'handle'),
             'categoryId' => $this->getCategoryId($data),
