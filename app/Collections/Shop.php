@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Collections;
 
+use App\Collections\Schema\OrderTypeQuantity;
 use MongoDB\Laravel\Eloquent\SoftDeletes;
 use MongoDB\Laravel\Relations\EmbedsMany;
 
@@ -20,6 +21,7 @@ class Shop extends MongoCollection
         'domain',
         'orders',
         'products',
+        'orderTypeQuantities',
     ];
 
     /**
@@ -44,6 +46,7 @@ class Shop extends MongoCollection
     protected $casts = [
         'orders' => 'array',
         'products' => 'array',
+        'orderTypeQuantities' => 'array',
     ];
 
     /**
@@ -74,5 +77,15 @@ class Shop extends MongoCollection
     public function products(): EmbedsMany
     {
         return $this->embedsMany(Product::class);
+    }
+
+    /**
+     * Define the relationship with the type orders.
+     *
+     * @return EmbedsMany
+     */
+    public function orderTypeQuantities(): EmbedsMany
+    {
+        return $this->embedsMany(OrderTypeQuantity::class);
     }
 }
