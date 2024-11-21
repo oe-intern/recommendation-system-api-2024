@@ -15,5 +15,20 @@ interface RelationshipScore
      * @param float $score
      * @return void
      */
-    public function setScore(ShopCollection $shop, string $first_product_id, string $second_product_id, float $score): void;
+    public function setScore(
+        ShopCollection $shop,
+        string $first_product_id,
+        string $second_product_id,
+        float $score
+    ): void;
+
+    /**
+     * Delete the score with a product with another product.
+     *
+     * @param ShopCollection $shop
+     * @param string $root_product_id
+     * @param string $related_product_id
+     * @return void
+     */
+    public function deleteScore(ShopCollection $shop, string $root_product_id, string $related_product_id): void;
 }
