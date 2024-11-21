@@ -12,6 +12,12 @@ use MongoDB\Laravel\Relations\EmbedsMany;
 class Product extends MongoCollection
 {
     /**
+     * Indicates if the IDs are auto-incrementing.
+     *
+     * @var bool
+     */
+    public $incrementing = false;
+    /**
      * The attributes that are mass assignable.
      *
      * @var array
@@ -32,22 +38,14 @@ class Product extends MongoCollection
         'recommendationType',
         'interactions',
         'relationshipScore',
+        'referencedIds',
     ];
-
     /**
      * The primary key.
      *
      * @var string
      */
     protected $primaryKey = 'id';
-
-    /**
-     * Indicates if the IDs are auto-incrementing.
-     *
-     * @var bool
-     */
-    public $incrementing = false;
-
     /**
      * The "type" of the primary key ID.
      *
@@ -76,6 +74,7 @@ class Product extends MongoCollection
         'recommendationType' => RecommendationType::DEFAULT,
         'interactions' => [],
         'relationshipScore' => [],
+        'referencedIds' => [],
     ];
 
     /**
