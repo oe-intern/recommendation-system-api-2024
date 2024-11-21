@@ -48,11 +48,6 @@ class ProductService extends BaseGraphqlService implements IProduct
                                 status
                                 productType
                                 totalInventory
-                                options {
-                                    optionValues {
-                                        id
-                                    }
-                                }
                                 description
                             }
                             pageInfo {

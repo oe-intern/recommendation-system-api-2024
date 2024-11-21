@@ -36,9 +36,6 @@ class OrderService extends BaseGraphqlService implements IOrder
                                         id
                                         name
                                         quantity
-                                        product {
-                                            id
-                                        }
                                     }
                                 }
                                 totalPriceSet {
