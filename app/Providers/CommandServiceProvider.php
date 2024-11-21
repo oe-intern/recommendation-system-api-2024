@@ -10,6 +10,12 @@ use App\Contracts\Commands\Product as IProductCommand;
 use App\Storage\Commands\Product as ProductCommand;
 use App\Contracts\Commands\Order as IOrderCommand;
 use App\Storage\Commands\Order as OrderCommand;
+use App\Contracts\Commands\RelationshipScore as IRelationshipScoreCommand;
+use App\Storage\Commands\RelationshipScore as RelationshipScoreCommand;
+use App\Storage\Commands\InteractionProduct as InteractionProductCommand;
+use App\Contracts\Commands\InteractionProduct as IInteractionProductCommand;
+use App\Contracts\Commands\OrderTypeQuantity as IOrderTypeQuantityCommand;
+use App\Storage\Commands\OrderTypeQuantity as OrderTypeQuantityCommand;
 use Illuminate\Support\ServiceProvider;
 
 class CommandServiceProvider extends ServiceProvider
@@ -37,6 +43,21 @@ class CommandServiceProvider extends ServiceProvider
         $this->app->bind(
             IOrderCommand::class,
             OrderCommand::class
+        );
+
+        $this->app->bind(
+            IRelationshipScoreCommand::class,
+            RelationshipScoreCommand::class
+        );
+
+        $this->app->bind(
+            IInteractionProductCommand::class,
+            InteractionProductCommand::class
+        );
+
+        $this->app->bind(
+            IOrderTypeQuantityCommand::class,
+            OrderTypeQuantityCommand::class
         );
     }
 
