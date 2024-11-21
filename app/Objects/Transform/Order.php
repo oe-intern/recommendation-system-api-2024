@@ -3,6 +3,7 @@
 namespace App\Objects\Transform;
 
 use App\Contracts\Objects\Transform\ShopifyTransform as IShopifyTransform;
+use App\Lib\Utils;
 
 class Order implements IShopifyTransform
 {
@@ -28,13 +29,18 @@ class Order implements IShopifyTransform
     public function shopifyDataToCollectionData(array $data): array
     {
         return [
-            '_id' => data_get($data, 'id'),
+            '_id' => $this->getId($data),
             'email' => data_get($data, 'email'),
             'amount' => $this->getAmount($data),
             'currencyCodeMoney' => $this->getCurrentCodeMoney($data),
             'createdAt' => data_get($data, 'createdAt'),
             'items' => $this->getLineItems($data),
         ];
+    }
+
+    private function getId(array $data): string
+    {
+        return Utils::getIdFromGid(data_get($data, 'id'));
     }
 
     /**
@@ -69,7 +75,7 @@ class Order implements IShopifyTransform
     {
         return array_map(function ($lineItem) {
             return [
-                'productId' => data_get($lineItem, 'product.id'),
+                'productId' => Utils::getIdFromGid(data_get($lineItem, 'id')),
                 'name' => data_get($lineItem, 'name'),
                 'quantity' => data_get($lineItem, 'quantity'),
             ];

@@ -3,6 +3,7 @@
 namespace App\Objects\Transform;
 
 use App\Contracts\Objects\Transform\ShopifyTransform as IShopifyTransform;
+use App\Lib\Utils;
 
 class Product implements IShopifyTransform
 {
@@ -28,7 +29,7 @@ class Product implements IShopifyTransform
     public function shopifyDataToCollectionData(array $data): array
     {
         return ([
-            'id' => data_get($data, 'id'),
+            'id' => $this->getId($data),
             'title' => data_get($data, 'title'),
             'handle' => data_get($data, 'handle'),
             'categoryId' => $this->getCategoryId($data),
@@ -38,9 +39,19 @@ class Product implements IShopifyTransform
             'tags' => $this->getTags($data),
             'status' => data_get($data, 'status'),
             'productType' => data_get($data, 'productType'),
-            'optionIds' => $this->getOptionIds($data),
             'description' => data_get($data, 'description'),
         ]);
+    }
+
+    /**
+     * Get id of the product.
+     *
+     * @param array $product
+     * @return string
+     */
+    private function getId(array $product): string
+    {
+        return Utils::getIdFromGid(data_get($product, 'id'));
     }
 
     /**
@@ -62,7 +73,9 @@ class Product implements IShopifyTransform
      */
     private function getVariantIds(array $product): array
     {
-        return collect(data_get($product, 'variants', []))->pluck('id')->toArray();
+        return collect(data_get($product, 'variants', []))->pluck('id')->map(function ($id) {
+            return Utils::getIdFromGid($id);
+        })->toArray();
     }
 
     /**
@@ -73,17 +86,7 @@ class Product implements IShopifyTransform
      */
     private function getTags(array $product): array
     {
-        return data_get($product, 'tags', []);
-    }
-
-    /**
-     * Get option ids of the product.
-     *
-     * @param array $product
-     * @return array
-     */
-    private function getOptionIds(array $product): array
-    {
-        return collect(data_get($product, 'options', []))->pluck('optionValues.*.id')->flatten()->toArray();
+        $tags = data_get($product, 'tags', '');
+        return is_array($tags) ? $tags : ($tags !== '' ? explode(', ', $tags) : []);
     }
 }
