@@ -6,11 +6,27 @@ use App\Collections\Product as ProductCollection;
 use App\Collections\Schema\RelationshipScore as RelationshipScoreSchema;
 use App\Collections\Shop as ShopCollection;
 use App\Contracts\Commands\RelationshipScore as RelationshipScoreCommand;
+use App\Contracts\Queries\Product as ProductQuery;
 
 class RelationshipScore implements RelationshipScoreCommand
 {
     /**
-     * Increment the score of a relationship between two products from a shop.
+     * @var ProductQuery
+     */
+    protected ProductQuery $product_query;
+
+    /**
+     * RelationshipScore constructor.
+     *
+     * @param ProductQuery $product_query
+     */
+    public function __construct(ProductQuery $product_query)
+    {
+        $this->product_query = $product_query;
+    }
+
+    /**
+     * Set the score of a relationship between two products from a shop.
      *
      * @param ShopCollection $shop
      * @param string $first_product_id
@@ -24,25 +40,13 @@ class RelationshipScore implements RelationshipScoreCommand
         string $second_product_id,
         float $score = 1
     ): void {
-        $product1 = $this->getProduct($shop, $first_product_id);
-        $product2 = $this->getProduct($shop, $second_product_id);
+        $first_product = $this->product_query->getByIdAndShopCollection($first_product_id, $shop);
+        $second_product = $this->product_query->getByIdAndShopCollection($second_product_id, $shop);
 
-        if ($product1 && $product2) {
-            $this->saveRelationshipScore($product1, $second_product_id, $score);
-            $this->saveRelationshipScore($product2, $first_product_id, $score);
+        if ($first_product && $second_product) {
+            $this->saveRelationshipScore($first_product, $second_product_id, $score);
+            $this->saveRelationshipScore($second_product, $first_product_id, $score);
         }
-    }
-
-    /**
-     * Get a product from a shop.
-     *
-     * @param ShopCollection $shop
-     * @param string $product_id
-     * @return ProductCollection|null
-     */
-    private function getProduct(ShopCollection $shop, string $product_id): ?ProductCollection
-    {
-        return $shop->products()->where('id', $product_id)->first();
     }
 
     /**
@@ -59,5 +63,23 @@ class RelationshipScore implements RelationshipScoreCommand
             'productId' => $product_id,
             'score' => $score
         ]));
+    }
+
+    /**
+     * Delete the score with a product with another product.
+     *
+     * @param ShopCollection $shop
+     * @param string $root_product_id
+     * @param string $related_product_id
+     * @return void
+     */
+    public function deleteScore(ShopCollection $shop, string $root_product_id, string $related_product_id): void
+    {
+        $root_product = $this->product_query->getByIdAndShopCollection($root_product_id, $shop);
+
+        if ($root_product) {
+            $relationshipScore = $root_product->relationshipScore()->where('productId', $related_product_id)->first();
+            $relationshipScore?->delete();
+        }
     }
 }
