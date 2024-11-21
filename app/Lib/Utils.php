@@ -6,6 +6,7 @@ use App\Objects\Enums\ShopifyType;
 use App\Objects\Values\Hmac;
 use App\Services\Shopify\UserContext;
 use App\Storage\Queries\User;
+use Carbon\Carbon;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Config;
 
@@ -139,5 +140,13 @@ final class Utils
         $user_query = app(User::class);
 
         return $user_query->getByDomain($user_context->getDomain());
+    }
+
+    /**
+     * Date time now.
+     */
+    public static function getToday(): Carbon
+    {
+        return Carbon::today();
     }
 }
