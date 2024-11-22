@@ -7,6 +7,8 @@ use App\Contracts\Commands\Product as ProductCommand;
 use App\Contracts\Commands\Shop as ShopCommand;
 use App\Contracts\Shopify\Graphql\Queries\Order as OrderQuery;
 use App\Contracts\Shopify\Graphql\Queries\Product as ProductQuery;
+use App\Objects\Transform\Product as ProductTransform;
+use App\Objects\Transform\Order as OrderTransform;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Foundation\Queue\Queueable;
@@ -38,6 +40,8 @@ class ProcessShopInstalledData implements ShouldQueue
      * @param ShopCommand $shop_command
      * @param ProductCommand $product_command
      * @param OrderCommand $order_command
+     * @param ProductTransform $product_transform
+     * @param OrderTransform $order_transform
      * @return void
      */
     public function handle(
@@ -46,14 +50,19 @@ class ProcessShopInstalledData implements ShouldQueue
         ShopCommand $shop_command,
         ProductCommand $product_command,
         OrderCommand $order_command,
+        ProductTransform $product_transform,
+        OrderTransform $order_transform
     ): void {
         // Get the products and orders from the shop
         $products = $product_query->fetchAll();
         $orders = $order_query->fetchAll();
 
+        $products_data = $product_transform->shopifyDataListToCollectionDataList($products);
+        $orders_data = $order_transform->shopifyDataListToCollectionDataList($orders);
+
         // Create the shop and its data
         $new_shop = $shop_command->create($this->domain);
-        $product_command->createMany($products, $new_shop);
-        $order_command->createMany($orders, $new_shop);
+        $product_command->createMany($products_data, $new_shop);
+        $order_command->createMany($orders_data, $new_shop);
     }
 }
