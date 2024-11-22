@@ -29,16 +29,16 @@ class Order implements IShopifyTransform
     public function shopifyDataToCollectionData(array $data): array
     {
         return [
-            '_id' => $this->getId($data),
+            '_id' => $this->getShopifyId($data),
             'email' => data_get($data, 'email'),
-            'amount' => $this->getAmount($data),
-            'currencyCodeMoney' => $this->getCurrentCodeMoney($data),
+            'amount' => $this->getShopifyAmount($data),
+            'currencyCodeMoney' => $this->getShopifyCurrentCodeMoney($data),
             'createdAt' => data_get($data, 'createdAt'),
-            'items' => $this->getLineItems($data),
+            'items' => $this->getShopifyLineItems($data),
         ];
     }
 
-    private function getId(array $data): string
+    private function getShopifyId(array $data): string
     {
         return Utils::getIdFromGid(data_get($data, 'id'));
     }
@@ -49,9 +49,9 @@ class Order implements IShopifyTransform
      * @param array $data
      * @return float
      */
-    private function getAmount(array $data): float
+    private function getShopifyAmount(array $data): float
     {
-        return data_get($data, 'totalPriceSet.presentmentMoney.amount');
+        return (float)data_get($data, 'totalPriceSet.presentmentMoney.amount');
     }
 
     /**
@@ -60,7 +60,7 @@ class Order implements IShopifyTransform
      * @param array $data
      * @return string
      */
-    private function getCurrentCodeMoney(array $data): string
+    private function getShopifyCurrentCodeMoney(array $data): string
     {
         return data_get($data, 'totalPriceSet.presentmentMoney.currencyCode');
     }
@@ -71,7 +71,7 @@ class Order implements IShopifyTransform
      * @param array $data
      * @return array
      */
-    private function getLineItems(array $data): array
+    private function getShopifyLineItems(array $data): array
     {
         return array_map(function ($lineItem) {
             return [
@@ -80,5 +80,58 @@ class Order implements IShopifyTransform
                 'quantity' => data_get($lineItem, 'quantity'),
             ];
         }, data_get($data, 'lineItems', collect([]))->toArray());
+    }
+
+    public function webhookDataToCollectionData(array $data): array
+    {
+        return [
+            '_id' => data_get($data, 'id'),
+            'email' => data_get($data, 'email'),
+            'amount' => $this->getWebhookAmount($data),
+            'currencyCodeMoney' => $this->getWebhookCurrentCodeMoney($data),
+            'createdAt' => data_get($data, 'created_at'),
+            'items' => $this->getWebhookLineItems($data),
+        ];
+    }
+
+    /**
+     * Get amount of order.
+     *
+     * @param array $data
+     * @return float|null
+     */
+    private function getWebhookAmount(array $data): ?float
+    {
+        return (float)data_get($data, 'current_total_price_set.presentment_money.amount');
+    }
+
+    /**
+     * Get current code money.
+     *
+     * @param array $data
+     * @return string
+     */
+    private function getWebhookCurrentCodeMoney(array $data): string
+    {
+        return data_get($data, 'current_total_price_set.presentment_money.currency_code');
+    }
+
+    /**
+     * Get list item in order.
+     *
+     * @param array $data
+     * @return array
+     */
+    public function getWebhookLineItems(array $data): array
+    {
+        $line_items = collect(data_get($data, 'line_items', []));
+
+        return $line_items->map(function ($line_item) {
+            return [
+                'productId' => data_get($line_item, 'product_id'),
+                'name' => data_get($line_item, 'name'),
+                'quantity' => (int)data_get($line_item, 'quantity'),
+            ];
+        })->toArray();
     }
 }
