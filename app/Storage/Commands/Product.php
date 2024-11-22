@@ -2,15 +2,14 @@
 
 namespace App\Storage\Commands;
 
+use App\Collections\Product as ProductCollection;
 use App\Collections\Shop as ShopCollection;
 use App\Contracts\Commands\Product as ProductCommand;
-use App\Collections\Product as ProductCollection;
 use App\Contracts\Commands\RelationshipScore as RelationshipScoreCommand;
 use App\Contracts\Queries\Product as ProductQuery;
 use App\Contracts\Queries\RelationshipScore as RelationshipScoreQuery;
 use App\Objects\Enums\RecommendationType;
 use App\Objects\Enums\RecommendationType as RecommendationTypeEnum;
-use App\Objects\Transform\Product as ProductTransform;
 
 class Product implements ProductCommand
 {
@@ -30,25 +29,17 @@ class Product implements ProductCommand
     protected RelationshipScoreCommand $relationship_score_command;
 
     /**
-     * @var ProductTransform
-     */
-    protected ProductTransform $product_transform;
-
-    /**
      * Product constructor.
      *
-     * @param ProductTransform $product_transform
      * @param ProductQuery $product_query
      * @param RelationshipScoreQuery $relationship_score_query
      * @param RelationshipScoreCommand $relationship_score_command
      */
     public function __construct(
-        ProductTransform $product_transform,
         ProductQuery $product_query,
         RelationshipScoreQuery $relationship_score_query,
         RelationshipScoreCommand $relationship_score_command
     ) {
-        $this->product_transform = $product_transform;
         $this->product_query = $product_query;
         $this->relationship_score_query = $relationship_score_query;
         $this->relationship_score_command = $relationship_score_command;
@@ -63,7 +54,7 @@ class Product implements ProductCommand
      */
     public function create(array $product, ShopCollection $shop): void
     {
-        $shop->products()->create($this->product_transform->shopifyDataToCollectionData($product));
+        $shop->products()->create($product);
     }
 
     /**
@@ -75,7 +66,7 @@ class Product implements ProductCommand
      */
     public function createMany(array $products, ShopCollection $shop): void
     {
-        $shop->products()->createMany($this->product_transform->shopifyDataListToCollectionDataList($products));
+        $shop->products()->createMany($products);
     }
 
     /**
@@ -108,7 +99,7 @@ class Product implements ProductCommand
             return false;
         }
 
-        return $product_collection->update($this->product_transform->shopifyDataToCollectionData($product));
+        return $product_collection->update($product);
     }
 
     /**
@@ -150,7 +141,7 @@ class Product implements ProductCommand
      */
     public function getValidRecommendationProducts(ShopCollection $shop, string $product_id, array $product_ids): array
     {
-        $filtered_ids = array_unique(array_filter($product_ids, fn($id) => $id !== $product_id));
+        $filtered_ids = array_unique(array_filter($product_ids, fn($id) => (string) $id !== $product_id));
 
         $recommended_products = $this->product_query->getByIdsAndShopCollection($filtered_ids, $shop);
 

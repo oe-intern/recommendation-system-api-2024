@@ -19,4 +19,12 @@ interface ShopifyTransform
      * @return array
      */
     public function shopifyDataListToCollectionDataList(array $data): array;
+
+    /**
+     * Convert webhook data to collection data.
+     *
+     * @param array $data
+     * @return array
+     */
+    public function webhookDataToCollectionData(array $data): array;
 }

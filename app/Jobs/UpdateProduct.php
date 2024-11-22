@@ -3,8 +3,8 @@
 namespace App\Jobs;
 
 use App\Contracts\Commands\Product as ProductCommand;
-use App\Contracts\Queries\Product as ProductQuery;
 use App\Contracts\Queries\Shop as ShopQuery;
+use App\Objects\Transform\Product as ProductTransform;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -42,10 +42,10 @@ class UpdateProduct implements ShouldQueue
      *
      * @param ProductCommand $product_command
      * @param ShopQuery $shop_query
-     * @param ProductQuery $product_query
+     * @param ProductTransform $product_transform
      * @return void
      */
-    public function handle(ProductCommand $product_command, ShopQuery $shop_query, ProductQuery $product_query): void
+    public function handle(ProductCommand $product_command, ShopQuery $shop_query, ProductTransform $product_transform): void
     {
         $shop = $shop_query->getByDomain($this->shop_domain);
 
@@ -53,6 +53,7 @@ class UpdateProduct implements ShouldQueue
             return;
         }
 
-        $product_command->update($this->product, $shop);
+        $product_data = $product_transform->webhookDataToCollectionData($this->product);
+        $product_command->update($product_data, $shop);
     }
 }
