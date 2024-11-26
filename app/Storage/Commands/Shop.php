@@ -15,8 +15,7 @@ class Shop implements ShopCommand
      */
     public function create(string $shop_domain): ShopCollection
     {
-        return ShopCollection::create([
-            'domain' => $shop_domain,
-        ]);
+        return ShopCollection::query()
+            ->create(['domain' => $shop_domain]);
     }
 }
