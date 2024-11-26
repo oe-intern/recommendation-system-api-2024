@@ -6,6 +6,9 @@ use App\Http\Middleware\EnsureShopifyInstalled;
 use App\Http\Middleware\EnsureShopifySession;
 use App\Http\Middleware\VerifyAuthenticationToken;
 use App\Http\Middleware\VerifyHmac;
+use App\Http\Middleware\SetProductRecommendationRequest;
+use App\Http\Middleware\SetRecommendationStateRequest;
+use App\Http\Middleware\IdentifyShopDomain;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -33,6 +36,9 @@ return Application::configure(basePath: dirname(__DIR__))
             'verify.token' => VerifyAuthenticationToken::class,
             'access_control_headers' => AccessControlHeaders::class,
             'csp_header' => CspHeader::class,
+            'validate.recommendation.request' => SetProductRecommendationRequest::class,
+            'validate.recommendation.state.request' => SetRecommendationStateRequest::class,
+            'identify.shop.domain' => IdentifyShopDomain::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
