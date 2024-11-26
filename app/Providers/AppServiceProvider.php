@@ -16,6 +16,8 @@ use App\Lib\Handlers\ProductUpdate;
 use App\Lib\Handlers\ShopUpdate;
 use App\Models\Export;
 use App\Policies\ActivityPolicy;
+use App\Contracts\Recommendation\ProductRecommendation;
+use App\Services\Product\ProductRecommendationService;
 use App\Services\Shopify\UserContext;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\URL;
@@ -45,6 +47,11 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(
             \Filament\Actions\Exports\Jobs\ExportCsv::class,
             ExportCsv::class
+        );
+
+        $this->app->bind(
+            ProductRecommendation::class,
+            ProductRecommendationService::class
         );
     }
 
