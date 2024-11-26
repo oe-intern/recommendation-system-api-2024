@@ -48,11 +48,11 @@ class Product implements ProductCommand
     /**
      * Create a product.
      *
-     * @param array $product
      * @param ShopCollection $shop
+     * @param array $product
      * @return void
      */
-    public function create(array $product, ShopCollection $shop): void
+    public function create(ShopCollection $shop, array $product): void
     {
         $shop->products()->create($product);
     }
@@ -60,11 +60,11 @@ class Product implements ProductCommand
     /**
      * Create a list products of a shop with data from Shopify.
      *
-     * @param array $products
      * @param ShopCollection $shop
+     * @param array $products
      * @return void
      */
-    public function createMany(array $products, ShopCollection $shop): void
+    public function createMany(ShopCollection $shop, array $products): void
     {
         $shop->products()->createMany($products);
     }
@@ -88,37 +88,33 @@ class Product implements ProductCommand
     /**
      * Update a product of a shop with data from Shopify.
      *
-     * @param array $product
-     * @param ShopCollection $shop
+     * @param ProductCollection $product
+     * @param array $product_data
      * @return bool
      */
-    public function update(array $product, ShopCollection $shop): bool
+    public function update(ProductCollection $product, array $product_data): bool
     {
-        $product_collection = $shop->products()->where('id', $product['id'])->first();
-        if (!$product_collection) {
-            return false;
-        }
-
-        return $product_collection->update($product);
+        return $product->update($product_data);
     }
 
     /**
      * Customize the recommendation products for each product.
      *
      * @param ProductCollection $product
-     * @param ShopCollection $shop
+     * @param string $shop_domain
      * @param RecommendationType $recommendation_type
      * @param array $recommendations
      * @return bool
      */
     public function setRecommendationProduct(
         ProductCollection $product,
-        ShopCollection $shop,
+        string $shop_domain,
         RecommendationType $recommendation_type,
         array $recommendations
     ): bool {
-        $recommendations = $this->getValidRecommendationProducts($shop, $product->getAttributeValue('id'),
-            $recommendations);
+        $product_id = $product->getAttributeValue('id');
+        $recommendations = $this->getValidRecommendationProducts($shop_domain, $product_id, $recommendations);
+        $removed_recommendations = array_diff($product->getAttributeValue('optionIds'), $recommendations);
 
         $product->update([
             'recommendationType' => $recommendation_type,
@@ -126,39 +122,42 @@ class Product implements ProductCommand
         ]);
 
         foreach ($recommendations as $recommended_product_id) {
-            $this->addReferenceProduct($recommended_product_id, $shop, $product->getAttributeValue('id'));
+            $this->addReferenceProduct($recommended_product_id, $product_id);
         }
+
+        foreach ($removed_recommendations as $removed_recommendation) {
+            $this->removeProductRecommendation($product_id, $removed_recommendation);
+        }
+
         return true;
     }
 
     /**
      * Get list of products valid for recommendation.
      *
-     * @param ShopCollection $shop
+     * @param string $shop_domain
      * @param string $product_id
      * @param array $product_ids
      * @return array
      */
-    public function getValidRecommendationProducts(ShopCollection $shop, string $product_id, array $product_ids): array
+    private function getValidRecommendationProducts(string $shop_domain, string $product_id, array $product_ids): array
     {
-        $filtered_ids = array_unique(array_filter($product_ids, fn($id) => (string) $id !== $product_id));
+        $filtered_ids = array_unique(array_filter($product_ids, fn($id) => (string)$id !== $product_id));
 
-        $recommended_products = $this->product_query->getByIdsAndShopCollection($filtered_ids, $shop);
-
-        return collect($recommended_products)->pluck('id')->toArray();
+        return $this->product_query->getByShopDomainAndIds($shop_domain, $filtered_ids);
     }
 
     /**
      * Add a reference this product using product for recommendation.
      *
      * @param string $product_id
-     * @param ShopCollection $shop
      * @param string $reference_product_id
      * @return void
      */
-    private function addReferenceProduct(string $product_id, ShopCollection $shop, string $reference_product_id): void
+    private function addReferenceProduct(string $product_id, string $reference_product_id): void
     {
-        $product = $this->product_query->getByIdAndShopCollection($product_id, $shop);
+        $product = $this->product_query->getById($product_id);
+
         $product?->update([
             'referencedIds' => array_unique(array_merge($product->getAttributeValue('referencedIds'),
                 [$reference_product_id])),
@@ -169,90 +168,78 @@ class Product implements ProductCommand
      * Add a product recommended for this product.
      *
      * @param string $product_id
-     * @param ShopCollection $shop
      * @param string $recommended_product_id
      * @return void
      */
-    public function addRecommendation(string $product_id, ShopCollection $shop, string $recommended_product_id): void
+    public function addRecommendation(string $product_id, string $recommended_product_id): void
     {
-        $product = $this->product_query->getByIdAndShopCollection($product_id, $shop);
+        $product = $this->product_query->getById($product_id);
         $product?->update([
             'optionIds' => array_unique(array_merge($product->getAttributeValue('optionIds'),
                 [$recommended_product_id])),
         ]);
 
-        $this->addReferenceProduct($recommended_product_id, $shop, $product_id);
+        $this->addReferenceProduct($recommended_product_id, $product_id);
     }
 
     /**
      * Delete a product of a shop.
      *
-     * @param string $product_id
-     * @param ShopCollection $shop
+     * @param ProductCollection $product
      * @return bool
      */
-    public function delete(string $product_id, ShopCollection $shop): bool
+    public function delete(ProductCollection $product): bool
     {
-        $this->removeRelationshipRecommendation($product_id, $shop);
+        $this->removeRelationshipRecommendation($product);
 
-        $product = $shop->products()->where('id', $product_id)->first();
-        $product?->delete();
-        return true;
+        return $product->delete();
     }
 
     /**
      * Remove a relationship of a product with another product.
      *
-     * @param string $product_id
-     * @param ShopCollection $shop
+     * @param ProductCollection $product
      * @return void
      */
-    private function removeRelationshipRecommendation(string $product_id, ShopCollection $shop): void
+    private function removeRelationshipRecommendation(ProductCollection $product): void
     {
-        $product_collection = $this->product_query->getByIdAndShopCollection($product_id, $shop);
-        if ($product_collection) {
-            $this->removeRelationshipScore($shop, $product_collection, $product_id);
+        $this->removeRelationshipScore($product);
 
-            $this->removeRelationshipRecommendationProduct($shop, $product_collection, $product_id);
+        $this->removeRelationshipRecommendationProduct($product);
 
-            $this->removeRelationshipReferencedProduct($shop, $product_collection, $product_id);
-        }
+        $this->removeRelationshipReferencedProduct($product);
     }
 
     /**
      * Delete the score with a product with another product.
      *
-     * @param ShopCollection $shop
      * @param ProductCollection $product
-     * @param string $product_id
      * @return void
      */
-    private function removeRelationshipScore(ShopCollection $shop, ProductCollection $product, string $product_id): void
+    private function removeRelationshipScore(ProductCollection $product): void
     {
+        $product_id = $product->getAttributeValue('id');
         $product_list_score = $this->relationship_score_query->getByProductCollection($product);
 
         foreach ($product_list_score as $relationship_score) {
-            $this->relationship_score_command->deleteScore($shop, $relationship_score['productId'], $product_id);
+            $this->relationship_score_command->deleteScore($relationship_score['productId'], $product_id);
         }
     }
 
     /**
      * Remove reference of this product to another product.
      *
-     * @param ShopCollection $shop
      * @param ProductCollection $product
-     * @param string $product_id
      * @return void
      */
     private function removeRelationshipRecommendationProduct(
-        ShopCollection $shop,
-        ProductCollection $product,
-        string $product_id
+        ProductCollection $product
     ): void {
+        $product_id = $product->getAttributeValue('id');
         $product_recommendation_ids = $product->getAttributeValue('optionIds');
 
         foreach ($product_recommendation_ids as $product_recommendation_id) {
-            $this->removeReferenceProduct($product_recommendation_id, $shop, $product_id);
+            $this->removeReferenceProduct($product_recommendation_id, $product_id);
         }
     }
 
@@ -260,16 +247,14 @@ class Product implements ProductCommand
      * Remove a reference this product using product for recommendation.
      *
      * @param string $product_id
-     * @param ShopCollection $shop
      * @param string $reference_product_id
      * @return void
      */
     private function removeReferenceProduct(
         string $product_id,
-        ShopCollection $shop,
         string $reference_product_id
     ): void {
-        $product = $this->product_query->getByIdAndShopCollection($product_id, $shop);
+        $product = $this->product_query->getById($product_id);
         $product?->update([
             'referencedIds' => array_diff($product->getAttributeValue('referencedIds'), [$reference_product_id]),
         ]);
@@ -278,20 +263,17 @@ class Product implements ProductCommand
     /**
      * Remove recommended product for this product from another product.
      *
-     * @param ShopCollection $shop
      * @param ProductCollection $product
-     * @param string $product_id
      * @return void
      */
     private function removeRelationshipReferencedProduct(
-        ShopCollection $shop,
         ProductCollection $product,
-        string $product_id
     ): void {
+        $product_id = $product->getAttributeValue('id');
         $product_referenced_ids = $product->getAttributeValue('referencedIds');
 
         foreach ($product_referenced_ids as $product_referenced_id) {
-            $this->removeProductRecommendation($product_referenced_id, $shop, $product_id);
+            $this->removeProductRecommendation($product_referenced_id, $product_id);
         }
     }
 
@@ -299,20 +281,18 @@ class Product implements ProductCommand
      * Remove a product recommended for this product.
      *
      * @param string $product_id
-     * @param ShopCollection $shop
      * @param string $recommended_product_id
      * @return void
      */
     public function removeProductRecommendation(
         string $product_id,
-        ShopCollection $shop,
         string $recommended_product_id
     ): void {
-        $product = $this->product_query->getByIdAndShopCollection($product_id, $shop);
+        $product = $this->product_query->getById($product_id);
         $product?->update([
             'optionIds' => array_diff($product->getAttributeValue('optionIds'), [$recommended_product_id]),
         ]);
 
-        $this->removeReferenceProduct($recommended_product_id, $shop, $product_id);
+        $this->removeReferenceProduct($recommended_product_id, $product_id);
     }
 }
