@@ -45,6 +45,7 @@ class InstallShop
         if ($user === null) {
             $this->user_command->make($domain, AccessToken::fromNative($session->getAccessToken()));
             $user = $this->user_query->getByDomain($domain);
+            ProcessShopInstalledData::dispatch($domain->toNative());
         }
 
         if ($user->trashed()) {
@@ -52,7 +53,6 @@ class InstallShop
             $this->user_command->setAccessToken($user->getId(), AccessToken::fromNative($session->getAccessToken()));
         }
 
-        ProcessShopInstalledData::dispatch($domain->toNative());
 
         return $user->getId();
     }

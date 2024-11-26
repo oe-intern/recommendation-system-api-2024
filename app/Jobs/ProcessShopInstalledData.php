@@ -62,7 +62,7 @@ class ProcessShopInstalledData implements ShouldQueue
 
         // Create the shop and its data
         $new_shop = $shop_command->create($this->domain);
-        $product_command->createMany($products_data, $new_shop);
+        $product_command->createMany($new_shop, $products_data);
         $order_command->createMany($orders_data, $new_shop);
     }
 }

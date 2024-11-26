@@ -57,10 +57,10 @@ class CreateProduct implements ShouldQueue
             return;
         }
 
-        $product = $product_query->getByShopDomainAndProductId($this->shop_domain, $this->product['id']);
+        $product = $product_query->getByShopDomainAndId($this->shop_domain, $this->product['id']);
         if (!$product) {
             $product_data = $product_transform->webhookDataToCollectionData($this->product);
-            $product_command->create($product_data, $shop);
+            $product_command->create($shop, $product_data);
         }
     }
 }
