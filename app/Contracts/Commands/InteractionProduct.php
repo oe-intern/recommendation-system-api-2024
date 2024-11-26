@@ -2,27 +2,25 @@
 
 namespace App\Contracts\Commands;
 
-use App\Collections\Shop as ShopCollection;
-
 interface InteractionProduct
 {
     /**
      * Increment the clicks of a product from a shop.
      *
-     * @param ShopCollection $shop
+     * @param string $shop_domain
      * @param string $product_id
      * @param int $quantity
      * @return void
      */
-    public function incrementClicks(ShopCollection $shop, string $product_id, int $quantity = 1): void;
+    public function incrementClicks(string $shop_domain, string $product_id, int $quantity = 1): void;
 
     /**
      * Increment the views of a product from a shop.
      *
-     * @param ShopCollection $shop
+     * @param string $shop_domain
      * @param string $product_id
      * @param int $quantity
      * @return void
      */
-    public function incrementAddToCart(ShopCollection $shop, string $product_id, int $quantity = 1): void;
+    public function incrementAddToCart(string $shop_domain, string $product_id, int $quantity = 1): void;
 }
