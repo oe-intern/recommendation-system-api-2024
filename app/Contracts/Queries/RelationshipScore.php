@@ -3,18 +3,16 @@
 namespace App\Contracts\Queries;
 
 use App\Collections\Product as ProductCollection;
-use App\Collections\Shop as ShopCollection;
 
 interface RelationshipScore
 {
     /**
      * Get list relationship score of a product from a shop.
      *
-     * @param ShopCollection $shop
      * @param string $product_id
      * @return array
      */
-    public function getByShopCollectionAndId(ShopCollection $shop, string $product_id): array;
+    public function getByProductId(string $product_id): array;
 
     /**
      * Get list relationship score of a product from a shop.
@@ -23,4 +21,13 @@ interface RelationshipScore
      * @return array
      */
     public function getByProductCollection(ProductCollection $product): array;
+
+    /**
+     * Get list relationship score of a product from a shop.
+     *
+     * @param string $shop_domain
+     * @param string $product_id
+     * @return array
+     */
+    public function getByShopDomainAndProductId(string $shop_domain, string $product_id): array;
 }
