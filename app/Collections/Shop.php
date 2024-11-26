@@ -7,10 +7,25 @@ namespace App\Collections;
 use App\Collections\Schema\OrderTypeQuantity;
 use MongoDB\Laravel\Eloquent\SoftDeletes;
 use MongoDB\Laravel\Relations\EmbedsMany;
+use MongoDB\Laravel\Relations\HasMany;
 
 class Shop extends MongoCollection
 {
     use SoftDeletes;
+
+    /**
+     * Indicates if the IDs are auto-incrementing.
+     *
+     * @var bool
+     */
+    public $incrementing = false;
+
+    /**
+     * Disable the timestamps.
+     *
+     * @var bool
+     */
+    public $timestamps = false;
 
     /**
      * The attributes that are mass assignable.
@@ -19,8 +34,6 @@ class Shop extends MongoCollection
      */
     protected $fillable = [
         'domain',
-        'orders',
-        'products',
         'orderTypeQuantities',
     ];
 
@@ -44,39 +57,27 @@ class Shop extends MongoCollection
      * @var string[]
      */
     protected $casts = [
-        'orders' => 'array',
-        'products' => 'array',
         'orderTypeQuantities' => 'array',
-    ];
-
-    /**
-     * The default values for the attributes.
-     *
-     * @var array[]
-     */
-    protected $attributes = [
-        'orders' => [],
-        'products' => [],
     ];
 
     /**
      * Define the relationship with the orders.
      *
-     * @return EmbedsMany
+     * @return HasMany
      */
-    public function orders(): EmbedsMany
+    public function orders(): HasMany
     {
-        return $this->embedsMany(Order::class);
+        return $this->hasMany(Order::class);
     }
 
     /**
      * Define the relationship with the products.
      *
-     * @return EmbedsMany
+     * @return HasMany
      */
-    public function products(): EmbedsMany
+    public function products(): HasMany
     {
-        return $this->embedsMany(Product::class);
+        return $this->hasMany(Product::class);
     }
 
     /**

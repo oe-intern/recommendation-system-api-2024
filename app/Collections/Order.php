@@ -4,8 +4,25 @@ declare(strict_types=1);
 
 namespace App\Collections;
 
+use MongoDB\Laravel\Relations\BelongsTo;
+
+
 class Order extends MongoCollection
 {
+    /**
+     * Indicates if the IDs are auto-incrementing.
+     *
+     * @var bool
+     */
+    public $incrementing = false;
+
+    /**
+     * Disable the timestamps.
+     *
+     * @var bool
+     */
+    public $timestamps = false;
+
     /**
      * The attributes that are mass assignable.
      *
@@ -33,4 +50,14 @@ class Order extends MongoCollection
      * @var string
      */
     protected $keyType = 'string';
+
+    /**
+     * Define the relationship with the shop.
+     *
+     * @return BelongsTo
+     */
+    public function shop(): BelongsTo
+    {
+        return $this->belongsTo(Shop::class);
+    }
 }
