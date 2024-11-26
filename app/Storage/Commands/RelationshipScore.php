@@ -4,7 +4,6 @@ namespace App\Storage\Commands;
 
 use App\Collections\Product as ProductCollection;
 use App\Collections\Schema\RelationshipScore as RelationshipScoreSchema;
-use App\Collections\Shop as ShopCollection;
 use App\Contracts\Commands\RelationshipScore as RelationshipScoreCommand;
 use App\Contracts\Queries\Product as ProductQuery;
 
@@ -28,20 +27,18 @@ class RelationshipScore implements RelationshipScoreCommand
     /**
      * Set the score of a relationship between two products from a shop.
      *
-     * @param ShopCollection $shop
      * @param string $first_product_id
      * @param string $second_product_id
      * @param float $score
      * @return void
      */
     public function setScore(
-        ShopCollection $shop,
         string $first_product_id,
         string $second_product_id,
         float $score = 1
     ): void {
-        $first_product = $this->product_query->getByIdAndShopCollection($first_product_id, $shop);
-        $second_product = $this->product_query->getByIdAndShopCollection($second_product_id, $shop);
+        $first_product = $this->product_query->getById($first_product_id);
+        $second_product = $this->product_query->getById($second_product_id);
 
         if ($first_product && $second_product) {
             $this->saveRelationshipScore($first_product, $second_product_id, $score);
@@ -68,14 +65,13 @@ class RelationshipScore implements RelationshipScoreCommand
     /**
      * Delete the score with a product with another product.
      *
-     * @param ShopCollection $shop
      * @param string $root_product_id
      * @param string $related_product_id
      * @return void
      */
-    public function deleteScore(ShopCollection $shop, string $root_product_id, string $related_product_id): void
+    public function deleteScore(string $root_product_id, string $related_product_id): void
     {
-        $root_product = $this->product_query->getByIdAndShopCollection($root_product_id, $shop);
+        $root_product = $this->product_query->getById($root_product_id);
 
         if ($root_product) {
             $relationshipScore = $root_product->relationshipScore()->where('productId', $related_product_id)->first();

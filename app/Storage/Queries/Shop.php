@@ -15,6 +15,8 @@ class Shop implements ShopQuery
      */
     public function getByDomain(string $shop_domain): ?ShopCollection
     {
-        return ShopCollection::where('domain', $shop_domain)->first();
+        return ShopCollection::query()
+            ->where('domain', $shop_domain)
+            ->first();
     }
 }

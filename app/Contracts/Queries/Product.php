@@ -3,7 +3,7 @@
 namespace App\Contracts\Queries;
 
 use App\Collections\Product as ProductCollection;
-use App\Collections\Shop as ShopCollection;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 interface Product
 {
@@ -11,31 +11,52 @@ interface Product
      * Get a product of a shop by ID.
      *
      * @param string $product_id
-     * @param ShopCollection $shop
      * @return ProductCollection|null
      */
-    public function getByIdAndShopCollection(string $product_id, ShopCollection $shop): ?ProductCollection;
+    public function getById(string $product_id): ?ProductCollection;
 
     /**
      * Get list products of a shop by IDs
      *
      * @param array $product_ids
-     * @param ShopCollection $shop
+     * @param string $shop_domain
      * @return array
      */
-    public function getByIdsAndShopCollection(array $product_ids, ShopCollection $shop): array;
+    public function getByShopDomainAndIds(string $shop_domain, array $product_ids): array;
 
     /**
-     * Get a product of a shop by shop domain and product ID.
+     * Check if the products exist in the database.
+     *
+     * @param string $shop_domain
+     * @param string $product_id
+     * @return ProductCollection
+     *
+     * @throws ModelNotFoundException
      */
-    public function getByShopDomainAndProductId(string $shop_domain, string $product_id): ?ProductCollection;
+    public function checkProductExist(string $shop_domain, string $product_id): ProductCollection;
+
+    /**
+     * Get a product of a shop by ID and shop domain.
+     *
+     * @param string $shop_domain
+     * @param string $product_id
+     * @return ProductCollection|null
+     */
+    public function getByShopDomainAndId(string $shop_domain, string $product_id): ?ProductCollection;
 
     /**
      * Get list products ID using this product for recommendation.
      *
-     * @param ShopCollection $shop
      * @param string $product_id
      * @return array
      */
-    public function getReferencedProducts(ShopCollection $shop, string $product_id): array;
+    public function getReferencedProducts(string $product_id): array;
+
+    /**
+     * Get list of optional products for recommendation.
+     *
+     * * @param string $product_id
+     * * @return array
+     */
+    public function getOptionalProducts(string $product_id): array;
 }

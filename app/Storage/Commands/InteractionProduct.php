@@ -4,71 +4,75 @@ namespace App\Storage\Commands;
 
 use App\Collections\Product as ProductCollection;
 use App\Collections\Schema\InteractionProduct as InteractionProductSchema;
-use App\Collections\Shop as ShopCollection;
 use App\Contracts\Commands\InteractionProduct as InteractionProductCommand;
 use App\Lib\Utils;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class InteractionProduct implements InteractionProductCommand
 {
     /**
      * Increment the number of clicks on a product from a shop.
      *
-     * @param ShopCollection $shop
+     * @param string $shop_domain
      * @param string $product_id
      * @param int $quantity
      * @return void
+     *
+     * @throws ModelNotFoundException
      */
-    public function incrementClicks(ShopCollection $shop, string $product_id, int $quantity = 1): void
+    public function incrementClicks(string $shop_domain, string $product_id, int $quantity = 1): void
     {
-        $this->incrementInteraction($shop, $product_id, 'quantityClicks', $quantity);
+        $this->incrementInteraction($shop_domain, $product_id, 'quantityClicks', $quantity);
     }
 
     /**
      * Increase the number of times a product is added to cart.
      *
-     * @param ShopCollection $shop
+     * @param string $shop_domain
      * @param string $product_id
      * @param int $quantity
      * @return void
      */
-    public function incrementAddToCart(ShopCollection $shop, string $product_id, int $quantity = 1): void
+    public function incrementAddToCart(string $shop_domain, string $product_id, int $quantity = 1): void
     {
-        $this->incrementInteraction($shop, $product_id, 'quantityAddToCart', $quantity);
+        $this->incrementInteraction($shop_domain, $product_id, 'quantityAddToCart', $quantity);
     }
 
     /**
      * Increment interaction (clicks or add to cart) for a product.
      *
-     * @param ShopCollection $shop
+     * @param string $shop_domain
      * @param string $product_id
      * @param string $interactionType
      * @param int $quantity
      * @return void
+     *
+     * @throws ModelNotFoundException
      */
     private function incrementInteraction(
-        ShopCollection $shop,
+        string $shop_domain,
         string $product_id,
         string $interactionType,
         int $quantity
     ): void {
-        $product = $this->getProduct($shop, $product_id);
+        $product = $this->getProduct($shop_domain, $product_id);
 
-        if ($product) {
-            $interaction = $this->findOrCreateInteraction($product, $interactionType, $quantity);
-            $product->interactions()->save($interaction);
-        }
+        $interaction = $this->findOrCreateInteraction($product, $interactionType, $quantity);
+        $product->interactions()->save($interaction);
     }
 
     /**
      * Retrieve the product from the shop.
      *
-     * @param ShopCollection $shop
+     * @param string $shop_domain
      * @param string $product_id
-     * @return ProductCollection|null
+     * @return ProductCollection
+     *
+     * @throws ModelNotFoundException
      */
-    private function getProduct(ShopCollection $shop, string $product_id): ?ProductCollection
+    private function getProduct(string $shop_domain, string $product_id): ProductCollection
     {
-        return $shop->products()->where('id', $product_id)->first();
+        return ProductCollection::query()->where('id', $product_id)->where('shop_domain', $shop_domain)->firstOrFail();
     }
 
     /**

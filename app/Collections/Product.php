@@ -8,6 +8,7 @@ use App\Collections\Schema\InteractionProduct;
 use App\Collections\Schema\RelationshipScore;
 use App\Objects\Enums\RecommendationType;
 use MongoDB\Laravel\Relations\EmbedsMany;
+use MongoDB\Laravel\Relations\BelongsTo;
 
 class Product extends MongoCollection
 {
@@ -17,6 +18,14 @@ class Product extends MongoCollection
      * @var bool
      */
     public $incrementing = false;
+
+    /**
+     * Disable the timestamps.
+     *
+     * @var bool
+     */
+    public $timestamps = false;
+
     /**
      * The attributes that are mass assignable.
      *
@@ -95,5 +104,20 @@ class Product extends MongoCollection
     public function relationshipScore(): EmbedsMany
     {
         return $this->embedsMany(RelationshipScore::class);
+    }
+
+    /**
+     * Define the relationship with the shop.
+     *
+     * @return BelongsTo
+     */
+    public function shop(): BelongsTo
+    {
+        return $this->belongsTo(Shop::class);
+    }
+
+    public function getType(): RecommendationType
+    {
+        return $this->recommendationType;
     }
 }
