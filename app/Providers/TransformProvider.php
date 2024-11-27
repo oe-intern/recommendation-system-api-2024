@@ -3,8 +3,8 @@
 namespace App\Providers;
 
 use App\Contracts\Objects\Transform\ShopifyTransform;
-use App\Objects\Transform\Order;
-use App\Objects\Transform\Product;
+use App\Objects\Transform\OrderTransform;
+use App\Objects\Transform\ProductTransform;
 use Illuminate\Support\ServiceProvider;
 
 class TransformProvider extends ServiceProvider
@@ -17,11 +17,11 @@ class TransformProvider extends ServiceProvider
         // Register the service transform default.
         $this->app->bind(
             ShopifyTransform::class,
-            Product::class
+            ProductTransform::class
         );
 
-        $this->app->bind('shopify.transform.product', Product::class);
-        $this->app->bind('shopify.transform.order', Order::class);
+        $this->app->bind('shopify.transform.product', ProductTransform::class);
+        $this->app->bind('shopify.transform.order', OrderTransform::class);
     }
 
     /**

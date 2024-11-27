@@ -2,10 +2,10 @@
 
 namespace App\Storage\Queries;
 
-use App\Collections\Shop as ShopCollection;
-use App\Contracts\Queries\Shop as ShopQuery;
+use App\Collections\ShopCollection;
+use App\Contracts\Queries\IShopQuery;
 
-class Shop implements ShopQuery
+class ShopQuery implements IShopQuery
 {
     /**
      * Get a shop by domain.

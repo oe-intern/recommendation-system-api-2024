@@ -4,12 +4,12 @@ namespace App\Providers;
 
 use App\Storage\Queries\User as UserQuery;
 use App\Contracts\Queries\User as IUserQuery;
-use App\Storage\Queries\Shop as ShopQuery;
-use App\Contracts\Queries\Shop as IShopQuery;
-use App\Storage\Queries\Product as ProductQuery;
-use App\Contracts\Queries\Product as IProductQuery;
-use App\Contracts\Queries\RelationshipScore as IRelationshipScoreQuery;
-use App\Storage\Queries\RelationshipScore as RelationshipScoreQuery;
+use App\Storage\Queries\ShopQuery;
+use App\Contracts\Queries\IShopQuery;
+use App\Storage\Queries\ProductQuery;
+use App\Contracts\Queries\IProductQuery;
+use App\Contracts\Queries\IRelationshipScoreQuery;
+use App\Storage\Queries\RelationshipScoreQuery;
 use Illuminate\Support\ServiceProvider;
 
 class QueryServiceProvider extends ServiceProvider

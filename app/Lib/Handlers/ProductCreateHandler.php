@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Lib\Handlers;
 
-use App\Jobs\UpdateProduct as UpdateProductJob;
+use App\Jobs\CreateProduct as CreateProductJob;
 
-class ProductUpdate extends BaseShopHandler
+class ProductCreateHandler extends BaseShopHandler
 {
     /**
      * Process the incoming webhook data.
@@ -17,6 +17,6 @@ class ProductUpdate extends BaseShopHandler
      */
     protected function processData(string $shop_domain, array $body): void
     {
-        UpdateProductJob::dispatch($shop_domain, $body);
+        CreateProductJob::dispatch($shop_domain, $body);
     }
 }

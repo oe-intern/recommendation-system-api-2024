@@ -2,11 +2,12 @@
 
 namespace App\Storage\Queries;
 
-use App\Collections\Product as ProductCollection;
-use App\Contracts\Queries\Product as ProductCommand;
+use App\Collections\ProductCollection;
+use App\Contracts\Queries\IProductQuery;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Facades\Log;
 
-class Product implements ProductCommand
+class ProductQuery implements IProductQuery
 {
     /**
      * Get a product of a shop by ID.
@@ -30,7 +31,7 @@ class Product implements ProductCommand
     {
         $products = ProductCollection::query()
             ->whereIn('id', $product_ids)
-            ->where('shop_domain', $shop_domain)
+            ->where('shop_collection_domain', $shop_domain)
             ->get()
             ->all();
 
@@ -50,7 +51,7 @@ class Product implements ProductCommand
     {
         return ProductCollection::query()
             ->where('id', $product_id)
-            ->where('shop_domain', $shop_domain)
+            ->where('shop_collection_domain', $shop_domain)
             ->firstOrFail();
     }
 
@@ -65,7 +66,7 @@ class Product implements ProductCommand
     {
         return ProductCollection::query()
             ->where('id', $product_id)
-            ->where('shop_domain', $shop_domain)
+            ->where('shop_collection_domain', $shop_domain)
             ->first();
     }
 

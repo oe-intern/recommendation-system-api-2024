@@ -2,10 +2,10 @@
 
 namespace App\Storage\Commands;
 
-use App\Collections\Shop as ShopCollection;
-use App\Contracts\Commands\Shop as ShopCommand;
+use App\Collections\ShopCollection;
+use App\Contracts\Commands\IShopCommand;
 
-class Shop implements ShopCommand
+class ShopCommand implements IShopCommand
 {
     /**
      * Create a shop.

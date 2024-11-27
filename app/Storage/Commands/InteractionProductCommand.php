@@ -2,13 +2,13 @@
 
 namespace App\Storage\Commands;
 
-use App\Collections\Product as ProductCollection;
-use App\Collections\Schema\InteractionProduct as InteractionProductSchema;
-use App\Contracts\Commands\InteractionProduct as InteractionProductCommand;
+use App\Collections\ProductCollection;
+use App\Collections\Schema\InteractionProductSchema;
+use App\Contracts\Commands\IInteractionProductCommand;
 use App\Lib\Utils;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
-class InteractionProduct implements InteractionProductCommand
+class InteractionProductCommand implements IInteractionProductCommand
 {
     /**
      * Increment the number of clicks on a product from a shop.
@@ -72,7 +72,10 @@ class InteractionProduct implements InteractionProductCommand
      */
     private function getProduct(string $shop_domain, string $product_id): ProductCollection
     {
-        return ProductCollection::query()->where('id', $product_id)->where('shop_domain', $shop_domain)->firstOrFail();
+        return ProductCollection::query()
+            ->where('id', $product_id)
+            ->where('shop_collection_domain', $shop_domain)
+            ->firstOrFail();
     }
 
     /**

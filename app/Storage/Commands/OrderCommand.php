@@ -2,10 +2,10 @@
 
 namespace App\Storage\Commands;
 
-use App\Collections\Shop as ShopCollection;
-use App\Contracts\Commands\Order as OrderCommand;
+use App\Collections\ShopCollection;
+use App\Contracts\Commands\IOrderCommand;
 
-class Order implements OrderCommand
+class OrderCommand implements IOrderCommand
 {
     /**
      * Create list order of a shop with data from Shopify.

@@ -2,14 +2,14 @@
 
 namespace App\Services\Shopify\Graphql\Queries;
 
-use App\Contracts\Shopify\Graphql\Queries\Product as IProduct;
+use App\Contracts\Shopify\Graphql\Queries\IProductQueryShopify;
 use App\Exceptions\ShopifyGraphqlException;
 use App\Services\Shopify\Graphql\BaseGraphqlService;
 use JsonException;
 use Shopify\Exception\HttpRequestException;
 use Shopify\Exception\MissingArgumentException;
 
-class ProductService extends BaseGraphqlService implements IProduct
+class ProductQueryShopify extends BaseGraphqlService implements IProductQueryShopify
 {
     /**
      * Define the items per page.
@@ -120,6 +120,10 @@ class ProductService extends BaseGraphqlService implements IProduct
      */
     public function fetchByIds(array $ids): array
     {
+        if (empty($ids)) {
+            return [];
+        }
+
         $query = <<<'GRAPHQL'
                 query Products {
                     nodes(ids: ["%s"]) {

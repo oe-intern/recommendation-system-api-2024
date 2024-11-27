@@ -2,11 +2,11 @@
 
 namespace App\Storage\Queries;
 
-use App\Collections\Product as ProductCollection;
-use App\Contracts\Queries\RelationshipScore as RelationshipQuery;
+use App\Collections\ProductCollection;
+use App\Contracts\Queries\IRelationshipScoreQuery;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
-class RelationshipScore implements RelationshipQuery
+class RelationshipScoreQuery implements IRelationshipScoreQuery
 {
     /**
      * Get list of relationship scores of a product.
@@ -50,7 +50,7 @@ class RelationshipScore implements RelationshipQuery
     {
         return ProductCollection::query()
             ->where('id', $product_id)
-            ->where('shop_domain', $shop_domain)
+            ->where('shop_collection_domain', $shop_domain)
             ->firstOrFail()
             ->relationshipScore()
             ->get()

@@ -2,24 +2,24 @@
 
 namespace App\Storage\Commands;
 
-use App\Collections\Product as ProductCollection;
-use App\Collections\Schema\RelationshipScore as RelationshipScoreSchema;
-use App\Contracts\Commands\RelationshipScore as RelationshipScoreCommand;
-use App\Contracts\Queries\Product as ProductQuery;
+use App\Collections\ProductCollection;
+use App\Collections\Schema\RelationshipScoreSchema;
+use App\Contracts\Commands\IRelationshipScoreCommand;
+use App\Contracts\Queries\IProductQuery;
 
-class RelationshipScore implements RelationshipScoreCommand
+class RelationshipScoreCommand implements IRelationshipScoreCommand
 {
     /**
-     * @var ProductQuery
+     * @var IProductQuery
      */
-    protected ProductQuery $product_query;
+    protected IProductQuery $product_query;
 
     /**
      * RelationshipScore constructor.
      *
-     * @param ProductQuery $product_query
+     * @param IProductQuery $product_query
      */
-    public function __construct(ProductQuery $product_query)
+    public function __construct(IProductQuery $product_query)
     {
         $this->product_query = $product_query;
     }

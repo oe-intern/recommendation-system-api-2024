@@ -2,14 +2,14 @@
 
 namespace App\Services\Shopify\Graphql\Queries;
 
-use App\Contracts\Shopify\Graphql\Queries\Order as IOrder;
+use App\Contracts\Shopify\Graphql\Queries\IOrderQueryShopify;
 use App\Exceptions\ShopifyGraphqlException;
 use App\Services\Shopify\Graphql\BaseGraphqlService;
 use JsonException;
 use Shopify\Exception\HttpRequestException;
 use Shopify\Exception\MissingArgumentException;
 
-class OrderService extends BaseGraphqlService implements IOrder
+class OrderQueryShopify extends BaseGraphqlService implements IOrderQueryShopify
 {
     /**
      * @return array

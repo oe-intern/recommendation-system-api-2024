@@ -5,7 +5,7 @@ namespace App\Objects\Transform;
 use App\Contracts\Objects\Transform\ShopifyTransform as IShopifyTransform;
 use App\Lib\Utils;
 
-class Product implements IShopifyTransform
+class ProductTransform implements IShopifyTransform
 {
     /**
      * Convert shopify data list to collection data list.

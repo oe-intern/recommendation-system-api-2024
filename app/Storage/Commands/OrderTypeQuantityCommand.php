@@ -2,12 +2,12 @@
 
 namespace App\Storage\Commands;
 
-use App\Collections\Schema\OrderTypeQuantity as OrderTypeQuantitySchema;
-use App\Contracts\Commands\OrderTypeQuantity as OrderTypeQuantityCommand;
-use App\Collections\Shop as ShopCollection;
+use App\Collections\Schema\OrderTypeQuantitySchema;
+use App\Contracts\Commands\IOrderTypeQuantityCommand;
+use App\Collections\ShopCollection;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
-class OrderTypeQuantity implements OrderTypeQuantityCommand
+class OrderTypeQuantityCommand implements IOrderTypeQuantityCommand
 {
     /**
      * Increment the number of product types from a shop.

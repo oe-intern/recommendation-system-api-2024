@@ -9,14 +9,14 @@ use App\Lib\Handlers\AppUninstalled;
 use App\Lib\Handlers\Privacy\CustomersDataRequest;
 use App\Lib\Handlers\Privacy\CustomersRedact;
 use App\Lib\Handlers\Privacy\ShopRedact;
-use App\Lib\Handlers\OrderCreate;
-use App\Lib\Handlers\ProductCreate;
-use App\Lib\Handlers\ProductDelete;
-use App\Lib\Handlers\ProductUpdate;
+use App\Lib\Handlers\OrderCreateHandler;
+use App\Lib\Handlers\ProductCreateHandler;
+use App\Lib\Handlers\ProductDeleteHandler;
+use App\Lib\Handlers\ProductUpdateHandler;
 use App\Lib\Handlers\ShopUpdate;
 use App\Models\Export;
 use App\Policies\ActivityPolicy;
-use App\Contracts\Recommendation\ProductRecommendation;
+use App\Contracts\Recommendation\IProductRecommendation;
 use App\Services\Product\ProductRecommendationService;
 use App\Services\Shopify\UserContext;
 use Illuminate\Support\Facades\Gate;
@@ -50,7 +50,7 @@ class AppServiceProvider extends ServiceProvider
         );
 
         $this->app->bind(
-            ProductRecommendation::class,
+            IProductRecommendation::class,
             ProductRecommendationService::class
         );
     }
@@ -82,10 +82,10 @@ class AppServiceProvider extends ServiceProvider
 
         Registry::addHandler(Topics::APP_UNINSTALLED, app(AppUninstalled::class));
         Registry::addHandler(Topics::SHOP_UPDATE, app(ShopUpdate::class));
-        Registry::addHandler(Topics::PRODUCTS_CREATE, app(ProductCreate::class));
-        Registry::addHandler(Topics::PRODUCTS_UPDATE, app(ProductUpdate::class));
-        Registry::addHandler(Topics::PRODUCTS_DELETE, app(ProductDelete::class));
-        Registry::addHandler(Topics::ORDERS_CREATE, app(OrderCreate::class));
+        Registry::addHandler(Topics::PRODUCTS_CREATE, app(ProductCreateHandler::class));
+        Registry::addHandler(Topics::PRODUCTS_UPDATE, app(ProductUpdateHandler::class));
+        Registry::addHandler(Topics::PRODUCTS_DELETE, app(ProductDeleteHandler::class));
+        Registry::addHandler(Topics::ORDERS_CREATE, app(OrderCreateHandler::class));
         /*
          * This sets up the mandatory privacy webhooks. You’ll need to fill in the endpoint to be used by your app in
          * the “Privacy webhooks” section in the “App setup” tab, and customize the code when you store customer data

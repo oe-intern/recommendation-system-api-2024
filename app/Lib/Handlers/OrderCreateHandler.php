@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Lib\Handlers;
 
-use App\Jobs\DeleteProduct as DeleteProductJob;
+use App\Jobs\CreateOrder as CreateOrderJob;
 
-class ProductDelete extends BaseShopHandler
+class OrderCreateHandler extends BaseShopHandler
 {
     /**
      * Process the incoming webhook data.
@@ -17,6 +17,6 @@ class ProductDelete extends BaseShopHandler
      */
     protected function processData(string $shop_domain, array $body): void
     {
-        DeleteProductJob::dispatch($shop_domain, $body);
+        CreateOrderJob::dispatch($shop_domain, $body);
     }
 }

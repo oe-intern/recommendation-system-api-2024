@@ -2,9 +2,9 @@
 
 namespace App\Jobs;
 
-use App\Contracts\Commands\Product as ProductCommand;
-use App\Contracts\Queries\Product as ProductQuery;
-use App\Contracts\Queries\Shop as ShopQuery;
+use App\Contracts\Commands\IProductCommand;
+use App\Contracts\Queries\IProductQuery;
+use App\Contracts\Queries\IShopQuery;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -40,12 +40,12 @@ class DeleteProduct implements ShouldQueue
     /**
      * Execute the job.
      *
-     * @param ProductCommand $product_command
-     * @param ShopQuery $shop_query
-     * @param ProductQuery $product_query
+     * @param IProductCommand $product_command
+     * @param IShopQuery $shop_query
+     * @param IProductQuery $product_query
      * @return void
      */
-    public function handle(ProductCommand $product_command, ShopQuery $shop_query, ProductQuery $product_query): void
+    public function handle(IProductCommand $product_command, IShopQuery $shop_query, IProductQuery $product_query): void
     {
         $shop = $shop_query->getByDomain($this->shop_domain);
 

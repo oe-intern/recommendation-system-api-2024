@@ -2,13 +2,13 @@
 
 namespace App\Jobs;
 
-use App\Contracts\Commands\Order as OrderCommand;
-use App\Contracts\Commands\Product as ProductCommand;
-use App\Contracts\Commands\Shop as ShopCommand;
-use App\Contracts\Shopify\Graphql\Queries\Order as OrderQuery;
-use App\Contracts\Shopify\Graphql\Queries\Product as ProductQuery;
-use App\Objects\Transform\Product as ProductTransform;
-use App\Objects\Transform\Order as OrderTransform;
+use App\Contracts\Commands\IOrderCommand;
+use App\Contracts\Commands\IProductCommand;
+use App\Contracts\Commands\IShopCommand;
+use App\Contracts\Shopify\Graphql\Queries\IOrderQueryShopify;
+use App\Contracts\Shopify\Graphql\Queries\IProductQueryShopify;
+use App\Objects\Transform\ProductTransform;
+use App\Objects\Transform\OrderTransform;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Foundation\Queue\Queueable;
@@ -35,21 +35,21 @@ class ProcessShopInstalledData implements ShouldQueue
     /**
      * Execute the job
      *
-     * @param ProductQuery $product_query
-     * @param OrderQuery $order_query
-     * @param ShopCommand $shop_command
-     * @param ProductCommand $product_command
-     * @param OrderCommand $order_command
+     * @param IProductQueryShopify $product_query
+     * @param IOrderQueryShopify $order_query
+     * @param IShopCommand $shop_command
+     * @param IProductCommand $product_command
+     * @param IOrderCommand $order_command
      * @param ProductTransform $product_transform
      * @param OrderTransform $order_transform
      * @return void
      */
     public function handle(
-        ProductQuery $product_query,
-        OrderQuery $order_query,
-        ShopCommand $shop_command,
-        ProductCommand $product_command,
-        OrderCommand $order_command,
+        IProductQueryShopify $product_query,
+        IOrderQueryShopify $order_query,
+        IShopCommand $shop_command,
+        IProductCommand $product_command,
+        IOrderCommand $order_command,
         ProductTransform $product_transform,
         OrderTransform $order_transform
     ): void {

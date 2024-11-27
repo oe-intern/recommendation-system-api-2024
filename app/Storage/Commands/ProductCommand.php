@@ -2,43 +2,42 @@
 
 namespace App\Storage\Commands;
 
-use App\Collections\Product as ProductCollection;
-use App\Collections\Shop as ShopCollection;
-use App\Contracts\Commands\Product as ProductCommand;
-use App\Contracts\Commands\RelationshipScore as RelationshipScoreCommand;
-use App\Contracts\Queries\Product as ProductQuery;
-use App\Contracts\Queries\RelationshipScore as RelationshipScoreQuery;
+use App\Collections\ProductCollection;
+use App\Collections\ShopCollection;
+use App\Contracts\Commands\IProductCommand;
+use App\Contracts\Commands\IRelationshipScoreCommand;
+use App\Contracts\Queries\IProductQuery;
+use App\Contracts\Queries\IRelationshipScoreQuery;
 use App\Objects\Enums\RecommendationType;
-use App\Objects\Enums\RecommendationType as RecommendationTypeEnum;
 
-class Product implements ProductCommand
+class ProductCommand implements IProductCommand
 {
     /**
-     * @var ProductQuery
+     * @var IProductQuery
      */
-    protected ProductQuery $product_query;
+    protected IProductQuery $product_query;
 
     /**
-     * @var RelationshipScoreQuery
+     * @var IRelationshipScoreQuery
      */
-    protected RelationshipScoreQuery $relationship_score_query;
+    protected IRelationshipScoreQuery $relationship_score_query;
 
     /**
-     * @var RelationshipScoreCommand
+     * @var IRelationshipScoreCommand
      */
-    protected RelationshipScoreCommand $relationship_score_command;
+    protected IRelationshipScoreCommand $relationship_score_command;
 
     /**
-     * Product constructor.
+     * ProductCommand constructor.
      *
-     * @param ProductQuery $product_query
-     * @param RelationshipScoreQuery $relationship_score_query
-     * @param RelationshipScoreCommand $relationship_score_command
+     * @param IProductQuery $product_query
+     * @param IRelationshipScoreQuery $relationship_score_query
+     * @param IRelationshipScoreCommand $relationship_score_command
      */
     public function __construct(
-        ProductQuery $product_query,
-        RelationshipScoreQuery $relationship_score_query,
-        RelationshipScoreCommand $relationship_score_command
+        IProductQuery $product_query,
+        IRelationshipScoreQuery $relationship_score_query,
+        IRelationshipScoreCommand $relationship_score_command
     ) {
         $this->product_query = $product_query;
         $this->relationship_score_query = $relationship_score_query;
@@ -73,12 +72,12 @@ class Product implements ProductCommand
      * Update the recommendation type a product.
      *
      * @param ProductCollection $product
-     * @param RecommendationTypeEnum $recommendation_type
+     * @param RecommendationType $recommendation_type
      * @return bool
      */
     public function setRecommendationType(
         ProductCollection $product,
-        RecommendationTypeEnum $recommendation_type
+        RecommendationType $recommendation_type
     ): bool {
         return $product->update([
             'recommendationType' => $recommendation_type,
