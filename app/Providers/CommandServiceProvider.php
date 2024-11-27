@@ -4,18 +4,18 @@ namespace App\Providers;
 
 use App\Storage\Commands\User as UserCommand;
 use App\Contracts\Commands\User as IUserCommand;
-use App\Storage\Commands\Shop as ShopCommand;
-use App\Contracts\Commands\Shop as IShopCommand;
-use App\Contracts\Commands\Product as IProductCommand;
-use App\Storage\Commands\Product as ProductCommand;
-use App\Contracts\Commands\Order as IOrderCommand;
-use App\Storage\Commands\Order as OrderCommand;
-use App\Contracts\Commands\RelationshipScore as IRelationshipScoreCommand;
-use App\Storage\Commands\RelationshipScore as RelationshipScoreCommand;
-use App\Storage\Commands\InteractionProduct as InteractionProductCommand;
-use App\Contracts\Commands\InteractionProduct as IInteractionProductCommand;
-use App\Contracts\Commands\OrderTypeQuantity as IOrderTypeQuantityCommand;
-use App\Storage\Commands\OrderTypeQuantity as OrderTypeQuantityCommand;
+use App\Storage\Commands\ShopCommand;
+use App\Contracts\Commands\IShopCommand;
+use App\Contracts\Commands\IProductCommand;
+use App\Storage\Commands\ProductCommand;
+use App\Contracts\Commands\IOrderCommand;
+use App\Storage\Commands\OrderCommand;
+use App\Contracts\Commands\IRelationshipScoreCommand;
+use App\Storage\Commands\RelationshipScoreCommand;
+use App\Storage\Commands\InteractionProductCommand;
+use App\Contracts\Commands\IInteractionProductCommand;
+use App\Contracts\Commands\IOrderTypeQuantityCommand;
+use App\Storage\Commands\OrderTypeQuantityCommand;
 use Illuminate\Support\ServiceProvider;
 
 class CommandServiceProvider extends ServiceProvider

@@ -2,10 +2,10 @@
 
 namespace App\Jobs;
 
-use App\Contracts\Commands\Product as ProductCommand;
-use App\Contracts\Queries\Shop as ShopQuery;
-use App\Storage\Queries\Product as ProductQuery;
-use App\Objects\Transform\Product as ProductTransform;
+use App\Contracts\Commands\IProductCommand;
+use App\Contracts\Queries\IShopQuery;
+use App\Contracts\Queries\IProductQuery;
+use App\Objects\Transform\ProductTransform;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -41,13 +41,13 @@ class UpdateProduct implements ShouldQueue
     /**
      * Execute the job.
      *
-     * @param ProductCommand $product_command
-     * @param ShopQuery $shop_query
+     * @param IProductCommand $product_command
+     * @param IShopQuery $shop_query
      * @param ProductTransform $product_transform
-     * @param ProductQuery $product_query
+     * @param IProductQuery $product_query
      * @return void
      */
-    public function handle(ProductCommand $product_command, ShopQuery $shop_query, ProductTransform $product_transform, ProductQuery $product_query): void
+    public function handle(IProductCommand $product_command, IShopQuery $shop_query, ProductTransform $product_transform, IProductQuery $product_query): void
     {
         $product = $product_query->getByShopDomainAndId($this->shop_domain, $this->product['id']);
         if ($product) {

@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Contracts\Queries\Product;
-use App\Contracts\Recommendation\ProductRecommendation as ProductRecommendationService;
+use App\Contracts\Queries\IProductQuery;
+use App\Contracts\Recommendation\IProductRecommendation;
 use App\Exceptions\ProductNotFoundException;
 use App\Lib\Utils;
 use App\Objects\Enums\RecommendationType;
@@ -14,13 +14,13 @@ use Illuminate\Http\Request;
 class RecommendationController extends Controller
 {
     protected UserContext $user_context;
-    protected ProductRecommendationService $product_recommendation_service;
-    protected Product $product_query;
+    protected IProductRecommendation $product_recommendation_service;
+    protected IProductQuery $product_query;
 
     public function __construct(
         UserContext $user_context,
-        ProductRecommendationService $product_recommendation_service,
-        Product $product_query
+        IProductRecommendation $product_recommendation_service,
+        IProductQuery $product_query
     ) {
         $this->user_context = $user_context;
         $this->product_recommendation_service = $product_recommendation_service;
@@ -38,7 +38,7 @@ class RecommendationController extends Controller
     public function getRecommendation(Request $request): JsonResponse
     {
         $shop_domain = $this->user_context->getDomain()->toNative();
-        $product_id = $request->query('product_id');
+        $product_id = Utils::getIdFromGid($request->query('product_id'));
 
         if (empty($product_id)) {
             return response()->json([
@@ -68,7 +68,7 @@ class RecommendationController extends Controller
     public function setState(Request $request): JsonResponse
     {
         $shop_domain = $this->user_context->getDomain()->toNative();
-        $product_id = $request->input('product_id');
+        $product_id = Utils::getIdFromGid($request->input('product_id'));
         $type = RecommendationType::tryFrom($request->input('recommendation_type'));
 
         $this->validateProductIds($shop_domain, [$product_id]);

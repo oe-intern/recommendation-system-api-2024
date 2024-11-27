@@ -7,10 +7,10 @@ use App\Services\Shopify\Graphql\ShopLocaleService;
 use Illuminate\Support\ServiceProvider;
 use App\Contracts\Shopify\Graphql\Shop as IShop;
 use App\Services\Shopify\Graphql\ShopService;
-use App\Contracts\Shopify\Graphql\Queries\Order as IOrder;
-use App\Services\Shopify\Graphql\Queries\OrderService;
-use App\Contracts\Shopify\Graphql\Queries\Product as IProduct;
-use App\Services\Shopify\Graphql\Queries\ProductService;
+use App\Contracts\Shopify\Graphql\Queries\IOrderQueryShopify;
+use App\Services\Shopify\Graphql\Queries\OrderQueryShopify;
+use App\Contracts\Shopify\Graphql\Queries\IProductQueryShopify;
+use App\Services\Shopify\Graphql\Queries\ProductQueryShopify;
 
 class ShopifyServiceProvider extends ServiceProvider
 {
@@ -30,13 +30,13 @@ class ShopifyServiceProvider extends ServiceProvider
         );
 
         $this->app->bind(
-            IOrder::class,
-            OrderService::class
+            IOrderQueryShopify::class,
+            OrderQueryShopify::class
         );
 
         $this->app->bind(
-            IProduct::class,
-            ProductService::class
+            IProductQueryShopify::class,
+            ProductQueryShopify::class
         );
     }
 

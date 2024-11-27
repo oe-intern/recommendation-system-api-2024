@@ -2,67 +2,66 @@
 
 namespace App\Services\Product;
 
-use App\Collections\Product as ProductCollection;
-use App\Contracts\Commands\Product as ProductCommand;
-use App\Contracts\Commands\RelationshipScore as RelationshipScoreCommand;
-use App\Contracts\Queries\Product as ProductQuery;
-use App\Contracts\Queries\RelationshipScore as RelationshipScoreQuery;
-use App\Contracts\Queries\Shop as ShopQuery;
-use App\Contracts\Recommendation\ProductRecommendation as IProductRecommendation;
-use App\Contracts\Shopify\Graphql\Queries\Product as ProductService;
+use App\Collections\ProductCollection;
+use App\Contracts\Commands\IProductCommand;
+use App\Contracts\Commands\IRelationshipScoreCommand;
+use App\Contracts\Queries\IProductQuery;
+use App\Contracts\Queries\IRelationshipScoreQuery;
+use App\Contracts\Queries\IShopQuery;
+use App\Contracts\Recommendation\IProductRecommendation;
+use App\Contracts\Shopify\Graphql\Queries\IProductQueryShopify;
 use App\Exceptions\ProductNotFoundException;
 use App\Objects\Enums\RecommendationType;
-use Illuminate\Support\Facades\Log;
 
 class ProductRecommendationService implements IProductRecommendation
 {
     /**
-     * @var ProductQuery
+     * @var IProductQuery
      */
-    protected ProductQuery $product_query;
+    protected IProductQuery $product_query;
 
     /**
-     * @var RelationshipScoreQuery
+     * @var IRelationshipScoreQuery
      */
-    protected RelationshipScoreQuery $relationship_score_query;
+    protected IRelationshipScoreQuery $relationship_score_query;
 
     /**
-     * @var ShopQuery
+     * @var IShopQuery
      */
-    protected ShopQuery $shop_query;
+    protected IShopQuery $shop_query;
 
     /**
-     * @var RelationshipScoreCommand
+     * @var IRelationshipScoreCommand
      */
-    protected RelationshipScoreCommand $relationship_score_command;
+    protected IRelationshipScoreCommand $relationship_score_command;
 
     /**
-     * @var ProductCommand
+     * @var IProductCommand
      */
-    protected ProductCommand $product_command;
+    protected IProductCommand $product_command;
 
     /**
-     * @var ProductService
+     * @var IProductQueryShopify
      */
-    protected ProductService $product_service;
+    protected IProductQueryShopify $product_service;
 
     /**
      * ProductRecommendationService constructor.
      *
-     * @param ProductQuery $product_query
-     * @param RelationshipScoreQuery $relationship_score_query
-     * @param ShopQuery $shop_query
-     * @param RelationshipScoreCommand $relationship_score_command
-     * @param ProductCommand $product_command
-     * @param ProductService $product_service
+     * @param IProductQuery $product_query
+     * @param IRelationshipScoreQuery $relationship_score_query
+     * @param IShopQuery $shop_query
+     * @param IRelationshipScoreCommand $relationship_score_command
+     * @param IProductCommand $product_command
+     * @param IProductQueryShopify $product_service
      */
     public function __construct(
-        ProductQuery $product_query,
-        RelationshipScoreQuery $relationship_score_query,
-        ShopQuery $shop_query,
-        RelationshipScoreCommand $relationship_score_command,
-        ProductCommand $product_command,
-        ProductService $product_service
+        IProductQuery $product_query,
+        IRelationshipScoreQuery $relationship_score_query,
+        IShopQuery $shop_query,
+        IRelationshipScoreCommand $relationship_score_command,
+        IProductCommand $product_command,
+        IProductQueryShopify $product_service
     ) {
         $this->product_query = $product_query;
         $this->relationship_score_query = $relationship_score_query;
@@ -83,7 +82,6 @@ class ProductRecommendationService implements IProductRecommendation
      */
     public function getRecommendedProducts(string $shop_domain, string $product_id): array
     {
-        $product_id = '8909707542774';
         $product = $this->product_query->getByShopDomainAndId($shop_domain, $product_id);
 
         if (!$product) {
@@ -156,9 +154,8 @@ class ProductRecommendationService implements IProductRecommendation
         array $recommended_products,
         ?RecommendationType $recommendation_type
     ): ProductCollection {
-        Log::info("==================".$shop_domain."==================".$product_id."==================");
         $product = $this->product_query->getById($product_id);
-        Log::info("==================".json_encode($product)."==================");
+
         $this->product_command->setRecommendationProduct(
             $product, $shop_domain,
             $recommendation_type ?? $product->getType(),

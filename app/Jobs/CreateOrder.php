@@ -2,11 +2,11 @@
 
 namespace App\Jobs;
 
-use App\Contracts\Commands\Order as OrderCommand;
-use App\Contracts\Commands\OrderTypeQuantity as OrderTypeQuantityCommand;
-use App\Contracts\Queries\Shop as ShopQuery;
-use App\Objects\Transform\Order as OrderTransform;
-use App\Storage\Queries\Product as ProductQuery;
+use App\Contracts\Commands\IOrderCommand;
+use App\Contracts\Commands\IOrderTypeQuantityCommand;
+use App\Contracts\Queries\IShopQuery;
+use App\Objects\Transform\OrderTransform;
+use App\Storage\Queries\ProductQuery;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -41,19 +41,19 @@ class CreateOrder implements ShouldQueue
     /**
      * Execute the job.
      *
-     * @param OrderCommand $order_command
-     * @param ShopQuery $shop_query
+     * @param IOrderCommand $order_command
+     * @param IShopQuery $shop_query
      * @param OrderTransform $order_transform
-     * @param OrderTypeQuantityCommand $order_type_quantity_command
+     * @param IOrderTypeQuantityCommand $order_type_quantity_command
      * @param ProductQuery $product_query
      * @return void
      */
     public function handle(
-        OrderCommand $order_command,
-        ShopQuery $shop_query,
+        IOrderCommand $order_command,
+        IShopQuery $shop_query,
         OrderTransform $order_transform,
         ProductQuery $product_query,
-        OrderTypeQuantityCommand $order_type_quantity_command
+        IOrderTypeQuantityCommand $order_type_quantity_command
     ): void {
         $shop = $shop_query->getByDomain($this->shop_domain);
 
@@ -66,7 +66,7 @@ class CreateOrder implements ShouldQueue
 
         $order_command->create($order_data, $shop);
         foreach ($products_data as $product_data) {
-            $product = $product_query->getByIdAndShopCollection($product_data['productId'], $shop);
+            $product = $product_query->getByShopDomainAndId($this->shop_domain, $product_data['productId']);
             if ($product) {
                 $order_type_quantity_command->increment($shop, $product['productType'], $product_data['quantity']);
             }
