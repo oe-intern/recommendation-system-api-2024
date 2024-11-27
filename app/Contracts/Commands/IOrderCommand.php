@@ -2,9 +2,9 @@
 
 namespace App\Contracts\Commands;
 
-use App\Collections\Shop as ShopCollection;
+use App\Collections\ShopCollection;
 
-interface Order
+interface IOrderCommand
 {
     /**
      * Create list order of a shop with data from Shopify.

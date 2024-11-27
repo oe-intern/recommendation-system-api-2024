@@ -2,7 +2,7 @@
 
 namespace App\Contracts\Commands;
 
-interface InteractionProduct
+interface IInteractionProductCommand
 {
     /**
      * Increment the clicks of a product from a shop.

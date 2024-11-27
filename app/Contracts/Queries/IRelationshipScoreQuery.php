@@ -2,9 +2,9 @@
 
 namespace App\Contracts\Queries;
 
-use App\Collections\Product as ProductCollection;
+use App\Collections\ProductCollection;
 
-interface RelationshipScore
+interface IRelationshipScoreQuery
 {
     /**
      * Get list relationship score of a product from a shop.

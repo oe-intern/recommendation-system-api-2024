@@ -2,7 +2,7 @@
 
 namespace App\Contracts\Shopify\Graphql\Queries;
 
-interface Order
+interface IOrderQueryShopify
 {
     /**
      * Fetch all orders of a shop.

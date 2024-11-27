@@ -2,7 +2,7 @@
 
 namespace App\Contracts\Shopify\Graphql\Queries;
 
-interface Product
+interface IProductQueryShopify
 {
     /**
      * Fetch all products of a shop.

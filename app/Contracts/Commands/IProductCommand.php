@@ -2,12 +2,11 @@
 
 namespace App\Contracts\Commands;
 
-use App\Collections\Product as ProductCollection;
-use App\Collections\Shop as ShopCollection;
+use App\Collections\ProductCollection;
+use App\Collections\ShopCollection;
 use App\Objects\Enums\RecommendationType;
-use App\Objects\Enums\RecommendationType as RecommendationTypeEnum;
 
-interface Product
+interface IProductCommand
 {
     /**
      * Create a product of a shop with data from Shopify.
@@ -41,12 +40,12 @@ interface Product
      * Update the recommendation type a product.
      *
      * @param ProductCollection $product
-     * @param RecommendationTypeEnum $recommendation_type
+     * @param RecommendationType $recommendation_type
      * @return bool
      */
     public function setRecommendationType(
         ProductCollection $product,
-        RecommendationTypeEnum $recommendation_type
+        RecommendationType $recommendation_type
     ): bool;
 
     /**

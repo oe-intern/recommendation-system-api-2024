@@ -2,9 +2,9 @@
 
 namespace App\Contracts\Queries;
 
-use App\Collections\Shop as ShopCollection;
+use App\Collections\ShopCollection;
 
-interface Shop
+interface IShopQuery
 {
     /**
      * Get a shop by domain.

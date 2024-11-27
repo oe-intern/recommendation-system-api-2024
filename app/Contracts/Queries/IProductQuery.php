@@ -2,10 +2,10 @@
 
 namespace App\Contracts\Queries;
 
-use App\Collections\Product as ProductCollection;
+use App\Collections\ProductCollection;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
-interface Product
+interface IProductQuery
 {
     /**
      * Get a product of a shop by ID.

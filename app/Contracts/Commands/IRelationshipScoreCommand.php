@@ -2,7 +2,7 @@
 
 namespace App\Contracts\Commands;
 
-interface RelationshipScore
+interface IRelationshipScoreCommand
 {
     /**
      * Set the score of a relationship between two products from a shop.

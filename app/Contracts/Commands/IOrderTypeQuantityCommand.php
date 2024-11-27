@@ -4,7 +4,7 @@ namespace App\Contracts\Commands;
 
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
-interface OrderTypeQuantity
+interface IOrderTypeQuantityCommand
 {
     /**
      * Increment the number of product types from a shop.

@@ -2,11 +2,11 @@
 
 namespace App\Contracts\Recommendation;
 
-use App\Collections\Product as ProductCollection;
+use App\Collections\ProductCollection;
 use App\Exceptions\ProductNotFoundException;
 use App\Objects\Enums\RecommendationType;
 
-interface ProductRecommendation
+interface IProductRecommendation
 {
     /**
      * Get list of recommended products for a product.

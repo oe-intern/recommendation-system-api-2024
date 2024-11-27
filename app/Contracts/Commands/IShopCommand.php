@@ -2,9 +2,9 @@
 
 namespace App\Contracts\Commands;
 
-use App\Collections\Shop as ShopCollection;
+use App\Collections\ShopCollection;
 
-interface Shop
+interface IShopCommand
 {
     /**
      * Create a shop.
