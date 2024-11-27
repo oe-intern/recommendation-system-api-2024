@@ -4,23 +4,17 @@ namespace App\Collections\Schema;
 
 use App\Collections\MongoCollection;
 
-class OrderTypeQuantity extends MongoCollection
+class InteractionProductSchema extends MongoCollection
 {
-    /**
-     * Indicates if the model should be timestamped.
-     *
-     * @var bool
-     */
-    public $timestamps = false;
-
     /**
      * The attributes that are mass assignable.
      *
      * @var string[]
      */
     protected $fillable = [
-        'quantity',
-        'type',
+        'date',
+        'quantityClicks',
+        'quantityAddToCart',
     ];
 
     /**
@@ -28,7 +22,7 @@ class OrderTypeQuantity extends MongoCollection
      *
      * @var string
      */
-    protected $primaryKey = 'type';
+    protected $primaryKey = 'date';
 
     /**
      * The type of the primary key ID.
@@ -43,7 +37,8 @@ class OrderTypeQuantity extends MongoCollection
      * @var int[]
      */
     protected $attributes = [
-        'quantity' => 0,
+        'quantityClicks' => 0,
+        'quantityAddToCart' => 0,
     ];
 
     /**
@@ -52,6 +47,7 @@ class OrderTypeQuantity extends MongoCollection
      * @var string[]
      */
     protected $casts = [
-        'quantity' => 'int',
+        'quantityClicks' => 'int',
+        'quantityAddToCart' => 'int',
     ];
 }

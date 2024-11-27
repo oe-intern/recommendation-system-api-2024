@@ -4,17 +4,23 @@ namespace App\Collections\Schema;
 
 use App\Collections\MongoCollection;
 
-class InteractionProduct extends MongoCollection
+class RelationshipScoreSchema extends MongoCollection
 {
+    /**
+     * Indicates if the model should be timestamped.
+     *
+     * @var bool
+     */
+    public $timestamps = false;
+
     /**
      * The attributes that are mass assignable.
      *
      * @var string[]
      */
     protected $fillable = [
-        'date',
-        'quantityClicks',
-        'quantityAddToCart',
+        'productId',
+        'score',
     ];
 
     /**
@@ -22,7 +28,7 @@ class InteractionProduct extends MongoCollection
      *
      * @var string
      */
-    protected $primaryKey = 'date';
+    protected $primaryKey = 'productId';
 
     /**
      * The type of the primary key ID.
@@ -34,11 +40,10 @@ class InteractionProduct extends MongoCollection
     /**
      * The default values for the attributes.
      *
-     * @var int[]
+     * @var float[]
      */
     protected $attributes = [
-        'quantityClicks' => 0,
-        'quantityAddToCart' => 0,
+        'score' => 0.0,
     ];
 
     /**
@@ -47,7 +52,6 @@ class InteractionProduct extends MongoCollection
      * @var string[]
      */
     protected $casts = [
-        'quantityClicks' => 'int',
-        'quantityAddToCart' => 'int',
+        'score' => 'float',
     ];
 }

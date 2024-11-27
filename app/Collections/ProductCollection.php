@@ -4,14 +4,21 @@ declare(strict_types=1);
 
 namespace App\Collections;
 
-use App\Collections\Schema\InteractionProduct;
-use App\Collections\Schema\RelationshipScore;
+use App\Collections\Schema\InteractionProductSchema;
+use App\Collections\Schema\RelationshipScoreSchema;
 use App\Objects\Enums\RecommendationType;
 use MongoDB\Laravel\Relations\EmbedsMany;
 use MongoDB\Laravel\Relations\BelongsTo;
 
-class Product extends MongoCollection
+class ProductCollection extends MongoCollection
 {
+    /**
+     * The name of the collection.
+     *
+     * @var string
+     */
+    protected $table = 'products';
+
     /**
      * Indicates if the IDs are auto-incrementing.
      *
@@ -93,7 +100,7 @@ class Product extends MongoCollection
      */
     public function interactions(): EmbedsMany
     {
-        return $this->embedsMany(InteractionProduct::class);
+        return $this->embedsMany(InteractionProductSchema::class);
     }
 
     /**
@@ -103,7 +110,7 @@ class Product extends MongoCollection
      */
     public function relationshipScore(): EmbedsMany
     {
-        return $this->embedsMany(RelationshipScore::class);
+        return $this->embedsMany(RelationshipScoreSchema::class);
     }
 
     /**
@@ -113,7 +120,7 @@ class Product extends MongoCollection
      */
     public function shop(): BelongsTo
     {
-        return $this->belongsTo(Shop::class);
+        return $this->belongsTo(ShopCollection::class);
     }
 
     public function getType(): RecommendationType

@@ -4,14 +4,21 @@ declare(strict_types=1);
 
 namespace App\Collections;
 
-use App\Collections\Schema\OrderTypeQuantity;
+use App\Collections\Schema\OrderTypeQuantitySchema;
 use MongoDB\Laravel\Eloquent\SoftDeletes;
 use MongoDB\Laravel\Relations\EmbedsMany;
 use MongoDB\Laravel\Relations\HasMany;
 
-class Shop extends MongoCollection
+class ShopCollection extends MongoCollection
 {
     use SoftDeletes;
+
+    /**
+     * The name of the collection.
+     *
+     * @var string
+     */
+    protected $table = 'shops';
 
     /**
      * Indicates if the IDs are auto-incrementing.
@@ -67,7 +74,7 @@ class Shop extends MongoCollection
      */
     public function orders(): HasMany
     {
-        return $this->hasMany(Order::class);
+        return $this->hasMany(OrderCollection::class);
     }
 
     /**
@@ -77,7 +84,7 @@ class Shop extends MongoCollection
      */
     public function products(): HasMany
     {
-        return $this->hasMany(Product::class);
+        return $this->hasMany(ProductCollection::class);
     }
 
     /**
@@ -87,6 +94,6 @@ class Shop extends MongoCollection
      */
     public function orderTypeQuantities(): EmbedsMany
     {
-        return $this->embedsMany(OrderTypeQuantity::class);
+        return $this->embedsMany(OrderTypeQuantitySchema::class);
     }
 }

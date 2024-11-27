@@ -7,8 +7,15 @@ namespace App\Collections;
 use MongoDB\Laravel\Relations\BelongsTo;
 
 
-class Order extends MongoCollection
+class OrderCollection extends MongoCollection
 {
+    /**
+     * The name of the collection.
+     *
+     * @var string
+     */
+    protected $table = 'orders';
+
     /**
      * Indicates if the IDs are auto-incrementing.
      *
@@ -58,6 +65,6 @@ class Order extends MongoCollection
      */
     public function shop(): BelongsTo
     {
-        return $this->belongsTo(Shop::class);
+        return $this->belongsTo(ShopCollection::class);
     }
 }

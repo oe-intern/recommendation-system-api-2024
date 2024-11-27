@@ -4,7 +4,7 @@ namespace App\Collections\Schema;
 
 use App\Collections\MongoCollection;
 
-class RelationshipScore extends MongoCollection
+class OrderTypeQuantitySchema extends MongoCollection
 {
     /**
      * Indicates if the model should be timestamped.
@@ -19,8 +19,8 @@ class RelationshipScore extends MongoCollection
      * @var string[]
      */
     protected $fillable = [
-        'productId',
-        'score',
+        'quantity',
+        'type',
     ];
 
     /**
@@ -28,7 +28,7 @@ class RelationshipScore extends MongoCollection
      *
      * @var string
      */
-    protected $primaryKey = 'productId';
+    protected $primaryKey = 'type';
 
     /**
      * The type of the primary key ID.
@@ -40,10 +40,10 @@ class RelationshipScore extends MongoCollection
     /**
      * The default values for the attributes.
      *
-     * @var float[]
+     * @var int[]
      */
     protected $attributes = [
-        'score' => 0.0,
+        'quantity' => 0,
     ];
 
     /**
@@ -52,6 +52,6 @@ class RelationshipScore extends MongoCollection
      * @var string[]
      */
     protected $casts = [
-        'score' => 'float',
+        'quantity' => 'int',
     ];
 }
