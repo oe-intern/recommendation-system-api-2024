@@ -3,6 +3,7 @@
 namespace App\Contracts\Queries;
 
 use App\Collections\ProductCollection;
+use App\Exceptions\ProductNotFoundException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 interface IProductQuery
@@ -59,4 +60,26 @@ interface IProductQuery
      * * @return array
      */
     public function getOptionalProducts(string $product_id): array;
+
+	/**
+	 * Validate product IDs exist in the shop.
+	 *
+	 * @param string $shop_domain
+	 * @param array $product_ids
+	 * @return void
+	 *
+	 * @throws ProductNotFoundException
+	 */
+	public function validateProductIds(string $shop_domain, array $product_ids): void;
+
+	/**
+	 * Validate product ID exist in the shop.
+	 *
+	 * @param string $shop_domain
+	 * @param string $product_id
+	 * @return ProductCollection
+	 *
+	 * @throws ProductNotFoundException
+	 */
+	public function validateProductId(string $shop_domain, string $product_id): ProductCollection;
 }
