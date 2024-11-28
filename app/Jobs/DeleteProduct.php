@@ -53,6 +53,9 @@ class DeleteProduct implements ShouldQueue
             return;
         }
 
-        $product_command->delete($this->product['id'], $shop);
+        $product = $product_query->getByShopDomainAndId($this->shop_domain, $this->product['id']);
+        if ($product) {
+            $product_command->delete($product);
+        }
     }
 }
