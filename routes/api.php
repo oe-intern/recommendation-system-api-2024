@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\RecommendationController;
+use App\Http\Controllers\ProductInteractionController;
 use Illuminate\Support\Facades\Route;
 
 Route::group(['middleware' => ['access_control_headers', 'shopify.auth', 'verify.token']], function () {
@@ -15,10 +16,18 @@ Route::group(['middleware' => ['access_control_headers', 'shopify.auth', 'verify
             'setManualRecommendation'
         ])->middleware('validate.recommendation.request');
     });
+    Route::prefix('interaction')->group(function () {
+        Route::get('', [ProductInteractionController::class, 'filter'])
+            ->middleware('validate.product.interaction.filter');
+    });
 });
 
 Route::group(['middleware' => ['access_control_headers', 'identify.shop.domain']], function () {
     Route::prefix("sdk")->group(function () {
-        Route::get("recommendation", [RecommendationController::class, 'getRecommendation']);
+        Route::get("/recommendation", [RecommendationController::class, 'getRecommendation']);
+        Route::prefix("/interaction")->group(function () {
+            Route::post('', [ProductInteractionController::class, 'interaction'])
+                ->middleware('validate.product.interaction.request');
+        });
     });
 });
