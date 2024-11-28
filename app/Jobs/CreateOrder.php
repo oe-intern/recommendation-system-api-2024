@@ -5,6 +5,7 @@ namespace App\Jobs;
 use App\Contracts\Commands\IOrderCommand;
 use App\Contracts\Commands\IOrderTypeQuantityCommand;
 use App\Contracts\Queries\IShopQuery;
+use App\Lib\Utils;
 use App\Objects\Transform\OrderTransform;
 use App\Storage\Queries\ProductQuery;
 use Illuminate\Bus\Queueable;
@@ -66,9 +67,17 @@ class CreateOrder implements ShouldQueue
 
         $order_command->create($order_data, $shop);
         foreach ($products_data as $product_data) {
-            $product = $product_query->getByShopDomainAndId($this->shop_domain, $product_data['productId']);
+            $product = $product_query->getByShopDomainAndId(
+                $this->shop_domain,
+                Utils::getIdFromGid($product_data['productId'])
+            );
+
             if ($product) {
-                $order_type_quantity_command->increment($shop, $product['productType'], $product_data['quantity']);
+                $order_type_quantity_command->increment(
+                    $shop,
+                    $product['productType'],
+                    $product_data['quantity']
+                );
             }
         }
     }

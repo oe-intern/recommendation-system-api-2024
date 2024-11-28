@@ -10,6 +10,8 @@ use App\Storage\Queries\ProductQuery;
 use App\Contracts\Queries\IProductQuery;
 use App\Contracts\Queries\IRelationshipScoreQuery;
 use App\Storage\Queries\RelationshipScoreQuery;
+use App\Contracts\Queries\IInteractionQuery;
+use App\Storage\Queries\InteractionProductQuery;
 use Illuminate\Support\ServiceProvider;
 
 class QueryServiceProvider extends ServiceProvider
@@ -37,6 +39,11 @@ class QueryServiceProvider extends ServiceProvider
         $this->app->bind(
             IRelationshipScoreQuery::class,
             RelationshipScoreQuery::class
+        );
+
+        $this->app->bind(
+            IInteractionQuery::class,
+            InteractionProductQuery::class
         );
     }
 

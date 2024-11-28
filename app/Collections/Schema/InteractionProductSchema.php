@@ -7,6 +7,13 @@ use App\Collections\MongoCollection;
 class InteractionProductSchema extends MongoCollection
 {
     /**
+     * Indicates if the model should be timestamped.
+     *
+     * @var bool
+     */
+    public $timestamps = false;
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var string[]

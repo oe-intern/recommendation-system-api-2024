@@ -12,18 +12,16 @@ class OrderTypeQuantityCommand implements IOrderTypeQuantityCommand
     /**
      * Increment the number of product types from a shop.
      *
-     * @param string $shop_domain
+     * @param ShopCollection $shop
      * @param string $order_type
      * @param int $quantity
      * @return void
      *
      * @throws ModelNotFoundException
      */
-    public function increment(string $shop_domain, string $order_type, int $quantity = 1): void
+    public function increment(ShopCollection $shop, string $order_type, int $quantity = 1): void
     {
-        $order_type_quantity = ShopCollection::query()
-            ->where('domain', $shop_domain)
-            ->firstOrFail()
+        $order_type_quantity = $shop
             ->orderTypeQuantities()
             ->where('type', $order_type)
             ->first();
@@ -37,6 +35,6 @@ class OrderTypeQuantityCommand implements IOrderTypeQuantityCommand
             ]);
         }
 
-        $order_type_quantity->save();
+        $shop->orderTypeQuantities()->save($order_type_quantity);
     }
 }

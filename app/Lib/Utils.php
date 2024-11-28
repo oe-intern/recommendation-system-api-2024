@@ -145,8 +145,8 @@ final class Utils
     /**
      * Date time now.
      */
-    public static function getToday(): Carbon
+    public static function getToday(): string
     {
-        return Carbon::today();
+        return Carbon::today()->format('Y-m-d');
     }
 }

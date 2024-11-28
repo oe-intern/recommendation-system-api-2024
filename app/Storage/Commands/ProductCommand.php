@@ -113,11 +113,11 @@ class ProductCommand implements IProductCommand
     ): bool {
         $product_id = $product->getAttributeValue('id');
         $recommendations = $this->getValidRecommendationProducts($shop_domain, $product_id, $recommendations);
-        $removed_recommendations = array_diff($product->getAttributeValue('optionIds'), $recommendations);
+        $removed_recommendations = array_diff($product->getAttributeValue('manualIds'), $recommendations);
 
         $product->update([
             'recommendationType' => $recommendation_type,
-            'optionIds' => $recommendations,
+            'manualIds' => $recommendations,
         ]);
 
         foreach ($recommendations as $recommended_product_id) {
@@ -174,7 +174,7 @@ class ProductCommand implements IProductCommand
     {
         $product = $this->product_query->getById($product_id);
         $product?->update([
-            'optionIds' => array_unique(array_merge($product->getAttributeValue('optionIds'),
+            'manualIds' => array_unique(array_merge($product->getAttributeValue('manualIds'),
                 [$recommended_product_id])),
         ]);
 
@@ -235,7 +235,7 @@ class ProductCommand implements IProductCommand
         ProductCollection $product
     ): void {
         $product_id = $product->getAttributeValue('id');
-        $product_recommendation_ids = $product->getAttributeValue('optionIds');
+        $product_recommendation_ids = $product->getAttributeValue('manualIds');
 
         foreach ($product_recommendation_ids as $product_recommendation_id) {
             $this->removeReferenceProduct($product_recommendation_id, $product_id);
@@ -289,7 +289,7 @@ class ProductCommand implements IProductCommand
     ): void {
         $product = $this->product_query->getById($product_id);
         $product?->update([
-            'optionIds' => array_diff($product->getAttributeValue('optionIds'), [$recommended_product_id]),
+            'manualIds' => array_diff($product->getAttributeValue('manualIds'), [$recommended_product_id]),
         ]);
 
         $this->removeReferenceProduct($recommended_product_id, $product_id);
