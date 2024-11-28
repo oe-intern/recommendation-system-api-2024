@@ -49,12 +49,13 @@ class ProductCollection extends MongoCollection
         'tags',
         'status',
         'productType',
-        'optionIds',
         'description',
         'recommendationType',
         'interactions',
         'relationshipScore',
         'referencedIds',
+        'manualIds',
+        'recommendationIds',
     ];
     /**
      * The primary key.
@@ -86,11 +87,12 @@ class ProductCollection extends MongoCollection
     protected $attributes = [
         'variantIds' => [],
         'tags' => [],
-        'optionIds' => [],
+        'manualIds' => [],
         'recommendationType' => RecommendationType::DEFAULT,
         'interactions' => [],
         'relationshipScore' => [],
         'referencedIds' => [],
+        'recommendationIds' => [],
     ];
 
     /**

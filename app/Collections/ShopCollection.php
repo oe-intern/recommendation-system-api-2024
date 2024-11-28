@@ -7,6 +7,9 @@ namespace App\Collections;
 use App\Collections\Schema\OrderTypeQuantitySchema;
 use MongoDB\Laravel\Eloquent\SoftDeletes;
 use MongoDB\Laravel\Relations\EmbedsMany;
+use App\Collections\Schema\InteractionProductSchema;
+use App\Collections\Schema\ShopSettingScheme;
+use MongoDB\Laravel\Relations\EmbedsOne;
 use MongoDB\Laravel\Relations\HasMany;
 
 class ShopCollection extends MongoCollection
@@ -95,5 +98,25 @@ class ShopCollection extends MongoCollection
     public function orderTypeQuantities(): EmbedsMany
     {
         return $this->embedsMany(OrderTypeQuantitySchema::class);
+    }
+
+    /**
+     * Define settings for visualization recommendation products.
+     *
+     * @return EmbedsOne
+     */
+    public function settings(): EmbedsOne
+    {
+        return $this->embedsOne(ShopSettingScheme::class);
+    }
+
+    /**
+     * Define the relationship with the interactions for all products.
+     *
+     * @return EmbedsMany
+     */
+    public function interactions(): EmbedsMany
+    {
+        return $this->embedsMany(InteractionProductSchema::class);
     }
 }
