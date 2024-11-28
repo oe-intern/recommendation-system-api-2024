@@ -8,6 +8,8 @@ use App\Http\Middleware\VerifyAuthenticationToken;
 use App\Http\Middleware\VerifyHmac;
 use App\Http\Middleware\SetProductRecommendationRequest;
 use App\Http\Middleware\SetRecommendationStateRequest;
+use App\Http\Middleware\ProductInteractionRequest;
+use App\Http\Middleware\ProductInteractionFilter;
 use App\Http\Middleware\IdentifyShopDomain;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -38,6 +40,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'csp_header' => CspHeader::class,
             'validate.recommendation.request' => SetProductRecommendationRequest::class,
             'validate.recommendation.state.request' => SetRecommendationStateRequest::class,
+            'validate.product.interaction.request' => ProductInteractionRequest::class,
+            'validate.product.interaction.filter' => ProductInteractionFilter::class,
             'identify.shop.domain' => IdentifyShopDomain::class,
         ]);
     })
