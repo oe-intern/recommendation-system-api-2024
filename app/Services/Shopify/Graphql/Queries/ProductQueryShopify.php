@@ -38,6 +38,26 @@ class ProductQueryShopify extends BaseGraphqlService implements IProductQuerySho
             productType
             totalInventory
             description
+            featuredMedia {
+                id
+                alt
+                mediaContentType
+                preview {
+                    image {
+                        url
+                    }
+                }
+            }
+            priceRangeV2 {
+                maxVariantPrice {
+                    amount
+                    currencyCode
+                }
+                minVariantPrice {
+                    amount
+                    currencyCode
+                }
+            }
         GRAPHQL;
 
     /**
