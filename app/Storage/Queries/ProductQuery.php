@@ -4,8 +4,8 @@ namespace App\Storage\Queries;
 
 use App\Collections\ProductCollection;
 use App\Contracts\Queries\IProductQuery;
+use App\Exceptions\ProductNotFoundException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
-use Illuminate\Support\Facades\Log;
 
 class ProductQuery implements IProductQuery
 {
@@ -89,7 +89,7 @@ class ProductQuery implements IProductQuery
      */
     public function getOptionalProducts(string $product_id): array
     {
-        return $this->getProductRecommendationIds($product_id, 'optionIds');
+        return $this->getProductRecommendationIds($product_id, 'manualIds');
     }
 
     /**
@@ -106,4 +106,43 @@ class ProductQuery implements IProductQuery
             ->first()
             ->getAttributeValue($attribute);
     }
+
+    /**
+     * Validate product IDs exist in the shop.
+     *
+     * @param string $shop_domain
+     * @param array $product_ids
+     * @return void
+     *
+     * @throws ProductNotFoundException
+     */
+    public function validateProductIds(string $shop_domain, array $product_ids): void
+    {
+        $existing_product_ids = $this->getByShopDomainAndIds($shop_domain, $product_ids);
+
+        $not_existing = array_diff($product_ids, $existing_product_ids);
+        if (!empty($not_existing)) {
+            throw new ProductNotFoundException($shop_domain, $not_existing);
+        }
+    }
+
+	/**
+	 * Validate product IDs exist in the shop.
+	 *
+	 * @param string $shop_domain
+	 * @param string $product_id
+	 * @return ProductCollection
+	 *
+	 * @throws ProductNotFoundException
+	 */
+	public function validateProductId(string $shop_domain, string $product_id): ProductCollection
+	{
+		$product = $this->getByShopDomainAndId($shop_domain, $product_id);
+
+		if (!$product) {
+			throw new ProductNotFoundException($shop_domain, $product_id);
+		}
+
+		return $product;
+	}
 }
