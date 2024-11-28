@@ -145,15 +145,20 @@ class ProductRecommendationService implements IProductRecommendation
      * @param string $shop_domain
      * @param string $product_id
      * @param array $recommended_products
-     * @param RecommendationType|null $recommendation_type
+     * @param string|null $recommendation_type
      * @return ProductCollection
+     *
+     * @throws ProductNotFoundException
      */
     public function setRecommendedProducts(
         string $shop_domain,
         string $product_id,
         array $recommended_products,
-        ?RecommendationType $recommendation_type
+        ?string $recommendation_type
     ): ProductCollection {
+        $this->product_query->validateProductIds($shop_domain, array_merge([$product_id], $recommended_products));
+
+        $recommendation_type = RecommendationType::tryFrom($recommendation_type);
         $product = $this->product_query->getById($product_id);
 
         $this->product_command->setRecommendationProduct(
@@ -168,14 +173,21 @@ class ProductRecommendationService implements IProductRecommendation
     /**
      * Set the recommendation type for a product.
      *
+     * @param string $shop_domain
      * @param string $product_id
-     * @param RecommendationType $recommendation_type
+     * @param string $recommendation_type
      * @return ProductCollection
+     *
+     * @throws ProductNotFoundException
      */
     public function setRecommendationType(
+        string $shop_domain,
         string $product_id,
-        RecommendationType $recommendation_type
+        string $recommendation_type
     ): ProductCollection {
+        $this->product_query->validateProductId($shop_domain, $product_id);
+
+        $recommendation_type = RecommendationType::tryFrom($recommendation_type);
         $product = $this->product_query->getById($product_id);
 
         $this->product_command->setRecommendationType($product, $recommendation_type);
@@ -186,11 +198,16 @@ class ProductRecommendationService implements IProductRecommendation
     /**
      * Get full information of a product (including recommendations).
      *
+     * @param string $shop_domain
      * @param string $product_id
      * @return array
+     *
+     * @throws ProductNotFoundException
      */
-    public function getFullInfo(string $product_id): array
+    public function getFullInfo(string $shop_domain, string $product_id): array
     {
+        $this->product_query->validateProductId($shop_domain, $product_id);
+
         $product = $this->product_query->getById($product_id);
         $recommended_products = $this->product_query->getOptionalProducts($product_id);
         // relative products, ....
