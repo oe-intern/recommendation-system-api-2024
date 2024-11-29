@@ -59,7 +59,7 @@ class ProductInteractionService implements IProductInteraction
         $this->product_query->validateProductId($shop_domain, $product_id);
 
         $interaction_type = InteractionType::from($interaction_type);
-        $this->interaction_product_command->increment($shop_domain, $product_id, $interaction_type, $quantity);
+        $this->interaction_product_command->increment($shop_domain, $product_id, $interaction_type, $quantity ?? 1);
     }
 
     /**

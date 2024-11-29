@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Contracts\Recommendation\IProductInteraction;
 use App\Exceptions\ProductNotFoundException;
+use App\Jobs\ProcessInteractionEvent;
 use App\Lib\Utils;
 use App\Services\Shopify\UserContext;
 use Illuminate\Http\JsonResponse;
@@ -60,22 +61,13 @@ class ProductInteractionController extends Controller
      *
      * @param Request $request
      * @return JsonResponse
-     *
-     * @throws ProductNotFoundException
      */
     public function interaction(Request $request): JsonResponse
     {
         $shop_domain = $this->user_context->getDomain()->toNative();
-        $product_id = Utils::getIdFromGid($request->input('product_id'));
-        $number_of_interactions = $request->input('number_of_interactions');
-        $interaction_type = $request->input('interaction_type');
+        $data = $request->all();
 
-        $this->product_interaction_service->increment(
-            $shop_domain,
-            $product_id,
-            $number_of_interactions,
-            $interaction_type
-        );
+        ProcessInteractionEvent::dispatch($shop_domain, $data);
 
         return response()->json(['message' => 'Interactions updated successfully']);
     }

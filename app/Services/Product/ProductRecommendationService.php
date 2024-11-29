@@ -5,6 +5,7 @@ namespace App\Services\Product;
 use App\Collections\ProductCollection;
 use App\Contracts\Commands\IProductCommand;
 use App\Contracts\Commands\IRelationshipScoreCommand;
+use App\Contracts\Commands\IShopCommand;
 use App\Contracts\Queries\IProductQuery;
 use App\Contracts\Queries\IRelationshipScoreQuery;
 use App\Contracts\Queries\IShopQuery;
@@ -46,6 +47,11 @@ class ProductRecommendationService implements IProductRecommendation
     protected IProductQueryShopify $product_service;
 
     /**
+     * @var IShopCommand
+     */
+    protected IShopCommand $shop_command;
+
+    /**
      * ProductRecommendationService constructor.
      *
      * @param IProductQuery $product_query
@@ -54,6 +60,7 @@ class ProductRecommendationService implements IProductRecommendation
      * @param IRelationshipScoreCommand $relationship_score_command
      * @param IProductCommand $product_command
      * @param IProductQueryShopify $product_service
+     * @param IShopCommand $shop_command
      */
     public function __construct(
         IProductQuery $product_query,
@@ -61,7 +68,8 @@ class ProductRecommendationService implements IProductRecommendation
         IShopQuery $shop_query,
         IRelationshipScoreCommand $relationship_score_command,
         IProductCommand $product_command,
-        IProductQueryShopify $product_service
+        IProductQueryShopify $product_service,
+        IShopCommand $shop_command,
     ) {
         $this->product_query = $product_query;
         $this->relationship_score_query = $relationship_score_query;
@@ -69,6 +77,7 @@ class ProductRecommendationService implements IProductRecommendation
         $this->relationship_score_command = $relationship_score_command;
         $this->product_command = $product_command;
         $this->product_service = $product_service;
+        $this->shop_command = $shop_command;
     }
 
     /**
@@ -215,5 +224,52 @@ class ProductRecommendationService implements IProductRecommendation
         $product->setAttribute('recommended_products', $this->product_service->fetchByIds($recommended_products));
 
         return $product->toArray();
+    }
+
+    /**
+     * Get settings for auto recommendation.
+     *
+     * @param string $shop_domain
+     * @return array
+     */
+    public function getAutoRecommendationSettings(string $shop_domain): array
+    {
+        $shop = $this->shop_query->getByDomain($shop_domain);
+        return $this->shop_query->getAutoRecommendationSettings($shop);
+    }
+
+    /**
+     * Set auto recommendation for a shop.
+     *
+     * @param string $shop_domain
+     * @param array $settings
+     *
+     * @return array
+     */
+    public function setAutoRecommendationSettings(
+        string $shop_domain,
+        array $settings
+    ): array {
+        $shop = $this->shop_query->getByDomain($shop_domain);
+        return $this->shop_command->setAutoRecommendationSettings(
+            $shop,
+            $this->transformRequestSettings($settings)
+        );
+    }
+
+    /**
+     * Transform request settings to array data for ShopSettingScheme.
+     *
+     * @param array $settings
+     * @return array
+     */
+    private function transformRequestSettings(array $settings): array
+    {
+        return [
+            'layout' => $settings['layout'],
+            'backgroundColor' => $settings['background_color'],
+            'textColor' => $settings['text_color'],
+            'numberOfItems' => (int) $settings['number_of_items']
+        ];
     }
 }

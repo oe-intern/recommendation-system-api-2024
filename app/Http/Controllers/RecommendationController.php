@@ -149,4 +149,36 @@ class RecommendationController extends Controller
             'product' => $product
         ]);
     }
+
+    public function getAutoRecommendation(Request $request): JsonResponse
+    {
+        $shop_domain = $this->user_context->getDomain()->toNative();
+        $settings = $this->product_recommendation_service->getAutoRecommendationSettings($shop_domain);
+
+        return response()->json($settings);
+    }
+
+    /**
+     * Set auto recommendation settings for a shop.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function setAutoRecommendation(Request $request): JsonResponse
+    {
+        $shop_domain = $this->user_context->getDomain()->toNative();
+        $settings = [
+            'number_of_items' => $request->input('number_of_items'),
+            'layout' => $request->input('layout'),
+            'background_color' => $request->input('background_color'),
+            'text_color' => $request->input('text_color')
+        ];
+
+        $settings = $this->product_recommendation_service->setAutoRecommendationSettings($shop_domain, $settings);
+
+        return response()->json([
+            'message' => 'Auto recommendation settings has been set.',
+            'settings' => $settings
+        ]);
+    }
 }

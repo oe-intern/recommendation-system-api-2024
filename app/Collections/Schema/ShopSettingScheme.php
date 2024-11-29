@@ -19,10 +19,10 @@ class ShopSettingScheme extends MongoCollection
      * @var string[]
      */
     protected $fillable = [
-        'layoutId',
+        'layout',
         'backgroundColor',
         'textColor',
-        'numberOfProducts',
+        'numberOfItems',
     ];
 
     /**
@@ -31,6 +31,6 @@ class ShopSettingScheme extends MongoCollection
      * @var string[]
      */
     protected $casts = [
-        'numberOfProducts' => 'int',
+        'numberOfItems' => 'int',
     ];
 }

@@ -62,4 +62,25 @@ interface IProductRecommendation
      * @throws ProductNotFoundException
 	 */
     public function getFullInfo(string $shop_domain, string $product_id): array;
+
+    /**
+     * Get settings for auto recommendation.
+     *
+     * @param string $shop_domain
+     * @return array
+     */
+    public function getAutoRecommendationSettings(string $shop_domain): array;
+
+    /**
+     * Set auto recommendation for a shop.
+     *
+     * @param string $shop_domain
+     * @param array $settings
+     *
+     * @return array
+     */
+    public function setAutoRecommendationSettings(
+        string $shop_domain,
+        array $settings
+    ): array;
 }
