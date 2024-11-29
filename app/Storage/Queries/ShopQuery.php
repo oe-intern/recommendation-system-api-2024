@@ -19,4 +19,16 @@ class ShopQuery implements IShopQuery
             ->where('domain', $shop_domain)
             ->first();
     }
+
+    /**
+     * Get the auto recommendation settings for a shop.
+     *
+     * @param ShopCollection $shop
+     * @return array
+     */
+    public function getAutoRecommendationSettings(ShopCollection $shop): array
+    {
+        $settings = $shop->settings()->get();
+        return $settings ? $settings->toArray() : [];
+    }
 }
