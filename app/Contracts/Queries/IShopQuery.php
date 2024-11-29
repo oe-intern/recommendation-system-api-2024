@@ -13,4 +13,12 @@ interface IShopQuery
      * @return ShopCollection|null
      */
     public function getByDomain(string $shop_domain): ?ShopCollection;
+
+    /**
+     * Get the auto recommendation settings for a shop.
+     *
+     * @param ShopCollection $shop
+     * @return array
+     */
+    public function getAutoRecommendationSettings(ShopCollection $shop): array;
 }

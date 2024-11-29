@@ -13,4 +13,13 @@ interface IShopCommand
      * @return ShopCollection
      */
     public function create(string $shop_domain): ShopCollection;
+
+    /**
+     * Set the auto recommendation settings for a shop.
+     *
+     * @param ShopCollection $shop
+     * @param array $settings
+     * @return array
+     */
+    public function setAutoRecommendationSettings(ShopCollection $shop, array $settings): array;
 }
