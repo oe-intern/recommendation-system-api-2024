@@ -7,28 +7,67 @@ use App\Exceptions\ProductNotFoundException;
 interface IProductInteraction
 {
     /**
-     * Increment the number of interactions for a product.
+     * Handle click event.
      *
-     * @param string $shop_domain
+     * @param string $shop_id
      * @param string $product_id
-     * @param int|null $quantity
-     * @param string $interaction_type
      * @return void
      *
      * @throws ProductNotFoundException
      */
-    public function increment(string $shop_domain, string $product_id, ?int $quantity, string $interaction_type): void;
+    public function click(string $shop_id, string $product_id): void;
 
     /**
-     * Filter the number of interactions for a product.
+     * Handle add to cart event.
      *
-     * @param string $shop_domain
+     * @param string $shop_id
+     * @param string $product_id
+     * @param int|null $quantity
+     * @return void
+     *
+     * @throws ProductNotFoundException
+     */
+    public function addToCart(string $shop_id, string $product_id, ?int $quantity): void;
+
+    /**
+     * Get click data for a product.
+     *
+     * @param string $shop_id
      * @param string|null $product_id
      * @param string $start_date
      * @param string $end_date
+     * @param string|null $group_by
      * @return array
      *
      * @throws ProductNotFoundException
      */
-    public function filter(string $shop_domain, ?string $product_id, string $start_date, string $end_date): array;
+    public function getClickData(
+        string $shop_id,
+        ?string $product_id,
+        string $start_date,
+        string $end_date,
+        ?string $group_by
+    ): array;
+
+    /**
+     * Get add to cart data for a product.
+     *
+     * @param string $shop_id
+     * @param string|null $product_id
+     * @param string $start_date
+     * @param string $end_date
+     * @param string|null $group_by
+     * @return array
+     *
+     * @throws ProductNotFoundException
+     */
+    public function getAddToCartData(
+        string $shop_id,
+        ?string $product_id,
+        string $start_date,
+        string $end_date,
+        ?string $group_by
+    ): array;
+
+
 }
