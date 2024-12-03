@@ -7,4 +7,5 @@ return [
     App\Providers\QueryServiceProvider::class,
     App\Providers\ShopifyServiceProvider::class,
     App\Providers\TransformProvider::class,
+    App\Providers\ResponseServiceProvider::class,
 ];
