@@ -30,6 +30,14 @@ class ProductQueryShopify extends BaseGraphqlService implements IProductQuerySho
             variants(first: 250) {
                 nodes {
                     id
+                    title
+                    taxCode
+                    price
+                    image {
+                        id
+                        altText
+                        url
+                    }
                 }
             }
             title
