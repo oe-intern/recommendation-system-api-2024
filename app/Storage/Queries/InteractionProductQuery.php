@@ -2,9 +2,11 @@
 
 namespace App\Storage\Queries;
 
-use App\Collections\ProductCollection;
+use App\Collections\ProductAddToCartCollection;
+use App\Collections\ProductClickCollection;
 use App\Contracts\Queries\IInteractionQuery;
 use App\Contracts\Queries\IShopQuery;
+use App\Objects\Enums\StatisticsGroupBy;
 use Carbon\Carbon;
 
 class InteractionProductQuery implements IInteractionQuery
@@ -25,62 +27,143 @@ class InteractionProductQuery implements IInteractionQuery
     }
 
     /**
-     * Filter list of interactions for a shop or product.
+     * Filter click data for a shop
      *
-     * @param string $shop_domain
-     * @param ProductCollection|null $product
+     * @param string $shop_id
+     * @param string|null $product_id
      * @param string $start_date
      * @param string $end_date
+     * @param StatisticsGroupBy|null $group_by
      * @return array
      */
-    public function filter(
-        string $shop_domain,
-        ?ProductCollection $product,
+    public function filterClickData(
+        string $shop_id,
+        ?string $product_id,
         string $start_date,
-        string $end_date
+        string $end_date,
+        ?StatisticsGroupBy $group_by
     ): array {
-        $start_date = Carbon::parse($start_date);
-        $end_date = Carbon::parse($end_date);
+        $start_date = $this->getFirstDay($start_date);
+        $end_date = $this->getEndDay($end_date);
 
-        if ($product) {
-            return $this->filterProduct($product, $start_date, $end_date);
-        }
+        $query = ProductClickCollection::query()
+            ->where('shop_id', $shop_id)
+            ->whereBetween('created_at', [$start_date, $end_date])
+            ->when($product_id, function ($query) use ($product_id) {
+                return $query->where('product_id', $product_id);
+            });
 
-        return $this->filterShop($shop_domain, $start_date, $end_date);
+        $result = $query->raw(function ($collection) use ($group_by, $start_date, $end_date, $shop_id) {
+            return $collection->aggregate([
+                [
+                    '$project' => [
+                        'group_key' => [
+                            '$dateToString' => [
+                                'format' => $this->getGroupBy($group_by),
+                                'date' => '$created_at',
+                            ],
+                        ],
+                    ],
+                ],
+                [
+                    '$group' => [
+                        '_id' => '$group_key',
+                        'total' => ['$sum' => 1],
+                    ],
+                ],
+                [
+                    '$sort' => ['_id' => 1],
+                ],
+            ]);
+        });
 
+        return collect($result)->toArray();
     }
 
     /**
-     * Filter list of interactions for a product.
+     * Get the first day of the date.
      *
-     * @param ProductCollection $product
-     * @param Carbon $start_date
-     * @param Carbon $end_date
-     * @return array
+     * @param string $date
+     * @return Carbon
      */
-    private function filterProduct(ProductCollection $product, Carbon $start_date, Carbon $end_date): array
+    private function getFirstDay(string $date): Carbon
     {
-        return $product->interactions()
-            ->get()
-            ->whereBetween('date', [$start_date, $end_date])
-            ->all();
+        return Carbon::parse($date)->startOfDay();
+    }
+
+    private function getEndDay(string $date): Carbon
+    {
+        return Carbon::parse($date)->endOfDay();
     }
 
     /**
-     * Filter list of interactions for a shop.
+     * Get the group by format for the query.
      *
-     * @param string $shop_domain
-     * @param Carbon $start_date
-     * @param Carbon $end_date
+     * @param StatisticsGroupBy|null $groupBy
+     * @return string
+     */
+    private function getGroupBy(?StatisticsGroupBy $groupBy): string
+    {
+        return match ($groupBy) {
+            StatisticsGroupBy::HOUR => '%Y-%m-%d %H',
+            StatisticsGroupBy::MONTH => '%Y-%m',
+            StatisticsGroupBy::YEAR => '%Y',
+            default => '%Y-%m-%d',
+        };
+    }
+
+    /**
+     * Filter add to cart data for a shop
+     *
+     * @param string $shop_id
+     * @param string|null $product_id
+     * @param string $start_date
+     * @param string $end_date
+     * @param StatisticsGroupBy|null $group_by
      * @return array
      */
-    private function filterShop(string $shop_domain, Carbon $start_date, Carbon $end_date): array
-    {
-        $shop = $this->shop_query->getByDomain($shop_domain);
+    public function filterAddToCartData(
+        string $shop_id,
+        ?string $product_id,
+        string $start_date,
+        string $end_date,
+        ?StatisticsGroupBy $group_by
+    ): array {
+        $start_date = $this->getFirstDay($start_date);
+        $end_date = $this->getEndDay($end_date);
 
-        return $shop->interactions()
-            ->get()
-            ->whereBetween('date', [$start_date, $end_date])
-            ->toArray();
+        $query = ProductAddToCartCollection::query()
+            ->where('shop_id', $shop_id)
+            ->whereBetween('created_at', [$start_date, $end_date])
+            ->when($product_id, function ($query) use ($product_id) {
+                return $query->where('product_id', $product_id);
+            });
+
+        $result = $query->raw(function ($collection) use ($group_by, $start_date, $end_date, $shop_id) {
+            return $collection->aggregate([
+                [
+                    '$project' => [
+                        'group_key' => [
+                            '$dateToString' => [
+                                'format' => $this->getGroupBy($group_by),
+                                'date' => '$created_at',
+                            ],
+                        ],
+                        'quantity' => ['$toInt' => '$quantity'],
+                    ],
+                ],
+                [
+                    '$group' => [
+                        '_id' => '$group_key',
+                        'quantity' => ['$sum' => '$quantity'],
+                    ],
+                ],
+                [
+                    '$sort' => ['_id' => 1],
+                ],
+            ]);
+        });
+
+        return collect($result)->toArray();
     }
 }
