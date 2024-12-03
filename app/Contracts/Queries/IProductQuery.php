@@ -3,6 +3,7 @@
 namespace App\Contracts\Queries;
 
 use App\Collections\ProductCollection;
+use App\Collections\ShopCollection;
 use App\Exceptions\ProductNotFoundException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
@@ -17,33 +18,58 @@ interface IProductQuery
     public function getById(string $product_id): ?ProductCollection;
 
     /**
+     * Get a product of a shop by GID.
+     *
+     * @param string $gid
+     * @return ProductCollection|null
+     */
+    public function getByGid(string $gid): ?ProductCollection;
+
+    /**
      * Get list products of a shop by IDs
      *
      * @param array $product_ids
-     * @param string $shop_domain
+     * @param string $shop_id
      * @return array
      */
-    public function getByShopDomainAndIds(string $shop_domain, array $product_ids): array;
+    public function getByShopIdAndIds(string $shop_id, array $product_ids): array;
+
+    /**
+     * Get list products of a shop by collection
+     *
+     * @param ShopCollection $shop
+     * @return array
+     */
+    public function getByShopCollection(ShopCollection $shop): array;
 
     /**
      * Check if the products exist in the database.
      *
-     * @param string $shop_domain
+     * @param string $shop_id
      * @param string $product_id
      * @return ProductCollection
      *
      * @throws ModelNotFoundException
      */
-    public function checkProductExist(string $shop_domain, string $product_id): ProductCollection;
+    public function checkProductExist(string $shop_id, string $product_id): ProductCollection;
 
     /**
      * Get a product of a shop by ID and shop domain.
      *
-     * @param string $shop_domain
+     * @param string $shop_id
      * @param string $product_id
      * @return ProductCollection|null
      */
-    public function getByShopDomainAndId(string $shop_domain, string $product_id): ?ProductCollection;
+    public function getByShopIdAndId(string $shop_id, string $product_id): ?ProductCollection;
+
+    /**
+     * Get a product of a shop by Shopify ID.
+     *
+     * @param string $shop_id
+     * @param string $gid
+     * @return ProductCollection|null
+     */
+    public function getByShopIdAndGid(string $shop_id, string $gid): ?ProductCollection;
 
     /**
      * Get list products ID using this product for recommendation.
@@ -59,27 +85,46 @@ interface IProductQuery
      * * @param string $product_id
      * * @return array
      */
-    public function getOptionalProducts(string $product_id): array;
+    public function getManualProducts(string $product_id): array;
 
 	/**
 	 * Validate product IDs exist in the shop.
 	 *
-	 * @param string $shop_domain
+	 * @param string $shop_id
 	 * @param array $product_ids
-	 * @return void
+	 * @return array
 	 *
 	 * @throws ProductNotFoundException
 	 */
-	public function validateProductIds(string $shop_domain, array $product_ids): void;
+	public function validateProductIds(string $shop_id, array $product_ids): array;
+
+    /**
+     * Validate product IDs exist in the shop.
+     *
+     * @param string $shop_id
+     * @param array $list_product_gid
+     * @return array
+     *
+     * @throws ProductNotFoundException
+     */
+    public function validateListProductGid(string $shop_id, array $list_product_gid): array;
 
 	/**
 	 * Validate product ID exist in the shop.
 	 *
-	 * @param string $shop_domain
+	 * @param string $shop_id
 	 * @param string $product_id
 	 * @return ProductCollection
 	 *
 	 * @throws ProductNotFoundException
 	 */
-	public function validateProductId(string $shop_domain, string $product_id): ProductCollection;
+	public function validateProductId(string $shop_id, string $product_id): ProductCollection;
+
+    /**
+     * Get list of product GID by IDs.
+     *
+     * @param array $product_ids
+     * @return array
+     */
+    public function getListGidByIds(array $product_ids): array;
 }
