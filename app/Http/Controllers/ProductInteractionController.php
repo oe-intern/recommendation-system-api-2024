@@ -2,21 +2,22 @@
 
 namespace App\Http\Controllers;
 
+use App\Contracts\Queries\IProductQuery;
+use App\Contracts\Queries\IShopQuery;
 use App\Contracts\Recommendation\IProductInteraction;
+use App\Exceptions\MissingProductIdException;
 use App\Exceptions\ProductNotFoundException;
-use App\Jobs\ProcessInteractionEvent;
-use App\Lib\Utils;
+use App\Exceptions\ShopNotFoundException;
+use App\Jobs\ProcessAddToCartEvent;
+use App\Jobs\ProcessClickEvent;
+use App\Objects\Enums\InteractionType;
 use App\Services\Shopify\UserContext;
-use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Response;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
-class ProductInteractionController extends Controller
+class ProductInteractionController extends BaseController
 {
-    /**
-     * @var UserContext
-     */
-    protected UserContext $user_context;
-
     /**
      * @var IProductInteraction
      */
@@ -27,10 +28,16 @@ class ProductInteractionController extends Controller
      *
      * @param UserContext $user_context
      * @param IProductInteraction $product_interaction_service
+     * @param IShopQuery $shop_query
+     * @param IProductQuery $product_query
      */
-    public function __construct(UserContext $user_context, IProductInteraction $product_interaction_service)
-    {
-        $this->user_context = $user_context;
+    public function __construct(
+        UserContext $user_context,
+        IProductInteraction $product_interaction_service,
+        IShopQuery $shop_query,
+        IProductQuery $product_query,
+    ) {
+        parent::__construct($user_context, $product_query, $shop_query);
         $this->product_interaction_service = $product_interaction_service;
     }
 
@@ -38,37 +45,103 @@ class ProductInteractionController extends Controller
      * Get list of interactions for a shop.
      *
      * @param Request $request
-     * @return JsonResponse
+     * @return Response
      *
+     * @throws MissingProductIdException
      * @throws ProductNotFoundException
+     * @throws ShopNotFoundException
      */
-    public function filter(Request $request): JsonResponse
+    public function getClickStatistics(Request $request): Response
     {
-        $shop_domain = $this->user_context->getDomain()->toNative();
-        $product_id = $request->query('product_id');
-        $product_id = $product_id ? Utils::getIdFromGid($product_id) : null;
-        $start_date = $request->query('start_date');
-        $end_date = $request->query('end_date');
-
-        $interactions = $this->product_interaction_service
-            ->filter($shop_domain, $product_id, $start_date, $end_date);
-
-        return response()->json($interactions);
+        return $this->getStatisticsData($request, InteractionType::CLICK);
     }
 
     /**
-     * Increment the number of interactions for a product.
+     * Get list of interactions for a shop.
      *
      * @param Request $request
-     * @return JsonResponse
+     * @return Response
+     *
+     * @throws MissingProductIdException
+     * @throws ProductNotFoundException
+     * @throws ShopNotFoundException
      */
-    public function interaction(Request $request): JsonResponse
+    public function getAddToCartStatistics(Request $request): Response
     {
-        $shop_domain = $this->user_context->getDomain()->toNative();
+        return $this->getStatisticsData($request, InteractionType::ADD_TO_CART);
+    }
+
+    /**
+     * Get list of interactions for a shop.
+     *
+     * @param Request $request
+     * @param InteractionType $interaction_type
+     * @return Response
+     *
+     * @throws MissingProductIdException
+     * @throws ProductNotFoundException
+     * @throws ShopNotFoundException
+     */
+    private function getStatisticsData(Request $request, InteractionType $interaction_type): Response
+    {
+        $shop_id = $this->getShopId();
+        $product_id = $request->query('product_id');
+        $product_id = $product_id ? $this->getProductId($shop_id, $product_id) : null;
+        $start_date = $request->query('start_date');
+        $end_date = $request->query('end_date');
+        $group_by = $request->query('group_by');
+
+        $interactions = match ($interaction_type) {
+            InteractionType::CLICK => $this->product_interaction_service
+                ->getClickData($shop_id, $product_id, $start_date, $end_date, $group_by),
+            InteractionType::ADD_TO_CART => $this->product_interaction_service
+                ->getAddToCartData($shop_id, $product_id, $start_date, $end_date, $group_by),
+        };
+
+        return response()->success('Interactions retrieved successfully', $interactions);
+    }
+
+    /**
+     * Increment the number of add to cart interactions for a product.
+     *
+     * @param string $product_id
+     * @param Request $request
+     * @return Response
+     *
+     * @throws MissingProductIdException
+     * @throws ProductNotFoundException
+     * @throws ShopNotFoundException
+     */
+    public function addToCart(string $product_id, Request $request): Response
+    {
+        $shop_id = $this->getShopId();
+        $product_id = $this->getProductId($shop_id, $product_id);
         $data = $request->all();
 
-        ProcessInteractionEvent::dispatch($shop_domain, $data);
+        ProcessAddToCartEvent::dispatch($shop_id, $product_id, $data);
 
-        return response()->json(['message' => 'Interactions updated successfully']);
+        return response()->success('Interactions updated successfully');
+    }
+
+    /**
+     * Increment the number of click interactions for a product.
+     *
+     * @param string $product_id
+     * @param Request $request
+     * @return Response
+     *
+     * @throws MissingProductIdException
+     * @throws ProductNotFoundException
+     * @throws ShopNotFoundException
+     */
+    public function click(string $product_id, Request $request): Response
+    {
+        $shop_id = $this->getShopId();
+        $product_id = $this->getProductId($shop_id, $product_id);
+        $data = $request->all();
+
+        ProcessClickEvent::dispatch($shop_id, $product_id, $data);
+
+        return response()->success('Interactions updated successfully');
     }
 }
