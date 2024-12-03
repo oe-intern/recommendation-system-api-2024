@@ -5,9 +5,7 @@ namespace App\Storage\Commands;
 use App\Collections\ProductCollection;
 use App\Collections\ShopCollection;
 use App\Contracts\Commands\IProductCommand;
-use App\Contracts\Commands\IRelationshipScoreCommand;
 use App\Contracts\Queries\IProductQuery;
-use App\Contracts\Queries\IRelationshipScoreQuery;
 use App\Objects\Enums\RecommendationType;
 
 class ProductCommand implements IProductCommand
@@ -18,30 +16,14 @@ class ProductCommand implements IProductCommand
     protected IProductQuery $product_query;
 
     /**
-     * @var IRelationshipScoreQuery
-     */
-    protected IRelationshipScoreQuery $relationship_score_query;
-
-    /**
-     * @var IRelationshipScoreCommand
-     */
-    protected IRelationshipScoreCommand $relationship_score_command;
-
-    /**
      * ProductCommand constructor.
      *
      * @param IProductQuery $product_query
-     * @param IRelationshipScoreQuery $relationship_score_query
-     * @param IRelationshipScoreCommand $relationship_score_command
      */
     public function __construct(
         IProductQuery $product_query,
-        IRelationshipScoreQuery $relationship_score_query,
-        IRelationshipScoreCommand $relationship_score_command
     ) {
         $this->product_query = $product_query;
-        $this->relationship_score_query = $relationship_score_query;
-        $this->relationship_score_command = $relationship_score_command;
     }
 
     /**
@@ -80,7 +62,7 @@ class ProductCommand implements IProductCommand
         RecommendationType $recommendation_type
     ): bool {
         return $product->update([
-            'recommendationType' => $recommendation_type,
+            'recommendation_type' => $recommendation_type,
         ]);
     }
 
@@ -100,24 +82,21 @@ class ProductCommand implements IProductCommand
      * Customize the recommendation products for each product.
      *
      * @param ProductCollection $product
-     * @param string $shop_domain
-     * @param RecommendationType $recommendation_type
+     * @param string $shop_id
      * @param array $recommendations
      * @return bool
      */
-    public function setRecommendationProduct(
+    public function setManualProduct(
         ProductCollection $product,
-        string $shop_domain,
-        RecommendationType $recommendation_type,
+        string $shop_id,
         array $recommendations
     ): bool {
-        $product_id = $product->getAttributeValue('id');
-        $recommendations = $this->getValidRecommendationProducts($shop_domain, $product_id, $recommendations);
-        $removed_recommendations = array_diff($product->getAttributeValue('manualIds'), $recommendations);
+        $product_id = $product->getId();
+        $removed_recommendations = array_diff($product->getAttributeValue('manual_ids'), $recommendations);
 
         $product->update([
-            'recommendationType' => $recommendation_type,
-            'manualIds' => $recommendations,
+            'manual_ids' => $recommendations,
+            'recommendation_type' => RecommendationType::MANUAL,
         ]);
 
         foreach ($recommendations as $recommended_product_id) {
@@ -132,21 +111,6 @@ class ProductCommand implements IProductCommand
     }
 
     /**
-     * Get list of products valid for recommendation.
-     *
-     * @param string $shop_domain
-     * @param string $product_id
-     * @param array $product_ids
-     * @return array
-     */
-    private function getValidRecommendationProducts(string $shop_domain, string $product_id, array $product_ids): array
-    {
-        $filtered_ids = array_unique(array_filter($product_ids, fn($id) => (string)$id !== $product_id));
-
-        return $this->product_query->getByShopDomainAndIds($shop_domain, $filtered_ids);
-    }
-
-    /**
      * Add a reference this product using product for recommendation.
      *
      * @param string $product_id
@@ -158,8 +122,44 @@ class ProductCommand implements IProductCommand
         $product = $this->product_query->getById($product_id);
 
         $product?->update([
-            'referencedIds' => array_unique(array_merge($product->getAttributeValue('referencedIds'),
+            'referenced_ids' => array_unique(array_merge($product->getAttributeValue('referenced_ids'),
                 [$reference_product_id])),
+        ]);
+    }
+
+    /**
+     * Remove a product recommended for this product.
+     *
+     * @param string $product_id
+     * @param string $recommended_product_id
+     * @return void
+     */
+    public function removeProductRecommendation(
+        string $product_id,
+        string $recommended_product_id
+    ): void {
+        $product = $this->product_query->getById($product_id);
+        $product?->update([
+            'manual_ids' => array_diff($product->getAttributeValue('manual_ids'), [$recommended_product_id]),
+        ]);
+
+        $this->removeReferenceProduct($recommended_product_id, $product_id);
+    }
+
+    /**
+     * Remove a reference this product using product for recommendation.
+     *
+     * @param string $product_id
+     * @param string $reference_product_id
+     * @return void
+     */
+    private function removeReferenceProduct(
+        string $product_id,
+        string $reference_product_id
+    ): void {
+        $product = $this->product_query->getById($product_id);
+        $product?->update([
+            'referenced_ids' => array_diff($product->getAttributeValue('referenced_ids'), [$reference_product_id]),
         ]);
     }
 
@@ -174,7 +174,7 @@ class ProductCommand implements IProductCommand
     {
         $product = $this->product_query->getById($product_id);
         $product?->update([
-            'manualIds' => array_unique(array_merge($product->getAttributeValue('manualIds'),
+            'manual_ids' => array_unique(array_merge($product->getAttributeValue('manual_ids'),
                 [$recommended_product_id])),
         ]);
 
@@ -202,27 +202,9 @@ class ProductCommand implements IProductCommand
      */
     private function removeRelationshipRecommendation(ProductCollection $product): void
     {
-        $this->removeRelationshipScore($product);
-
         $this->removeRelationshipRecommendationProduct($product);
 
         $this->removeRelationshipReferencedProduct($product);
-    }
-
-    /**
-     * Delete the score with a product with another product.
-     *
-     * @param ProductCollection $product
-     * @return void
-     */
-    private function removeRelationshipScore(ProductCollection $product): void
-    {
-        $product_id = $product->getAttributeValue('id');
-        $product_list_score = $this->relationship_score_query->getByProductCollection($product);
-
-        foreach ($product_list_score as $relationship_score) {
-            $this->relationship_score_command->deleteScore($relationship_score['productId'], $product_id);
-        }
     }
 
     /**
@@ -234,29 +216,12 @@ class ProductCommand implements IProductCommand
     private function removeRelationshipRecommendationProduct(
         ProductCollection $product
     ): void {
-        $product_id = $product->getAttributeValue('id');
-        $product_recommendation_ids = $product->getAttributeValue('manualIds');
+        $product_id = $product->getId();
+        $product_recommendation_ids = $product->getManualIds();
 
         foreach ($product_recommendation_ids as $product_recommendation_id) {
             $this->removeReferenceProduct($product_recommendation_id, $product_id);
         }
-    }
-
-    /**
-     * Remove a reference this product using product for recommendation.
-     *
-     * @param string $product_id
-     * @param string $reference_product_id
-     * @return void
-     */
-    private function removeReferenceProduct(
-        string $product_id,
-        string $reference_product_id
-    ): void {
-        $product = $this->product_query->getById($product_id);
-        $product?->update([
-            'referencedIds' => array_diff($product->getAttributeValue('referencedIds'), [$reference_product_id]),
-        ]);
     }
 
     /**
@@ -268,30 +233,11 @@ class ProductCommand implements IProductCommand
     private function removeRelationshipReferencedProduct(
         ProductCollection $product,
     ): void {
-        $product_id = $product->getAttributeValue('id');
-        $product_referenced_ids = $product->getAttributeValue('referencedIds');
+        $product_id = $product->getId();
+        $product_referenced_ids = $product->getAttributeValue('referenced_ids');
 
         foreach ($product_referenced_ids as $product_referenced_id) {
             $this->removeProductRecommendation($product_referenced_id, $product_id);
         }
-    }
-
-    /**
-     * Remove a product recommended for this product.
-     *
-     * @param string $product_id
-     * @param string $recommended_product_id
-     * @return void
-     */
-    public function removeProductRecommendation(
-        string $product_id,
-        string $recommended_product_id
-    ): void {
-        $product = $this->product_query->getById($product_id);
-        $product?->update([
-            'manualIds' => array_diff($product->getAttributeValue('manualIds'), [$recommended_product_id]),
-        ]);
-
-        $this->removeReferenceProduct($recommended_product_id, $product_id);
     }
 }
