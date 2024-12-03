@@ -3,16 +3,11 @@
 namespace App\Exceptions;
 
 use Exception;
-use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Response;
 use Throwable;
 
 class ProductNotFoundException extends Exception
 {
-    /**
-     * @var string
-     */
-    protected string $shop_domain;
-
     /**
      * @var mixed
      */
@@ -21,16 +16,14 @@ class ProductNotFoundException extends Exception
     /**
      * ProductNotFoundException constructor.
      *
-     * @param string $shop_domain
      * @param mixed $product_id
      * @param Throwable|null $previous
      */
-    public function __construct(string $shop_domain, mixed $product_id, ?Throwable $previous = null)
+    public function __construct(mixed $product_id, ?Throwable $previous = null)
     {
-        $this->shop_domain = $shop_domain;
         $this->product_id = $product_id;
         $this->message = 'Product ID: ' . (is_array($product_id) ? implode(', ', $product_id) : $product_id)
-            . ' not found for shop_domain: ' . $shop_domain;
+            . ' not found.';
 
         parent::__construct($this->message);
     }
@@ -38,12 +31,10 @@ class ProductNotFoundException extends Exception
     /**
      * Render the exception as an HTTP response.
      *
-     * @return JsonResponse
+     * @return Response
      */
-    public function render(): JsonResponse
+    public function render(): Response
     {
-        return response()->json([
-            'message' => $this->getMessage(),
-        ], 404);
+        return response()->error($this->getMessage(), [], 404);
     }
 }
