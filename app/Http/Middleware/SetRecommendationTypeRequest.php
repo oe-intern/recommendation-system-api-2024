@@ -2,12 +2,12 @@
 
 namespace App\Http\Middleware;
 
-use App\Objects\Enums\InteractionType;
-use Illuminate\Http\Request;
+use App\Objects\Enums\RecommendationType;
 use Closure;
+use Illuminate\Http\Request;
 use Illuminate\Validation\Rules\Enum;
 
-class ProductInteractionRequest
+class SetRecommendationTypeRequest
 {
     /**
      * Handle an incoming request.
@@ -19,12 +19,10 @@ class ProductInteractionRequest
     public function handle(Request $request, Closure $next): mixed
     {
         $request->validate([
-            'product_id' => 'required|string',
-            'number_of_interactions' => 'sometimes|nullable|integer',
-            'interaction_type' => [
+            'product_id' => 'string',
+            'recommendation_type' => [
                 'required',
-                'string',
-                new Enum(InteractionType::class),
+                new Enum(RecommendationType::class),
             ]
         ]);
 
