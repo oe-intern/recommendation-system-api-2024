@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Lib\Handlers;
 
 use App\Contracts\Queries\User as UserQuery;
+use App\Contracts\Queries\IShopQuery;
+use App\Exceptions\ShopNotFoundException;
 use App\Models\User as UserModel;
 use App\Objects\Values\UserDomain;
 use Shopify\Webhooks\Handler;
@@ -17,6 +19,13 @@ abstract class BaseShopHandler implements Handler
      * @var UserQuery
      */
     protected UserQuery $user_query;
+
+    /**
+     * The shop query.
+     *
+     * @var IShopQuery
+     */
+    protected IShopQuery $shop_query;
 
     /**
      * BaseShopHandler constructor.
@@ -35,6 +44,8 @@ abstract class BaseShopHandler implements Handler
      * @param string $shop
      * @param array $body
      * @return void
+     *
+     * @throws ShopNotFoundException
      */
     public function handle(string $topic, string $shop, array $body): void
     {
@@ -44,7 +55,8 @@ abstract class BaseShopHandler implements Handler
             return;
         }
 
-        $this->processData($shop, $body);
+        $shop_id = $this->getShopId($shop);
+        $this->processData($shop_id, $body);
     }
 
     /**
@@ -60,11 +72,21 @@ abstract class BaseShopHandler implements Handler
     }
 
     /**
+     * Get the shop id.
+     *
+     * @throws ShopNotFoundException
+     */
+    private function getShopId(string $shop_domain): string
+    {
+        return $this->shop_query->getShopIdByDomain($shop_domain);
+    }
+
+    /**
      * Process the data after checking the user.
      *
-     * @param string $shop_domain
+     * @param string $shop_id
      * @param array $body
      * @return void
      */
-    abstract protected function processData(string $shop_domain, array $body): void;
+    abstract protected function processData(string $shop_id, array $body): void;
 }
