@@ -18,7 +18,7 @@ class UpdateProduct implements ShouldQueue
     /**
      * @var string
      */
-    protected string $shop_domain;
+    protected string $shop_id;
 
     /**
      * @var array
@@ -28,12 +28,12 @@ class UpdateProduct implements ShouldQueue
     /**
      * Create a new job instance.
      *
-     * @param string $shop_domain
+     * @param string $shop_id
      * @param array $product
      */
-    public function __construct(string $shop_domain, array $product)
+    public function __construct(string $shop_id, array $product)
     {
-        $this->shop_domain = $shop_domain;
+        $this->shop_id = $shop_id;
         $this->product = $product;
     }
 
@@ -49,7 +49,7 @@ class UpdateProduct implements ShouldQueue
      */
     public function handle(IProductCommand $product_command, IShopQuery $shop_query, ProductTransform $product_transform, IProductQuery $product_query): void
     {
-        $product = $product_query->getByShopDomainAndId($this->shop_domain, $this->product['id']);
+        $product = $product_query->getByShopIdAndGid($this->shop_id, $this->product['id']);
         if ($product) {
             $product_data = $product_transform->webhookDataToCollectionData($this->product);
             $product_command->update($product, $product_data);
