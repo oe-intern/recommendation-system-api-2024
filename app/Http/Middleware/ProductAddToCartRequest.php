@@ -2,12 +2,10 @@
 
 namespace App\Http\Middleware;
 
-use App\Objects\Enums\InteractionType;
 use Closure;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rules\Enum;
 
-class ProductInteractionFilter
+class ProductAddToCartRequest
 {
     /**
      * Handle an incoming request.
@@ -19,9 +17,7 @@ class ProductInteractionFilter
     public function handle(Request $request, Closure $next): mixed
     {
         $request->validate([
-            'product_id' => 'sometimes|nullable|string',
-            'start_date' => 'required|date_format:Y-m-d|before_or_equal:end_date',
-            'end_date' => 'required|date_format:Y-m-d|before_or_equal:today',
+            'number_of_interactions' => 'sometimes|nullable|integer',
         ]);
 
         return $next($request);

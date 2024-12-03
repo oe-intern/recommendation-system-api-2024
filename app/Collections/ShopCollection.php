@@ -4,11 +4,8 @@ declare(strict_types=1);
 
 namespace App\Collections;
 
-use App\Collections\Schema\OrderTypeQuantitySchema;
 use MongoDB\Laravel\Eloquent\SoftDeletes;
-use MongoDB\Laravel\Relations\EmbedsMany;
-use App\Collections\Schema\InteractionProductSchema;
-use App\Collections\Schema\ShopSettingScheme;
+use App\Collections\Schema\ShopSettingSchema;
 use MongoDB\Laravel\Relations\EmbedsOne;
 use MongoDB\Laravel\Relations\HasMany;
 
@@ -24,13 +21,6 @@ class ShopCollection extends MongoCollection
     protected $table = 'shops';
 
     /**
-     * Indicates if the IDs are auto-incrementing.
-     *
-     * @var bool
-     */
-    public $incrementing = false;
-
-    /**
      * Disable the timestamps.
      *
      * @var bool
@@ -44,41 +34,7 @@ class ShopCollection extends MongoCollection
      */
     protected $fillable = [
         'domain',
-        'orderTypeQuantities',
     ];
-
-    /**
-     * The primary key.
-     *
-     * @var string
-     */
-    protected $primaryKey = 'domain';
-
-    /**
-     * The "type" of the primary key ID.
-     *
-     * @var string
-     */
-    protected $keyType = 'string';
-
-    /**
-     * The attributes that should be cast.
-     *
-     * @var string[]
-     */
-    protected $casts = [
-        'orderTypeQuantities' => 'array',
-    ];
-
-    /**
-     * Define the relationship with the orders.
-     *
-     * @return HasMany
-     */
-    public function orders(): HasMany
-    {
-        return $this->hasMany(OrderCollection::class);
-    }
 
     /**
      * Define the relationship with the products.
@@ -87,17 +43,27 @@ class ShopCollection extends MongoCollection
      */
     public function products(): HasMany
     {
-        return $this->hasMany(ProductCollection::class);
+        return $this->hasMany(ProductCollection::class, 'shop_id');
     }
 
     /**
-     * Define the relationship with the type orders.
+     * Define the relationship with the product click.
      *
-     * @return EmbedsMany
+     * @return HasMany
      */
-    public function orderTypeQuantities(): EmbedsMany
+    public function productClicks(): HasMany
     {
-        return $this->embedsMany(OrderTypeQuantitySchema::class);
+        return $this->hasMany(ProductClickCollection::class, 'shop_id');
+    }
+
+    /**
+     * Define the relationship with the product add to cart.
+     *
+     * @return HasMany
+     */
+    public function productAddToCart(): HasMany
+    {
+        return $this->hasMany(ProductAddToCartCollection::class, 'shop_id');
     }
 
     /**
@@ -107,16 +73,16 @@ class ShopCollection extends MongoCollection
      */
     public function settings(): EmbedsOne
     {
-        return $this->embedsOne(ShopSettingScheme::class);
+        return $this->embedsOne(ShopSettingSchema::class);
     }
 
     /**
-     * Define the relationship with the interactions for all products.
+     * Get the ID of the shop.
      *
-     * @return EmbedsMany
+     * @return string
      */
-    public function interactions(): EmbedsMany
+    public function getId(): string
     {
-        return $this->embedsMany(InteractionProductSchema::class);
+        return $this->getAttribute('_id');
     }
 }

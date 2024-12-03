@@ -52,15 +52,13 @@ interface IProductCommand
      * Customize the recommendation products for each product.
      *
      * @param ProductCollection $product
-     * @param string $shop_domain
-     * @param RecommendationType $recommendation_type
+     * @param string $shop_id
      * @param array $recommendations
      * @return bool
      */
-    public function setRecommendationProduct(
+    public function setManualProduct(
         ProductCollection $product,
-        string $shop_domain,
-        RecommendationType $recommendation_type,
+        string $shop_id,
         array $recommendations
     ): bool;
 

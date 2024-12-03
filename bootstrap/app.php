@@ -7,9 +7,9 @@ use App\Http\Middleware\EnsureShopifySession;
 use App\Http\Middleware\VerifyAuthenticationToken;
 use App\Http\Middleware\VerifyHmac;
 use App\Http\Middleware\SetProductRecommendationRequest;
-use App\Http\Middleware\SetRecommendationStateRequest;
-use App\Http\Middleware\ProductInteractionRequest;
-use App\Http\Middleware\ProductInteractionFilter;
+use App\Http\Middleware\SetRecommendationTypeRequest;
+use App\Http\Middleware\ProductAddToCartRequest;
+use App\Http\Middleware\ProductStatistic;
 use App\Http\Middleware\SettingAutoRecommendationRequest;
 use App\Http\Middleware\IdentifyShopDomain;
 use Illuminate\Foundation\Application;
@@ -40,10 +40,10 @@ return Application::configure(basePath: dirname(__DIR__))
             'access_control_headers' => AccessControlHeaders::class,
             'csp_header' => CspHeader::class,
             'validate.recommendation.request' => SetProductRecommendationRequest::class,
-            'validate.recommendation.state.request' => SetRecommendationStateRequest::class,
+            'validate.recommendation.type.request' => SetRecommendationTypeRequest::class,
             'validate.auto.recommendation.request' => SettingAutoRecommendationRequest::class,
-            'validate.product.interaction.request' => ProductInteractionRequest::class,
-            'validate.product.interaction.filter' => ProductInteractionFilter::class,
+            'validate.product.addToCart.request' => ProductAddToCartRequest::class,
+            'validate.product.statistics' => ProductStatistic::class,
             'identify.shop.domain' => IdentifyShopDomain::class,
         ]);
     })

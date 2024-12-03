@@ -5,35 +5,49 @@ use App\Http\Controllers\RecommendationController;
 use Illuminate\Support\Facades\Route;
 
 Route::group(['middleware' => ['access_control_headers', 'shopify.auth', 'verify.token']], function () {
-    Route::prefix('recommendation')->group(function () {
-        Route::get('/', [RecommendationController::class, 'getProduct']);
-        Route::prefix('settings')->group(function () {
-            Route::get('', [RecommendationController::class, 'getAutoRecommendation']);
-            Route::put('', [RecommendationController::class, 'setAutoRecommendation'])
-                ->middleware('validate.auto.recommendation.request');
+    Route::prefix('products')->group(function () {
+        Route::get('/{product_id}', [RecommendationController::class, 'getProduct']);
+        Route::get('/{product_id}/recommendation-type',
+            [RecommendationController::class, 'getRecommendationTypes']);
+        Route::group(['middleware' => 'validate.product.statistics'], function () {
+            Route::get('/click/statistics',
+                [ProductInteractionController::class, 'getClickStatistics']);
+            Route::get('/add-to-cart/statistics',
+                [ProductInteractionController::class, 'getAddToCartStatistics']);
         });
-        Route::put('/state', [
-            RecommendationController::class,
-            'setState'
-        ])->middleware('validate.recommendation.state.request');
-        Route::put('', [
+        Route::put('/{product_id}/recommendation-type', [RecommendationController::class, 'setRecommendationType'])
+            ->middleware('validate.recommendation.type.request');
+        Route::get('/{product_id}/manual-recommendation',
+            [RecommendationController::class, 'getManualRecommendation']);
+        Route::put('/{product_id}/manual-recommendation', [
             RecommendationController::class,
             'setManualRecommendation'
         ])->middleware('validate.recommendation.request');
     });
-    Route::prefix('interaction')->group(function () {
-        Route::get('', [ProductInteractionController::class, 'filter'])
-            ->middleware('validate.product.interaction.filter');
+    Route::prefix('shop')->group(function () {
+        Route::prefix('settings')->group(function () {
+            Route::get('', [RecommendationController::class, 'getShopSetting']);
+            Route::put('', [RecommendationController::class, 'setShopSetting'])
+                ->middleware('validate.auto.recommendation.request');
+        });
     });
 });
 
 Route::group(['middleware' => ['access_control_headers', 'identify.shop.domain']], function () {
     Route::prefix("sdk")->group(function () {
-        Route::get("/recommendation", [RecommendationController::class, 'getRecommendation']);
-        Route::get("/recommendation/settings", [RecommendationController::class, 'getAutoRecommendation']);
-        Route::prefix("/interaction")->group(function () {
-            Route::post('', [ProductInteractionController::class, 'interaction'])
-                ->middleware('validate.product.interaction.request');
+        Route::prefix('/shop')->group(function () {
+            Route::prefix('settings')->group(function () {
+                Route::get('', [RecommendationController::class, 'getShopSetting']);
+            });
+        });
+        Route::prefix('/products')->group(function () {
+            Route::get('/{product_id}/recommendations',
+                [RecommendationController::class, 'getRecommendation']);
+            Route::post('/{product_id}/click', [ProductInteractionController::class, 'click']);
+            Route::post('/{product_id}/add-to-cart', [
+                ProductInteractionController::class,
+                'addToCart'
+            ])->middleware('validate.product.addToCart.request');
         });
     });
 });

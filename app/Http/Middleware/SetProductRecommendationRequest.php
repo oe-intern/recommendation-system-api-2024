@@ -19,15 +19,8 @@ class SetProductRecommendationRequest
     public function handle(Request $request, Closure $next): mixed
     {
         $request->validate([
-            'product_id' => 'required|string',
             'recommended_ids' => 'required|array',
             'recommended_ids.*' => 'string',
-            'recommendation_type' => [
-                'sometimes',
-                'nullable',
-                'string',
-                new Enum(RecommendationType::class),
-            ]
         ]);
 
         return $next($request);

@@ -4,15 +4,14 @@ namespace App\Services\Product;
 
 use App\Collections\ProductCollection;
 use App\Contracts\Commands\IProductCommand;
-use App\Contracts\Commands\IRelationshipScoreCommand;
 use App\Contracts\Commands\IShopCommand;
 use App\Contracts\Queries\IProductQuery;
-use App\Contracts\Queries\IRelationshipScoreQuery;
 use App\Contracts\Queries\IShopQuery;
 use App\Contracts\Recommendation\IProductRecommendation;
 use App\Contracts\Shopify\Graphql\Queries\IProductQueryShopify;
 use App\Exceptions\ProductNotFoundException;
 use App\Objects\Enums\RecommendationType;
+use Illuminate\Support\Facades\Log;
 
 class ProductRecommendationService implements IProductRecommendation
 {
@@ -22,19 +21,9 @@ class ProductRecommendationService implements IProductRecommendation
     protected IProductQuery $product_query;
 
     /**
-     * @var IRelationshipScoreQuery
-     */
-    protected IRelationshipScoreQuery $relationship_score_query;
-
-    /**
      * @var IShopQuery
      */
     protected IShopQuery $shop_query;
-
-    /**
-     * @var IRelationshipScoreCommand
-     */
-    protected IRelationshipScoreCommand $relationship_score_command;
 
     /**
      * @var IProductCommand
@@ -55,26 +44,20 @@ class ProductRecommendationService implements IProductRecommendation
      * ProductRecommendationService constructor.
      *
      * @param IProductQuery $product_query
-     * @param IRelationshipScoreQuery $relationship_score_query
      * @param IShopQuery $shop_query
-     * @param IRelationshipScoreCommand $relationship_score_command
      * @param IProductCommand $product_command
      * @param IProductQueryShopify $product_service
      * @param IShopCommand $shop_command
      */
     public function __construct(
         IProductQuery $product_query,
-        IRelationshipScoreQuery $relationship_score_query,
         IShopQuery $shop_query,
-        IRelationshipScoreCommand $relationship_score_command,
         IProductCommand $product_command,
         IProductQueryShopify $product_service,
         IShopCommand $shop_command,
     ) {
         $this->product_query = $product_query;
-        $this->relationship_score_query = $relationship_score_query;
         $this->shop_query = $shop_query;
-        $this->relationship_score_command = $relationship_score_command;
         $this->product_command = $product_command;
         $this->product_service = $product_service;
         $this->shop_command = $shop_command;
@@ -83,97 +66,104 @@ class ProductRecommendationService implements IProductRecommendation
     /**
      * Get list of recommended products for a product.
      *
-     * @param string $shop_domain
+     * @param string $shop_id
      * @param string $product_id
      * @return array
      *
      * @throws ProductNotFoundException
      */
-    public function getRecommendedProducts(string $shop_domain, string $product_id): array
+    public function getRecommendedProducts(string $shop_id, string $product_id): array
     {
-        $product = $this->product_query->getByShopDomainAndId($shop_domain, $product_id);
+        $product = $this->product_query->getByShopIdAndId($shop_id, $product_id);
+        $recommendation_type = $product->getRecommendationType();
 
-        if (!$product) {
-            throw new ProductNotFoundException($shop_domain, $product_id);
-        }
-
-        $recommendation_type = $product->getAttribute('recommendationType');
-
-        return match ($recommendation_type) {
-            RecommendationType::AUTO => $this->getAutoRecommendation($shop_domain, $product_id),
-            RecommendationType::MANUAL => $this->getManualRecommendation($shop_domain, $product_id),
-            default => $this->getDefinedRecommendation($shop_domain, $product_id),
+        $product_ids = match ($recommendation_type) {
+            RecommendationType::AUTO => $this->getAutoRecommendation($shop_id, $product_id),
+            RecommendationType::MANUAL => $this->getManualRecommendation($shop_id, $product_id),
+            default => $this->getDefaultRecommendation($shop_id, $product_id),
         };
+        $list_product_gid = $this->product_query->getListGidByIds($product_ids);
+        $products = $this->product_service->fetchByIds($list_product_gid);
+
+        $shop = $this->shop_query->getById($shop_id);
+        $number_of_items = $shop->settings()->get()->getNumberOfItems();
+
+        $random_products = collect($products)->random(min(count($products), $number_of_items));
+        return $random_products->toArray();
+    }
+
+    /**
+     * Get list of manual product gid for a product.
+     *
+     * @param string $shop_id
+     * @param string $product_id
+     * @return array
+     */
+    public function getManualProducts(string $shop_id, string $product_id): array
+    {
+        $product_ids = $this->getManualRecommendation($shop_id, $product_id);
+        return $this->product_query->getListGidByIds($product_ids);
     }
 
     /**
      * Get list of also viewed products for a product from system recommendation.
      *
-     * @param string $shop_domain
+     * @param string $shop_id
      * @param string $product_id
      * @return array
      */
-    private function getAutoRecommendation(string $shop_domain, string $product_id): array
+    private function getAutoRecommendation(string $shop_id, string $product_id): array
     {
-        $referenced_products = ["8909707706614", "8909708558582", "8909708689654", "8909707837686"];
-
-        return $this->product_service->fetchByIds($referenced_products);
+        return ["674d72c9dd53547c1500f301", "674d72c9dd53547c1500f302", "674d72c9dd53547c1500f303", "674d72c9dd53547c1500f304"];
     }
 
     /**
      * Get list of also viewed products for a product from manual recommendation.
      *
-     * @param string $shop_domain
+     * @param string $shop_id
      * @param string $product_id
      * @return array
      */
-    private function getManualRecommendation(string $shop_domain, string $product_id): array
+    private function getManualRecommendation(string $shop_id, string $product_id): array
     {
-        $optional_products = $this->product_query->getOptionalProducts($product_id);
-
-        return $this->product_service->fetchByIds($optional_products);
+        return $this->product_query->getManualProducts($product_id);
     }
 
     /**
      * Get list of also viewed products for a product from relationship product.
      *
-     * @param string $shop_domain
+     * @param string $shop_id
      * @param string $product_id
      * @return array
      */
-    private function getDefinedRecommendation(string $shop_domain, string $product_id): array
+    private function getDefaultRecommendation(string $shop_id, string $product_id): array
     {
-        $recommended_products = ["8909707706614", "8909708558582", "8909708689654", "8909707837686"];
-
-        return $this->product_service->fetchByIds($recommended_products);
+        return ["674d72c9dd53547c1500f301", "674d72c9dd53547c1500f302", "674d72c9dd53547c1500f303", "674d72c9dd53547c1500f304"];
     }
 
     /**
      * Set list of recommended products for a product.
      *
-     * @param string $shop_domain
+     * @param string $shop_id
      * @param string $product_id
-     * @param array $recommended_products
-     * @param string|null $recommendation_type
+     * @param array $list_recommended_gid
      * @return ProductCollection
      *
      * @throws ProductNotFoundException
      */
     public function setRecommendedProducts(
-        string $shop_domain,
+        string $shop_id,
         string $product_id,
-        array $recommended_products,
-        ?string $recommendation_type
+        array $list_recommended_gid,
     ): ProductCollection {
-        $this->product_query->validateProductIds($shop_domain, array_merge([$product_id], $recommended_products));
-
-        $recommendation_type = RecommendationType::tryFrom($recommendation_type);
+        $recommended_ids = $this->product_query->validateListProductGid($shop_id, $list_recommended_gid);
         $product = $this->product_query->getById($product_id);
+        $recommended_ids = array_unique(array_filter($recommended_ids, fn($id) => (string)$id !== $product_id));
 
-        $this->product_command->setRecommendationProduct(
-            $product, $shop_domain,
-            $recommendation_type ?? $product->getType(),
-            $recommended_products
+        $this->product_command->setManualProduct(
+            $product,
+            $shop_id,
+            $recommended_ids
         );
 
         return $product;
@@ -182,7 +172,7 @@ class ProductRecommendationService implements IProductRecommendation
     /**
      * Set the recommendation type for a product.
      *
-     * @param string $shop_domain
+     * @param string $shop_id
      * @param string $product_id
      * @param string $recommendation_type
      * @return ProductCollection
@@ -190,11 +180,11 @@ class ProductRecommendationService implements IProductRecommendation
      * @throws ProductNotFoundException
      */
     public function setRecommendationType(
-        string $shop_domain,
+        string $shop_id,
         string $product_id,
         string $recommendation_type
     ): ProductCollection {
-        $this->product_query->validateProductId($shop_domain, $product_id);
+        $this->product_query->validateProductId($shop_id, $product_id);
 
         $recommendation_type = RecommendationType::tryFrom($recommendation_type);
         $product = $this->product_query->getById($product_id);
@@ -207,21 +197,23 @@ class ProductRecommendationService implements IProductRecommendation
     /**
      * Get full information of a product (including recommendations).
      *
-     * @param string $shop_domain
+     * @param string $shop_id
      * @param string $product_id
      * @return array
      *
      * @throws ProductNotFoundException
      */
-    public function getFullInfo(string $shop_domain, string $product_id): array
+    public function getFullInfo(string $shop_id, string $product_id): array
     {
-        $this->product_query->validateProductId($shop_domain, $product_id);
+        $this->product_query->validateProductId($shop_id, $product_id);
 
         $product = $this->product_query->getById($product_id);
-        $recommended_products = $this->product_query->getOptionalProducts($product_id);
+        $recommended_products = $this->product_query->getManualProducts($product_id);
         // relative products, ....
 
-        $product->setAttribute('recommended_products', $this->product_service->fetchByIds($recommended_products));
+        $product->setAttribute('recommended_products', $this->product_service->fetchByIds(
+            $this->product_query->getListGidByIds($recommended_products)
+        ));
 
         return $product->toArray();
     }
@@ -229,47 +221,31 @@ class ProductRecommendationService implements IProductRecommendation
     /**
      * Get settings for auto recommendation.
      *
-     * @param string $shop_domain
+     * @param string $shop_id
      * @return array
      */
-    public function getAutoRecommendationSettings(string $shop_domain): array
+    public function getShopSettings(string $shop_id): array
     {
-        $shop = $this->shop_query->getByDomain($shop_domain);
-        return $this->shop_query->getAutoRecommendationSettings($shop);
+        $shop = $this->shop_query->getById($shop_id);
+        return $this->shop_query->getShopSettings($shop);
     }
 
     /**
      * Set auto recommendation for a shop.
      *
-     * @param string $shop_domain
+     * @param string $shop_id
      * @param array $settings
      *
      * @return array
      */
-    public function setAutoRecommendationSettings(
-        string $shop_domain,
+    public function setShopSettings(
+        string $shop_id,
         array $settings
     ): array {
-        $shop = $this->shop_query->getByDomain($shop_domain);
-        return $this->shop_command->setAutoRecommendationSettings(
+        $shop = $this->shop_query->getById($shop_id);
+        return $this->shop_command->setShopSettings(
             $shop,
-            $this->transformRequestSettings($settings)
+            $settings,
         );
-    }
-
-    /**
-     * Transform request settings to array data for ShopSettingScheme.
-     *
-     * @param array $settings
-     * @return array
-     */
-    private function transformRequestSettings(array $settings): array
-    {
-        return [
-            'layout' => $settings['layout'],
-            'backgroundColor' => $settings['background_color'],
-            'textColor' => $settings['text_color'],
-            'numberOfItems' => (int) $settings['number_of_items']
-        ];
     }
 }

@@ -11,12 +11,12 @@ class ProductCreateHandler extends BaseShopHandler
     /**
      * Process the incoming webhook data.
      *
-     * @param string $shop_domain
+     * @param string $shop_id
      * @param array $body
      * @return void
      */
-    protected function processData(string $shop_domain, array $body): void
+    protected function processData(string $shop_id, array $body): void
     {
-        CreateProductJob::dispatch($shop_domain, $body);
+        CreateProductJob::dispatch($shop_id, $body);
     }
 }

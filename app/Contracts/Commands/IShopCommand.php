@@ -21,5 +21,5 @@ interface IShopCommand
      * @param array $settings
      * @return array
      */
-    public function setAutoRecommendationSettings(ShopCollection $shop, array $settings): array;
+    public function setShopSettings(ShopCollection $shop, array $settings): array;
 }

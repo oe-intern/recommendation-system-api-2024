@@ -1,11 +1,18 @@
 <?php
 
-namespace App\Collections\Schema;
+declare(strict_types=1);
 
-use App\Collections\MongoCollection;
+namespace App\Collections;
 
-class ShopSettingScheme extends MongoCollection
+class ProductClickCollection extends MongoCollection
 {
+    /**
+     * The name of the collection.
+     *
+     * @var string
+     */
+    protected $table = 'product_clicks';
+
     /**
      * Indicates if the model should be timestamped.
      *
@@ -19,10 +26,9 @@ class ShopSettingScheme extends MongoCollection
      * @var string[]
      */
     protected $fillable = [
-        'layout',
-        'backgroundColor',
-        'textColor',
-        'numberOfItems',
+        'created_at',
+        'product_id',
+        'shop_id',
     ];
 
     /**
@@ -31,6 +37,6 @@ class ShopSettingScheme extends MongoCollection
      * @var string[]
      */
     protected $casts = [
-        'numberOfItems' => 'int',
+        'created_at' => 'datetime',
     ];
 }

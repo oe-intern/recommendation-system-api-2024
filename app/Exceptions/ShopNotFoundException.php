@@ -6,24 +6,23 @@ use Exception;
 use Illuminate\Http\Response;
 use Throwable;
 
-class ProductNotFoundException extends Exception
+class ShopNotFoundException extends Exception
 {
     /**
-     * @var mixed
+     * @var string
      */
-    protected mixed $product_id;
+    protected string $shop_domain;
 
     /**
-     * ProductNotFoundException constructor.
+     * ShopNotFoundException constructor.
      *
-     * @param mixed $product_id
+     * @param string $shop_domain
      * @param Throwable|null $previous
      */
-    public function __construct(mixed $product_id, ?Throwable $previous = null)
+    public function __construct(string $shop_domain, ?Throwable $previous = null)
     {
-        $this->product_id = $product_id;
-        $this->message = 'Product ID: ' . (is_array($product_id) ? implode(', ', $product_id) : $product_id)
-            . ' not found.';
+        $this->shop_domain = $shop_domain;
+        $this->message = 'Shop domain: ' . $shop_domain . ' not found';
 
         parent::__construct($this->message);
     }

@@ -17,7 +17,7 @@ class SettingAutoRecommendationRequest
     public function handle(Request $request, Closure $next): mixed
     {
         $request->validate([
-            'number_of_items' => 'required|integer',
+            'number_of_items' => 'required|integer|min:1|max:10',
             'layout' => 'required|string',
             'background_color' => 'required|string',
             'text_color' => 'required|string',

@@ -9,7 +9,6 @@ use App\Lib\Handlers\AppUninstalled;
 use App\Lib\Handlers\Privacy\CustomersDataRequest;
 use App\Lib\Handlers\Privacy\CustomersRedact;
 use App\Lib\Handlers\Privacy\ShopRedact;
-use App\Lib\Handlers\OrderCreateHandler;
 use App\Lib\Handlers\ProductCreateHandler;
 use App\Lib\Handlers\ProductDeleteHandler;
 use App\Lib\Handlers\ProductUpdateHandler;
@@ -92,7 +91,7 @@ class AppServiceProvider extends ServiceProvider
         Registry::addHandler(Topics::PRODUCTS_CREATE, app(ProductCreateHandler::class));
         Registry::addHandler(Topics::PRODUCTS_UPDATE, app(ProductUpdateHandler::class));
         Registry::addHandler(Topics::PRODUCTS_DELETE, app(ProductDeleteHandler::class));
-        Registry::addHandler(Topics::ORDERS_CREATE, app(OrderCreateHandler::class));
+
         /*
          * This sets up the mandatory privacy webhooks. You’ll need to fill in the endpoint to be used by your app in
          * the “Privacy webhooks” section in the “App setup” tab, and customize the code when you store customer data

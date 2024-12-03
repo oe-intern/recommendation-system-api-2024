@@ -4,10 +4,8 @@ declare(strict_types=1);
 
 namespace App\Collections;
 
-use App\Collections\Schema\InteractionProductSchema;
-use App\Collections\Schema\RelationshipScoreSchema;
 use App\Objects\Enums\RecommendationType;
-use MongoDB\Laravel\Relations\EmbedsMany;
+use MongoDB\Laravel\Relations\HasMany;
 use MongoDB\Laravel\Relations\BelongsTo;
 
 class ProductCollection extends MongoCollection
@@ -18,13 +16,6 @@ class ProductCollection extends MongoCollection
      * @var string
      */
     protected $table = 'products';
-
-    /**
-     * Indicates if the IDs are auto-incrementing.
-     *
-     * @var bool
-     */
-    public $incrementing = false;
 
     /**
      * Disable the timestamps.
@@ -39,36 +30,13 @@ class ProductCollection extends MongoCollection
      * @var array
      */
     protected $fillable = [
-        'id',
-        'title',
-        'handle',
-        'categoryId',
-        'vendor',
-        'variantIds',
-        'totalInventory',
-        'tags',
+        'gid',
         'status',
-        'productType',
-        'description',
-        'recommendationType',
-        'interactions',
-        'relationshipScore',
-        'referencedIds',
-        'manualIds',
-        'recommendationIds',
+        'recommendation_type',
+        'manual_ids',
+        'referenced_ids',
+        'recommendation_ids',
     ];
-    /**
-     * The primary key.
-     *
-     * @var string
-     */
-    protected $primaryKey = 'id';
-    /**
-     * The "type" of the primary key ID.
-     *
-     * @var string
-     */
-    protected $keyType = 'string';
 
     /**
      * The attributes that should be cast.
@@ -76,7 +44,7 @@ class ProductCollection extends MongoCollection
      * @var string[]
      */
     protected $casts = [
-        'recommendationType' => RecommendationType::class,
+        'recommendation_type' => RecommendationType::class,
     ];
 
     /**
@@ -85,34 +53,30 @@ class ProductCollection extends MongoCollection
      * @var array[]
      */
     protected $attributes = [
-        'variantIds' => [],
-        'tags' => [],
-        'manualIds' => [],
-        'recommendationType' => RecommendationType::DEFAULT,
-        'interactions' => [],
-        'relationshipScore' => [],
-        'referencedIds' => [],
-        'recommendationIds' => [],
+        'recommendation_type' => RecommendationType::DEFAULT,
+        'manual_ids' => [],
+        'referenced_ids' => [],
+        'recommendation_ids' => [],
     ];
 
     /**
-     * Define the relationship with the interactions.
+     * Define the relationship with the add to cart interactions.
      *
-     * @return EmbedsMany
+     * @return HasMany
      */
-    public function interactions(): EmbedsMany
+    public function addToCartInteractions(): HasMany
     {
-        return $this->embedsMany(InteractionProductSchema::class);
+        return $this->hasMany(ProductAddToCartCollection::class, 'product_id');
     }
 
     /**
-     * Define the relationship with the relationship score.
+     * Define the relationship with click interactions.
      *
-     * @return EmbedsMany
+     * @return HasMany
      */
-    public function relationshipScore(): EmbedsMany
+    public function clickInteractions(): HasMany
     {
-        return $this->embedsMany(RelationshipScoreSchema::class);
+        return $this->hasMany(ProductClickCollection::class, 'product_id');
     }
 
     /**
@@ -125,8 +89,43 @@ class ProductCollection extends MongoCollection
         return $this->belongsTo(ShopCollection::class);
     }
 
-    public function getType(): RecommendationType
+    /**
+     * Get id of ProductCollection
+     *
+     * @return string
+     */
+    public function getId(): string
     {
-        return $this->recommendationType;
+        return $this->getAttribute('_id');
+    }
+
+    /**
+     * Get gid of ProductCollection
+     *
+     * @return string
+     */
+    public function getGid(): string
+    {
+        return $this->getAttribute('gid');
+    }
+
+    /**
+     * Get recommendation type of ProductCollection
+     *
+     * @return RecommendationType
+     */
+    public function getRecommendationType(): RecommendationType
+    {
+        return $this->getAttribute('recommendation_type');
+    }
+
+    /**
+     * Get manual ids of ProductCollection
+     *
+     * @return array
+     */
+    public function getManualIds(): array
+    {
+        return $this->getAttribute('manual_ids');
     }
 }
