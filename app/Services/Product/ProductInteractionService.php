@@ -7,7 +7,7 @@ use App\Contracts\Queries\IInteractionQuery;
 use App\Contracts\Queries\IProductQuery;
 use App\Contracts\Recommendation\IProductInteraction;
 use App\Exceptions\ProductNotFoundException;
-use App\Objects\Enums\InteractionType;
+use App\Objects\Enums\StatisticsGroupBy;
 
 class ProductInteractionService implements IProductInteraction
 {
@@ -44,41 +44,79 @@ class ProductInteractionService implements IProductInteraction
     }
 
     /**
-     * Increment the number of interactions for a product.
+     * Handle click event.
      *
-     * @param string $shop_domain
+     * @param string $shop_id
      * @param string $product_id
-     * @param int|null $quantity
-     * @param string $interaction_type
      * @return void
      *
      * @throws ProductNotFoundException
      */
-    public function increment(string $shop_domain, string $product_id, ?int $quantity, string $interaction_type): void
+    public function click(string $shop_id, string $product_id): void
     {
-        $this->product_query->validateProductId($shop_domain, $product_id);
+        $this->product_query->validateProductId($shop_id, $product_id);
 
-        $interaction_type = InteractionType::from($interaction_type);
-        $this->interaction_product_command->increment($shop_domain, $product_id, $interaction_type, $quantity ?? 1);
+        $this->interaction_product_command->incrementClicks($shop_id, $product_id);
     }
 
     /**
-     * Filter list of interactions for a shop.
+     * Handle add to cart event.
      *
-     * @param string $shop_domain
-     * @param string|null $product_id
-     * @param string $start_date
-     * @param string $end_date
-     * @return array
+     * @param string $shop_id
+     * @param string $product_id
+     * @param int|null $quantity
+     * @return void
      *
      * @throws ProductNotFoundException
      */
-    public function filter(string $shop_domain, ?string $product_id, string $start_date, string $end_date): array
+    public function addToCart(string $shop_id, string $product_id, ?int $quantity): void
     {
-        $product = null;
-        if ($product_id) {
-            $product = $this->product_query->validateProductId($shop_domain, $product_id);
-        }
-        return $this->interaction_query->filter($shop_domain, $product, $start_date, $end_date);
+        $this->product_query->validateProductId($shop_id, $product_id);
+
+        $this->interaction_product_command->incrementAddToCart($shop_id, $product_id, $quantity);
+    }
+
+    /**
+     * Get click data.
+     *
+     * @param string $shop_id
+     * @param string|null $product_id
+     * @param string $start_date
+     * @param string $end_date
+     * @param string|null $group_by
+     * @return array
+     */
+    public function getClickData(
+        string $shop_id,
+        ?string $product_id,
+        string $start_date,
+        string $end_date,
+        ?string $group_by
+    ): array {
+        $group_by = $group_by ? StatisticsGroupBy::from($group_by) : null;
+
+        return $this->interaction_query->filterClickData($shop_id, $product_id, $start_date, $end_date, $group_by);
+    }
+
+    /**
+     * Get add to cart data.
+     *
+     * @param string $shop_id
+     * @param string|null $product_id
+     * @param string $start_date
+     * @param string $end_date
+     * @param string|null $group_by
+     * @return array
+     */
+    public function getAddToCartData(
+        string $shop_id,
+        ?string $product_id,
+        string $start_date,
+        string $end_date,
+        ?string $group_by
+    ): array {
+        $group_by = $group_by ? StatisticsGroupBy::from($group_by) : null;
+
+        return $this->interaction_query->filterAddToCartData($shop_id, $product_id, $start_date, $end_date, $group_by);
     }
 }
