@@ -5,27 +5,20 @@ namespace App\Http\Controllers;
 use App\Contracts\Queries\IProductQuery;
 use App\Contracts\Recommendation\IProductRecommendation;
 use App\Exceptions\ProductNotFoundException;
+use App\Contracts\Queries\IShopQuery;
+use App\Exceptions\ShopNotFoundException;
+use App\Exceptions\MissingProductIdException;
+use Illuminate\Http\Response;
 use App\Lib\Utils;
 use App\Services\Shopify\UserContext;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
-class RecommendationController extends Controller
+class RecommendationController extends BaseController
 {
-    /**
-     * @var UserContext
-     */
-    protected UserContext $user_context;
-
     /**
      * @var IProductRecommendation
      */
     protected IProductRecommendation $product_recommendation_service;
-
-    /**
-     * @var IProductQuery
-     */
-    protected IProductQuery $product_query;
 
     /**
      * RecommendationController constructor.
@@ -33,140 +26,171 @@ class RecommendationController extends Controller
      * @param UserContext $user_context
      * @param IProductRecommendation $product_recommendation_service
      * @param IProductQuery $product_query
+     * @param IShopQuery $shop_query
      */
     public function __construct(
         UserContext $user_context,
         IProductRecommendation $product_recommendation_service,
-        IProductQuery $product_query
+        IProductQuery $product_query,
+        IShopQuery $shop_query
     ) {
-        $this->user_context = $user_context;
+        parent::__construct($user_context, $product_query, $shop_query);
         $this->product_recommendation_service = $product_recommendation_service;
-        $this->product_query = $product_query;
     }
 
     /**
      * Get list of recommendations for a product.
      *
+     * @param string $product_id
      * @param Request $request
-     * @return JsonResponse
+     * @return Response
      *
+     * @throws MissingProductIdException
      * @throws ProductNotFoundException
+     * @throws ShopNotFoundException
      */
-    public function getRecommendation(Request $request): JsonResponse
+    public function getRecommendation(string $product_id, Request $request): Response
     {
-        $shop_domain = $this->user_context->getDomain()->toNative();
-        $product_id = Utils::getIdFromGid($request->query('product_id'));
-
-        if (empty($product_id)) {
-            return response()->json([
-                'message' => 'Product ID is required.'
-            ], 400);
-        }
+        $shop_id = $this->getShopId();
+        $product_id = $this->getProductId($shop_id, $product_id);
 
         $products = $this->product_recommendation_service->getRecommendedProducts(
-            $shop_domain,
+            $shop_id,
             $product_id
         );
 
-        return response()->json([
-            'products' => $products
-        ]);
+        return response()->success('Recommendations retrieved successfully', $products);
 
     }
 
     /**
      * Set state of the recommendation for admin.
      *
+     * @param string $product_id
      * @param Request $request
-     * @return JsonResponse
+     * @return Response
      *
+     * @throws MissingProductIdException
      * @throws ProductNotFoundException
+     * @throws ShopNotFoundException
      */
-    public function setState(Request $request): JsonResponse
+    public function setRecommendationType(string $product_id, Request $request): Response
     {
-        $shop_domain = $this->user_context->getDomain()->toNative();
-        $product_id = Utils::getIdFromGid($request->input('product_id'));
+        $shop_id = $this->getShopId();
+        $product_id = $this->getProductId($shop_id, $product_id);
         $type = $request->input('recommendation_type');
 
-        $product = $this->product_recommendation_service->setRecommendationType($shop_domain, $product_id, $type);
+        $product = $this->product_recommendation_service->setRecommendationType($shop_id, $product_id, $type);
 
-        return response()->json([
-            'message' => 'Recommendation state has been set.',
-            'product' => $product
-        ]);
+        $response_data = [
+            'id' => $product->getGid(),
+            'recommendation_type' => $product->getRecommendationType()
+        ];
+        return response()->success('Recommendation type has been set.', $response_data);
     }
 
     /**
      * Set list manual recommendation for a product by admin.
      *
+     * @param string $product_id
      * @param Request $request
-     * @return JsonResponse
+     * @return Response
      *
+     * @throws MissingProductIdException
      * @throws ProductNotFoundException
+     * @throws ShopNotFoundException
      */
-    public function setManualRecommendation(Request $request): JsonResponse
+    public function setManualRecommendation(string $product_id, Request $request): Response
     {
-        $shop_domain = $this->user_context->getDomain()->toNative();
-        $product_id = Utils::getIdFromGid($request->input('product_id'));
-        $recommended_ids = array_map([Utils::class, 'getIdFromGid'], $request->input('recommended_ids'));
-        $recommended_type = $request->input('recommendation_type');
+        $shop_id = $this->getShopId();
+        $product_id = $this->getProductId($shop_id, $product_id);
+        $list_recommended_gid = array_map([Utils::class, 'getIdFromGid'], $request->input('recommended_ids'));
 
         $product = $this->product_recommendation_service->setRecommendedProducts(
-            $shop_domain,
+            $shop_id,
             $product_id,
-            $recommended_ids,
-            $recommended_type
+            $list_recommended_gid
         );
 
-        return response()->json([
-            'message' => 'Recommendation has been set.',
-            'product' => $product
-        ]);
+        $response_data = [
+            'id' => $product->getGid(),
+            'recommended_ids' => $this->product_query->getListGidByIds($product->getManualIds()),
+            'recommendation_type' => $product->getRecommendationType()
+        ];
+        return response()->success('Manual recommendation has been set.', $response_data);
+    }
+
+    /**
+     * Get list manual recommendation for a product by admin.
+     *
+     * @param string $product_id
+     * @param Request $request
+     * @return Response
+     *
+     * @throws MissingProductIdException
+     * @throws ProductNotFoundException
+     * @throws ShopNotFoundException
+     */
+    public function getManualRecommendation(string $product_id, Request $request): Response
+    {
+        $shop_id = $this->getShopId();
+        $product_id = $this->getProductId($shop_id, $product_id);
+
+        $manual_gids = $this->product_recommendation_service->getManualProducts(
+            $shop_id,
+            $product_id,
+        );
+
+        return response()->success('Manual recommendation has been set.', $manual_gids);
     }
 
     /**
      * Get product information by ID (including recommendation products).
      *
+     * @param string $product_id
      * @param Request $request
-     * @return JsonResponse
+     * @return Response
      *
+     * @throws MissingProductIdException
      * @throws ProductNotFoundException
+     * @throws ShopNotFoundException
      */
-    public function getProduct(Request $request): JsonResponse
+    public function getProduct(string $product_id, Request $request): Response
     {
-        $shop_domain = $this->user_context->getDomain()->toNative();
-        $product_id = Utils::getIdFromGid($request->query('product_id'));
+        $shop_id = $this->getShopId();
+        $product_id = $this->getProductId($shop_id, $product_id);
 
-        if (empty($product_id)) {
-            return response()->json([
-                'message' => 'Product ID is required.'
-            ], 400);
-        }
+        $product = $this->product_recommendation_service->getFullInfo($shop_id, $product_id);
 
-        $product = $this->product_recommendation_service->getFullInfo($shop_domain, $product_id);
-
-        return response()->json([
-            'product' => $product
-        ]);
+        return response()->success('Product information has been retrieved.', $product);
     }
 
-    public function getAutoRecommendation(Request $request): JsonResponse
+    /**
+     * @param Request $request
+     * @return Response
+     *
+     * @throws ShopNotFoundException
+     */
+    public function getShopSetting(Request $request): Response
     {
-        $shop_domain = $this->user_context->getDomain()->toNative();
-        $settings = $this->product_recommendation_service->getAutoRecommendationSettings($shop_domain);
+        $shop_id = $this->getShopId();
 
-        return response()->json($settings);
+        $settings = $this->product_recommendation_service->getShopSettings($shop_id);
+
+        return response()->success('Auto recommendation settings retrieved successfully', $settings);
     }
 
     /**
      * Set auto recommendation settings for a shop.
      *
      * @param Request $request
-     * @return JsonResponse
+     * @return Response
+     *
+     * @throws ShopNotFoundException
      */
-    public function setAutoRecommendation(Request $request): JsonResponse
+    public function setShopSetting(Request $request): Response
     {
-        $shop_domain = $this->user_context->getDomain()->toNative();
+        $shop_id = $this->getShopId();
         $settings = [
             'number_of_items' => $request->input('number_of_items'),
             'layout' => $request->input('layout'),
@@ -174,11 +198,8 @@ class RecommendationController extends Controller
             'text_color' => $request->input('text_color')
         ];
 
-        $settings = $this->product_recommendation_service->setAutoRecommendationSettings($shop_domain, $settings);
+        $settings = $this->product_recommendation_service->setShopSettings($shop_id, $settings);
 
-        return response()->json([
-            'message' => 'Auto recommendation settings has been set.',
-            'settings' => $settings
-        ]);
+        return response()->success('Auto recommendation settings has been set.', $settings);
     }
 }
