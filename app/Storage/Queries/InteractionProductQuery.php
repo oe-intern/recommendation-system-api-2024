@@ -8,6 +8,8 @@ use App\Contracts\Queries\IInteractionQuery;
 use App\Contracts\Queries\IShopQuery;
 use App\Objects\Enums\StatisticsGroupBy;
 use Carbon\Carbon;
+use App\Objects\Enums\InteractionType;
+use MongoDB\BSON\UTCDateTime;
 
 class InteractionProductQuery implements IInteractionQuery
 {
@@ -43,73 +45,14 @@ class InteractionProductQuery implements IInteractionQuery
         string $end_date,
         ?StatisticsGroupBy $group_by
     ): array {
-        $start_date = $this->getFirstDay($start_date);
-        $end_date = $this->getEndDay($end_date);
-
-        $query = ProductClickCollection::query()
-            ->where('shop_id', $shop_id)
-            ->whereBetween('created_at', [$start_date, $end_date])
-            ->when($product_id, function ($query) use ($product_id) {
-                return $query->where('product_id', $product_id);
-            });
-
-        $result = $query->raw(function ($collection) use ($group_by, $start_date, $end_date, $shop_id) {
-            return $collection->aggregate([
-                [
-                    '$project' => [
-                        'group_key' => [
-                            '$dateToString' => [
-                                'format' => $this->getGroupBy($group_by),
-                                'date' => '$created_at',
-                            ],
-                        ],
-                    ],
-                ],
-                [
-                    '$group' => [
-                        '_id' => '$group_key',
-                        'total' => ['$sum' => 1],
-                    ],
-                ],
-                [
-                    '$sort' => ['_id' => 1],
-                ],
-            ]);
-        });
-
-        return collect($result)->toArray();
-    }
-
-    /**
-     * Get the first day of the date.
-     *
-     * @param string $date
-     * @return Carbon
-     */
-    private function getFirstDay(string $date): Carbon
-    {
-        return Carbon::parse($date)->startOfDay();
-    }
-
-    private function getEndDay(string $date): Carbon
-    {
-        return Carbon::parse($date)->endOfDay();
-    }
-
-    /**
-     * Get the group by format for the query.
-     *
-     * @param StatisticsGroupBy|null $groupBy
-     * @return string
-     */
-    private function getGroupBy(?StatisticsGroupBy $groupBy): string
-    {
-        return match ($groupBy) {
-            StatisticsGroupBy::HOUR => '%Y-%m-%d %H',
-            StatisticsGroupBy::MONTH => '%Y-%m',
-            StatisticsGroupBy::YEAR => '%Y',
-            default => '%Y-%m-%d',
-        };
+        return $this->filterInteractionData(
+            InteractionType::CLICK,
+            $shop_id,
+            $product_id,
+            $start_date,
+            $end_date,
+            $group_by
+        );
     }
 
     /**
@@ -129,18 +72,89 @@ class InteractionProductQuery implements IInteractionQuery
         string $end_date,
         ?StatisticsGroupBy $group_by
     ): array {
+        return $this->filterInteractionData(
+            InteractionType::ADD_TO_CART,
+            $shop_id,
+            $product_id,
+            $start_date,
+            $end_date,
+            $group_by
+        );
+    }
+
+    /**
+     * Get the first day of the date.
+     *
+     * @param string $date
+     * @return UTCDateTime
+     */
+    private function getFirstDay(string $date): UTCDateTime
+    {
+        $start_day = Carbon::parse($date)->startOfDay();
+        return new UTCDateTime($start_day);
+    }
+
+    private function getEndDay(string $date): UTCDateTime
+    {
+        $end_day = Carbon::parse($date)->endOfDay();
+        return new UTCDateTime($end_day);
+    }
+
+    /**
+     * Get the group by format for the query.
+     *
+     * @param StatisticsGroupBy|null $groupBy
+     * @return string
+     */
+    private function getGroupBy(?StatisticsGroupBy $groupBy): string
+    {
+        return match ($groupBy) {
+            StatisticsGroupBy::HOUR => '%Y-%m-%d %H',
+            StatisticsGroupBy::MONTH => '%Y-%m',
+            StatisticsGroupBy::YEAR => '%Y',
+            default => '%Y-%m-%d',
+        };
+    }
+
+    /**
+     * Get query for interaction data
+     *
+     * @param InteractionType $type
+     * @param string $shop_id
+     * @param string|null $product_id
+     * @param string $start_date
+     * @param string $end_date
+     * @param StatisticsGroupBy|null $group_by
+     * @return array
+     */
+    private function filterInteractionData(
+        InteractionType $type,
+        string $shop_id,
+        ?string $product_id,
+        string $start_date,
+        string $end_date,
+        ?StatisticsGroupBy $group_by
+    ): array {
         $start_date = $this->getFirstDay($start_date);
         $end_date = $this->getEndDay($end_date);
 
-        $query = ProductAddToCartCollection::query()
-            ->where('shop_id', $shop_id)
-            ->whereBetween('created_at', [$start_date, $end_date])
-            ->when($product_id, function ($query) use ($product_id) {
-                return $query->where('product_id', $product_id);
-            });
+        $query = match ($type) {
+            InteractionType::CLICK => ProductClickCollection::query(),
+            InteractionType::ADD_TO_CART => ProductAddToCartCollection::query(),
+        };
 
-        $result = $query->raw(function ($collection) use ($group_by, $start_date, $end_date, $shop_id) {
+        $result = $query->raw(function ($collection) use ($group_by, $shop_id, $product_id, $type, $start_date, $end_date) {
             return $collection->aggregate([
+                [
+                    '$match' => [
+                        'shop_id' => $shop_id,
+                        'product_id' => $product_id ?? ['$exists' => true],
+                        'created_at' => [
+                            '$gte' => $start_date,
+                            '$lte' => $end_date,
+                        ],
+                    ],
+                ],
                 [
                     '$project' => [
                         'group_key' => [
@@ -149,17 +163,28 @@ class InteractionProductQuery implements IInteractionQuery
                                 'date' => '$created_at',
                             ],
                         ],
-                        'quantity' => ['$toInt' => '$quantity'],
+                        'quantity' => match ($type) {
+                            InteractionType::CLICK => ['$literal' => 1],
+                            InteractionType::ADD_TO_CART => ['$toInt' => '$quantity'],
+                        },
                     ],
                 ],
                 [
                     '$group' => [
                         '_id' => '$group_key',
+                        'date' => ['$first' => '$group_key'],
                         'quantity' => ['$sum' => '$quantity'],
                     ],
                 ],
                 [
-                    '$sort' => ['_id' => 1],
+                    '$project' => [
+                        '_id' => 0,
+                        'date' => 1,
+                        'quantity' => 1,
+                    ],
+                ],
+                [
+                    '$sort' => ['date' => 1],
                 ],
             ]);
         });

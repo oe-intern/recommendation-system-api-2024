@@ -53,12 +53,12 @@ class ProcessAddToCartEvent implements ShouldQueue
      */
     public function handle(IProductInteraction $product_interaction_service, IProductQuery $product_query): void
     {
-        $number_of_interactions = data_get($this->data, 'number_of_interactions');
+        $number_of_items = data_get($this->data, 'number_of_items');
 
         $product_interaction_service->addToCart(
             $this->shop_id,
             $this->product_id,
-            $number_of_interactions,
+            $number_of_items,
         );
     }
 }
