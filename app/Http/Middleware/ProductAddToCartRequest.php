@@ -17,7 +17,7 @@ class ProductAddToCartRequest
     public function handle(Request $request, Closure $next): mixed
     {
         $request->validate([
-            'number_of_interactions' => 'sometimes|nullable|integer',
+            'number_of_items' => 'sometimes|nullable|integer',
         ]);
 
         return $next($request);
