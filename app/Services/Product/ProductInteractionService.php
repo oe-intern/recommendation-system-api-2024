@@ -77,6 +77,24 @@ class ProductInteractionService implements IProductInteraction
     }
 
     /**
+     * Get interaction statistics.
+     *
+     * @param string $shop_id
+     * @param string $start_date
+     * @param string $end_date
+     * @return array
+     */
+    public function getInteractionStatistics(string $shop_id, string $start_date, string $end_date): array
+    {
+        $all_interactions = $this->interaction_query->getInteractionData($shop_id, $start_date, $end_date);
+        $top_interactions = array_slice($all_interactions, 0, 3);
+        $bottom_interactions = array_slice($all_interactions, -3);
+        return [
+            'top' => $top_interactions,
+            'bottom' => $bottom_interactions
+        ];
+    }
+    /**
      * Get click data.
      *
      * @param string $shop_id
