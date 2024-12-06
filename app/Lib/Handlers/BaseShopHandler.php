@@ -31,10 +31,12 @@ abstract class BaseShopHandler implements Handler
      * BaseShopHandler constructor.
      *
      * @param UserQuery $user_query
+     * @param IShopQuery $shop_query
      */
-    public function __construct(UserQuery $user_query)
+    public function __construct(UserQuery $user_query, IShopQuery $shop_query)
     {
         $this->user_query = $user_query;
+        $this->shop_query = $shop_query;
     }
 
     /**
