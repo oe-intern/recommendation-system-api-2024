@@ -14,7 +14,6 @@ use App\Objects\Enums\InteractionType;
 use App\Services\Shopify\UserContext;
 use Illuminate\Http\Response;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 
 class ProductInteractionController extends BaseController
 {
@@ -97,6 +96,24 @@ class ProductInteractionController extends BaseController
             InteractionType::ADD_TO_CART => $this->product_interaction_service
                 ->getAddToCartData($shop_id, $product_id, $start_date, $end_date, $group_by),
         };
+
+        return response()->success('Interactions retrieved successfully', $interactions);
+    }
+
+    /**
+     * Get info statistics for a about max, min interactions for a shop.
+     *
+     * @param Request $request
+     * @return Response
+     * @throws ShopNotFoundException
+     */
+    public function getInteractionStatistics(Request $request): Response
+    {
+        $shop_id = $this->getShopId();
+        $start_date = $request->query('start_date');
+        $end_date = $request->query('end_date');
+
+        $interactions = $this->product_interaction_service->getInteractionStatistics($shop_id, $start_date, $end_date);
 
         return response()->success('Interactions retrieved successfully', $interactions);
     }

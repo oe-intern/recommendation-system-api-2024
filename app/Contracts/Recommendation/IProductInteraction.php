@@ -30,6 +30,16 @@ interface IProductInteraction
     public function addToCart(string $shop_id, string $product_id, ?int $quantity): void;
 
     /**
+     * Get interaction statistics.
+     *
+     * @param string $shop_id
+     * @param string $start_date
+     * @param string $end_date
+     * @return array
+     */
+    public function getInteractionStatistics(string $shop_id, string $start_date, string $end_date): array;
+
+    /**
      * Get click data for a product.
      *
      * @param string $shop_id

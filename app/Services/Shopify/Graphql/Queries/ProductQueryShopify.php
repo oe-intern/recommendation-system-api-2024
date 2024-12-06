@@ -66,6 +66,7 @@ class ProductQueryShopify extends BaseGraphqlService implements IProductQuerySho
                     currencyCode
                 }
             }
+            handle
         GRAPHQL;
 
     /**
