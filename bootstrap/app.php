@@ -12,6 +12,7 @@ use App\Http\Middleware\ProductAddToCartRequest;
 use App\Http\Middleware\ProductStatistic;
 use App\Http\Middleware\SettingAutoRecommendationRequest;
 use App\Http\Middleware\IdentifyShopDomain;
+use App\Http\Middleware\ProductPerformingRequest;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -44,6 +45,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'validate.auto.recommendation.request' => SettingAutoRecommendationRequest::class,
             'validate.product.addToCart.request' => ProductAddToCartRequest::class,
             'validate.product.statistics' => ProductStatistic::class,
+            'validate.product.performing.request' => ProductPerformingRequest::class,
             'identify.shop.domain' => IdentifyShopDomain::class,
         ]);
     })
