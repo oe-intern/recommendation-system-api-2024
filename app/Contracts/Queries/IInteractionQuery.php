@@ -41,4 +41,18 @@ interface IInteractionQuery
         string $end_date,
         ?StatisticsGroupBy $group_by
     ): array;
+
+    /**
+     * Get interaction data for a shop.
+     *
+     * @param string $shop_id
+     * @param string $start_date
+     * @param string $end_date
+     * @return array
+     */
+    public function getInteractionData(
+        string $shop_id,
+        string $start_date,
+        string $end_date
+    ): array;
 }

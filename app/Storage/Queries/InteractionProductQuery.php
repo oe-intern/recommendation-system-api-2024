@@ -6,9 +6,9 @@ use App\Collections\ProductAddToCartCollection;
 use App\Collections\ProductClickCollection;
 use App\Contracts\Queries\IInteractionQuery;
 use App\Contracts\Queries\IShopQuery;
+use App\Objects\Enums\InteractionType;
 use App\Objects\Enums\StatisticsGroupBy;
 use Carbon\Carbon;
-use App\Objects\Enums\InteractionType;
 use MongoDB\BSON\UTCDateTime;
 
 class InteractionProductQuery implements IInteractionQuery
@@ -56,67 +56,6 @@ class InteractionProductQuery implements IInteractionQuery
     }
 
     /**
-     * Filter add to cart data for a shop
-     *
-     * @param string $shop_id
-     * @param string|null $product_id
-     * @param string $start_date
-     * @param string $end_date
-     * @param StatisticsGroupBy|null $group_by
-     * @return array
-     */
-    public function filterAddToCartData(
-        string $shop_id,
-        ?string $product_id,
-        string $start_date,
-        string $end_date,
-        ?StatisticsGroupBy $group_by
-    ): array {
-        return $this->filterInteractionData(
-            InteractionType::ADD_TO_CART,
-            $shop_id,
-            $product_id,
-            $start_date,
-            $end_date,
-            $group_by
-        );
-    }
-
-    /**
-     * Get the first day of the date.
-     *
-     * @param string $date
-     * @return UTCDateTime
-     */
-    private function getFirstDay(string $date): UTCDateTime
-    {
-        $start_day = Carbon::parse($date)->startOfDay();
-        return new UTCDateTime($start_day);
-    }
-
-    private function getEndDay(string $date): UTCDateTime
-    {
-        $end_day = Carbon::parse($date)->endOfDay();
-        return new UTCDateTime($end_day);
-    }
-
-    /**
-     * Get the group by format for the query.
-     *
-     * @param StatisticsGroupBy|null $groupBy
-     * @return string
-     */
-    private function getGroupBy(?StatisticsGroupBy $groupBy): string
-    {
-        return match ($groupBy) {
-            StatisticsGroupBy::HOUR => '%Y-%m-%d %H',
-            StatisticsGroupBy::MONTH => '%Y-%m',
-            StatisticsGroupBy::YEAR => '%Y',
-            default => '%Y-%m-%d',
-        };
-    }
-
-    /**
      * Get query for interaction data
      *
      * @param InteractionType $type
@@ -143,7 +82,14 @@ class InteractionProductQuery implements IInteractionQuery
             InteractionType::ADD_TO_CART => ProductAddToCartCollection::query(),
         };
 
-        $result = $query->raw(function ($collection) use ($group_by, $shop_id, $product_id, $type, $start_date, $end_date) {
+        $result = $query->raw(function ($collection) use (
+            $group_by,
+            $shop_id,
+            $product_id,
+            $type,
+            $start_date,
+            $end_date
+        ) {
             return $collection->aggregate([
                 [
                     '$match' => [
@@ -188,6 +134,138 @@ class InteractionProductQuery implements IInteractionQuery
                 ],
             ]);
         });
+
+        return collect($result)->toArray();
+    }
+
+    /**
+     * Get the first day of the date.
+     *
+     * @param string $date
+     * @return UTCDateTime
+     */
+    private function getFirstDay(string $date): UTCDateTime
+    {
+        $start_day = Carbon::parse($date)->startOfDay();
+        return new UTCDateTime($start_day);
+    }
+
+    /**
+     * @param string $date
+     * @return UTCDateTime
+     */
+    private function getEndDay(string $date): UTCDateTime
+    {
+        $end_day = Carbon::parse($date)->endOfDay();
+        return new UTCDateTime($end_day);
+    }
+
+    /**
+     * Get the group by format for the query.
+     *
+     * @param StatisticsGroupBy|null $groupBy
+     * @return string
+     */
+    private function getGroupBy(?StatisticsGroupBy $groupBy): string
+    {
+        return match ($groupBy) {
+            StatisticsGroupBy::HOUR => '%Y-%m-%d %H',
+            StatisticsGroupBy::MONTH => '%Y-%m',
+            StatisticsGroupBy::YEAR => '%Y',
+            default => '%Y-%m-%d',
+        };
+    }
+
+    /**
+     * Filter add to cart data for a shop
+     *
+     * @param string $shop_id
+     * @param string|null $product_id
+     * @param string $start_date
+     * @param string $end_date
+     * @param StatisticsGroupBy|null $group_by
+     * @return array
+     */
+    public function filterAddToCartData(
+        string $shop_id,
+        ?string $product_id,
+        string $start_date,
+        string $end_date,
+        ?StatisticsGroupBy $group_by
+    ): array {
+        return $this->filterInteractionData(
+            InteractionType::ADD_TO_CART,
+            $shop_id,
+            $product_id,
+            $start_date,
+            $end_date,
+            $group_by
+        );
+    }
+
+    /**
+     * Get interaction data for a shop.
+     *
+     * @param string $shop_id
+     * @param string $start_date
+     * @param string $end_date
+     * @return array
+     */
+    public function getInteractionData(
+        string $shop_id,
+        string $start_date,
+        string $end_date
+    ): array {
+        $start_date = $this->getFirstDay($start_date);
+        $end_date = $this->getEndDay($end_date);
+
+        $result = ProductClickCollection::query()
+            ->raw(function ($collection) use ($shop_id, $start_date, $end_date) {
+                return $collection->aggregate([
+                    [
+                        '$match' => [
+                            'shop_id' => $shop_id,
+                            'created_at' => [
+                                '$gte' => $start_date,
+                                '$lte' => $end_date,
+                            ],
+                        ],
+                    ],
+                    [
+                        '$group' => [
+                            '_id' => '$product_id',
+                            'click_count' => ['$sum' => 1],
+                        ],
+                    ],
+                    [
+                        '$lookup' => [
+                            'from' => 'product_add_to_cart',
+                            'localField' => '_id',
+                            'foreignField' => 'product_id',
+                            'as' => 'add_to_cart',
+                        ],
+                    ],
+                    [
+                        '$addFields' => [
+                            'add_to_cart_count' => [
+                                '$sum' => '$add_to_cart.quantity',
+                            ],
+                        ],
+                    ],
+                    [
+                        '$project' => [
+                            'total_clicks' => '$click_count',
+                            'total_add_to_cart' => '$add_to_cart_count',
+                            'total_count' => [
+                                '$add' => [
+                                    '$click_count',
+                                    '$add_to_cart_count',
+                                ],
+                            ],
+                        ],
+                    ],
+                ]);
+            });
 
         return collect($result)->toArray();
     }
