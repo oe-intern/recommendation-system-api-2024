@@ -7,7 +7,6 @@ use App\Collections\ShopCollection;
 use App\Contracts\Queries\IProductQuery;
 use App\Exceptions\ProductNotFoundException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
-use Illuminate\Support\Facades\Log;
 
 class ProductQuery implements IProductQuery
 {
