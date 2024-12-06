@@ -11,7 +11,6 @@ use App\Contracts\Recommendation\IProductRecommendation;
 use App\Contracts\Shopify\Graphql\Queries\IProductQueryShopify;
 use App\Exceptions\ProductNotFoundException;
 use App\Objects\Enums\RecommendationType;
-use Illuminate\Support\Facades\Log;
 
 class ProductRecommendationService implements IProductRecommendation
 {
@@ -77,19 +76,49 @@ class ProductRecommendationService implements IProductRecommendation
         $product = $this->product_query->getByShopIdAndId($shop_id, $product_id);
         $recommendation_type = $product->getRecommendationType();
 
-        $product_ids = match ($recommendation_type) {
+        return match ($recommendation_type) {
             RecommendationType::AUTO => $this->getAutoRecommendation($shop_id, $product_id),
             RecommendationType::MANUAL => $this->getManualRecommendation($shop_id, $product_id),
             default => $this->getDefaultRecommendation($shop_id, $product_id),
         };
-        $list_product_gid = $this->product_query->getListGidByIds($product_ids);
-        $products = $this->product_service->fetchByIds($list_product_gid);
+    }
 
-        $shop = $this->shop_query->getById($shop_id);
-        $number_of_items = $shop->settings()->get()->getNumberOfItems();
+    /**
+     * Get list of also viewed products for a product from system recommendation.
+     *
+     * @param string $shop_id
+     * @param string $product_id
+     * @return array
+     */
+    private function getAutoRecommendation(string $shop_id, string $product_id): array
+    {
+        $fake_ids = [
+            "67527565c54fb80ac00ae4f0",
+            "67527568c54fb80ac00ae4f1",
+            "67527573c54fb80ac00ae4f2",
+            "6752757cc54fb80ac00ae4f3",
+            "6752757dc54fb80ac00ae4f4",
+            "67527584c54fb80ac00ae4f5"
+        ];
+        $number_of_items = $this->shop_query->getById($shop_id)->settings()->get()->getNumberOfItems();
 
-        $random_products = collect($products)->random(min(count($products), $number_of_items));
-        return $random_products->toArray();
+        $random_products = collect($fake_ids)->random(min(count($fake_ids), $number_of_items));
+        return $this->product_service->fetchByIds($this->product_query->getListGidByIds($random_products->toArray()));
+    }
+
+    /**
+     * Get list of also viewed products for a product from manual recommendation.
+     *
+     * @param string $shop_id
+     * @param string $product_id
+     * @return array
+     */
+    private function getManualRecommendation(string $shop_id, string $product_id): array
+    {
+        $list_product_ids = $this->product_query->getManualProducts($product_id);
+
+        $list_product_gid = $this->product_query->getListGidByIds($list_product_ids);
+        return $this->product_service->fetchByIds($list_product_gid);
     }
 
     /**
@@ -106,30 +135,6 @@ class ProductRecommendationService implements IProductRecommendation
     }
 
     /**
-     * Get list of also viewed products for a product from system recommendation.
-     *
-     * @param string $shop_id
-     * @param string $product_id
-     * @return array
-     */
-    private function getAutoRecommendation(string $shop_id, string $product_id): array
-    {
-        return ["674d72c9dd53547c1500f301", "674d72c9dd53547c1500f302", "674d72c9dd53547c1500f303", "674d72c9dd53547c1500f304"];
-    }
-
-    /**
-     * Get list of also viewed products for a product from manual recommendation.
-     *
-     * @param string $shop_id
-     * @param string $product_id
-     * @return array
-     */
-    private function getManualRecommendation(string $shop_id, string $product_id): array
-    {
-        return $this->product_query->getManualProducts($product_id);
-    }
-
-    /**
      * Get list of also viewed products for a product from relationship product.
      *
      * @param string $shop_id
@@ -138,7 +143,18 @@ class ProductRecommendationService implements IProductRecommendation
      */
     private function getDefaultRecommendation(string $shop_id, string $product_id): array
     {
-        return ["674d72c9dd53547c1500f301", "674d72c9dd53547c1500f302", "674d72c9dd53547c1500f303", "674d72c9dd53547c1500f304"];
+        $fake_ids = [
+            "67527565c54fb80ac00ae4f0",
+            "67527568c54fb80ac00ae4f1",
+            "67527573c54fb80ac00ae4f2",
+            "6752757cc54fb80ac00ae4f3",
+            "6752757dc54fb80ac00ae4f4",
+            "67527584c54fb80ac00ae4f5"
+        ];
+        $number_of_items = $this->shop_query->getById($shop_id)->settings()->get()->getNumberOfItems();
+
+        $random_products = collect($fake_ids)->random(min(count($fake_ids), $number_of_items));
+        return $this->product_service->fetchByIds($this->product_query->getListGidByIds($random_products->toArray()));
     }
 
     /**
