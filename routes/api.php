@@ -24,6 +24,8 @@ Route::group(['middleware' => ['access_control_headers', 'shopify.auth', 'verify
             'setManualRecommendation'
         ])->middleware('validate.recommendation.request');
     });
+    Route::get('/event/performing', [ProductInteractionController::class, 'getInteractionStatistics'])
+        ->middleware('validate.product.performing.request');
     Route::prefix('shop')->group(function () {
         Route::prefix('settings')->group(function () {
             Route::get('', [RecommendationController::class, 'getShopSetting']);
