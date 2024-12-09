@@ -17,8 +17,8 @@ use App\Models\Export;
 use App\Policies\ActivityPolicy;
 use App\Contracts\Recommendation\IProductRecommendation;
 use App\Services\Product\ProductRecommendationService;
-use App\Contracts\Recommendation\IProductInteraction;
-use App\Services\Product\ProductInteractionService;
+use App\Contracts\Recommendation\IProductEvent;
+use App\Services\Product\ProductEventService;
 use App\Services\Shopify\UserContext;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\URL;
@@ -56,8 +56,8 @@ class AppServiceProvider extends ServiceProvider
         );
 
         $this->app->bind(
-            IProductInteraction::class,
-            ProductInteractionService::class
+            IProductEvent::class,
+            ProductEventService::class
         );
     }
 
