@@ -68,8 +68,6 @@ class ProductRecommendationService implements IProductRecommendation
      * @param string $shop_id
      * @param string $product_id
      * @return array
-     *
-     * @throws ProductNotFoundException
      */
     public function getRecommendedProducts(string $shop_id, string $product_id): array
     {
@@ -93,17 +91,16 @@ class ProductRecommendationService implements IProductRecommendation
     private function getAutoRecommendation(string $shop_id, string $product_id): array
     {
         $fake_ids = [
-            "67527565c54fb80ac00ae4f0",
-            "67527568c54fb80ac00ae4f1",
-            "67527573c54fb80ac00ae4f2",
-            "6752757cc54fb80ac00ae4f3",
-            "6752757dc54fb80ac00ae4f4",
-            "67527584c54fb80ac00ae4f5"
+            "675680cbce1b798d840b3ce1",
+            "675680cbce1b798d840b3ce2",
+            "675680cbce1b798d840b3ce3",
+            "675680cbce1b798d840b3ce4",
+            "675680cbce1b798d840b3ce5",
+            "675680cbce1b798d840b3ce6"
         ];
         $number_of_items = $this->shop_query->getById($shop_id)->settings()->get()->getNumberOfItems();
 
-        $random_products = collect($fake_ids)->random(min(count($fake_ids), $number_of_items));
-        return $this->product_service->fetchByIds($this->product_query->getListGidByIds($random_products->toArray()));
+        return collect($fake_ids)->random(min(count($fake_ids), $number_of_items))->toArray();
     }
 
     /**
@@ -117,20 +114,18 @@ class ProductRecommendationService implements IProductRecommendation
     {
         $list_product_ids = $this->product_query->getManualProducts($product_id);
 
-        $list_product_gid = $this->product_query->getListGidByIds($list_product_ids);
-        return $this->product_service->fetchByIds($list_product_gid);
+        return $this->product_query->getListGidByIds($list_product_ids);
     }
 
     /**
      * Get list of manual product gid for a product.
      *
-     * @param string $shop_id
      * @param string $product_id
      * @return array
      */
-    public function getManualProducts(string $shop_id, string $product_id): array
+    public function getManualProducts(string $product_id): array
     {
-        $product_ids = $this->getManualRecommendation($shop_id, $product_id);
+        $product_ids = $this->product_query->getManualProducts($product_id);
         return $this->product_query->getListGidByIds($product_ids);
     }
 
@@ -144,17 +139,16 @@ class ProductRecommendationService implements IProductRecommendation
     private function getDefaultRecommendation(string $shop_id, string $product_id): array
     {
         $fake_ids = [
-            "67527565c54fb80ac00ae4f0",
-            "67527568c54fb80ac00ae4f1",
-            "67527573c54fb80ac00ae4f2",
-            "6752757cc54fb80ac00ae4f3",
-            "6752757dc54fb80ac00ae4f4",
-            "67527584c54fb80ac00ae4f5"
+            "675680cbce1b798d840b3ce1",
+            "675680cbce1b798d840b3ce2",
+            "675680cbce1b798d840b3ce3",
+            "675680cbce1b798d840b3ce4",
+            "675680cbce1b798d840b3ce5",
+            "675680cbce1b798d840b3ce6"
         ];
         $number_of_items = $this->shop_query->getById($shop_id)->settings()->get()->getNumberOfItems();
 
-        $random_products = collect($fake_ids)->random(min(count($fake_ids), $number_of_items));
-        return $this->product_service->fetchByIds($this->product_query->getListGidByIds($random_products->toArray()));
+        return collect($fake_ids)->random(min(count($fake_ids), $number_of_items))->toArray();
     }
 
     /**
