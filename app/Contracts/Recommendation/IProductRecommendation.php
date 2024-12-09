@@ -21,13 +21,12 @@ interface IProductRecommendation
     /**
      * Get list of manual products gid for a product.
      *
-     * @param string $shop_id
      * @param string $product_id
      * @return array
      *
      * @throws ProductNotFoundException
      */
-    public function getManualProducts(string $shop_id, string $product_id): array;
+    public function getManualProducts(string $product_id): array;
 
     /**
      * Set list of recommended products for a product.
