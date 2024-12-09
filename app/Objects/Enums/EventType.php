@@ -2,7 +2,7 @@
 
 namespace App\Objects\Enums;
 
-enum InteractionType: string
+enum EventType: string
 {
     // User click on a product recommendation.
     case CLICK = 'click';
