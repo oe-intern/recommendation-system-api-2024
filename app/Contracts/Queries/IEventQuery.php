@@ -2,9 +2,9 @@
 
 namespace App\Contracts\Queries;
 
-use App\Objects\Enums\StatisticsGroupBy;
+use App\Objects\Enums\AnalyticGroupBy;
 
-interface IInteractionQuery
+interface IEventQuery
 {
     /**
      * Filter click data for a shop
@@ -13,7 +13,7 @@ interface IInteractionQuery
      * @param string|null $product_id
      * @param string $start_date
      * @param string $end_date
-     * @param StatisticsGroupBy|null $group_by
+     * @param AnalyticGroupBy|null $group_by
      * @return array
      */
     public function filterClickData(
@@ -21,7 +21,7 @@ interface IInteractionQuery
         ?string $product_id,
         string $start_date,
         string $end_date,
-        ?StatisticsGroupBy $group_by
+        ?AnalyticGroupBy $group_by
     ): array;
 
     /**
@@ -31,7 +31,7 @@ interface IInteractionQuery
      * @param string|null $product_id
      * @param string $start_date
      * @param string $end_date
-     * @param StatisticsGroupBy|null $group_by
+     * @param AnalyticGroupBy|null $group_by
      * @return array
      */
     public function filterAddToCartData(
@@ -39,18 +39,18 @@ interface IInteractionQuery
         ?string $product_id,
         string $start_date,
         string $end_date,
-        ?StatisticsGroupBy $group_by
+        ?AnalyticGroupBy $group_by
     ): array;
 
     /**
-     * Get interaction data for a shop.
+     * Get event data for a shop.
      *
      * @param string $shop_id
      * @param string $start_date
      * @param string $end_date
      * @return array
      */
-    public function getInteractionData(
+    public function getEventData(
         string $shop_id,
         string $start_date,
         string $end_date
