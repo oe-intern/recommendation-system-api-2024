@@ -47,23 +47,13 @@ class ShopCollection extends MongoCollection
     }
 
     /**
-     * Define the relationship with the product click.
+     * Define the relationship with the events.
      *
      * @return HasMany
      */
-    public function productClicks(): HasMany
+    public function events(): HasMany
     {
-        return $this->hasMany(ProductClickCollection::class, 'shop_id');
-    }
-
-    /**
-     * Define the relationship with the product add to cart.
-     *
-     * @return HasMany
-     */
-    public function productAddToCart(): HasMany
-    {
-        return $this->hasMany(ProductAddToCartCollection::class, 'shop_id');
+        return $this->hasMany(EventCollection::class, 'shop_id');
     }
 
     /**

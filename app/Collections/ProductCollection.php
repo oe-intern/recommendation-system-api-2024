@@ -60,23 +60,13 @@ class ProductCollection extends MongoCollection
     ];
 
     /**
-     * Define the relationship with the add to cart interactions.
+     * Define the relationship with the events.
      *
      * @return HasMany
      */
-    public function addToCartInteractions(): HasMany
+    public function events(): HasMany
     {
-        return $this->hasMany(ProductAddToCartCollection::class, 'product_id');
-    }
-
-    /**
-     * Define the relationship with click interactions.
-     *
-     * @return HasMany
-     */
-    public function clickInteractions(): HasMany
-    {
-        return $this->hasMany(ProductClickCollection::class, 'product_id');
+        return $this->hasMany(EventCollection::class, 'product_id');
     }
 
     /**
