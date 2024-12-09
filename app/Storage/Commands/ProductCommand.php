@@ -47,7 +47,10 @@ class ProductCommand implements IProductCommand
      */
     public function createMany(ShopCollection $shop, array $products): void
     {
-        $shop->products()->createMany($products);
+        $chunks = array_chunk($products, 100);
+        foreach ($chunks as $chunk) {
+            $shop->products()->createMany($chunk);
+        }
     }
 
     /**
