@@ -4,44 +4,44 @@ namespace App\Http\Controllers;
 
 use App\Contracts\Queries\IProductQuery;
 use App\Contracts\Queries\IShopQuery;
-use App\Contracts\Recommendation\IProductInteraction;
+use App\Contracts\Recommendation\IProductEvent;
 use App\Exceptions\MissingProductIdException;
 use App\Exceptions\ProductNotFoundException;
 use App\Exceptions\ShopNotFoundException;
 use App\Jobs\ProcessAddToCartEvent;
 use App\Jobs\ProcessClickEvent;
-use App\Objects\Enums\InteractionType;
+use App\Objects\Enums\EventType;
 use App\Services\Shopify\UserContext;
 use Illuminate\Http\Response;
 use Illuminate\Http\Request;
 
-class ProductInteractionController extends BaseController
+class ProductEventController extends BaseController
 {
     /**
-     * @var IProductInteraction
+     * @var IProductEvent
      */
-    protected IProductInteraction $product_interaction_service;
+    protected IProductEvent $product_event_service;
 
     /**
-     * ProductInteractionController constructor.
+     * ProductEventController constructor.
      *
      * @param UserContext $user_context
-     * @param IProductInteraction $product_interaction_service
+     * @param IProductEvent $product_event_service
      * @param IShopQuery $shop_query
      * @param IProductQuery $product_query
      */
     public function __construct(
         UserContext $user_context,
-        IProductInteraction $product_interaction_service,
+        IProductEvent $product_event_service,
         IShopQuery $shop_query,
         IProductQuery $product_query,
     ) {
         parent::__construct($user_context, $product_query, $shop_query);
-        $this->product_interaction_service = $product_interaction_service;
+        $this->product_event_service = $product_event_service;
     }
 
     /**
-     * Get list of interactions for a shop.
+     * Get list of events for a shop.
      *
      * @param Request $request
      * @return Response
@@ -50,13 +50,13 @@ class ProductInteractionController extends BaseController
      * @throws ProductNotFoundException
      * @throws ShopNotFoundException
      */
-    public function getClickStatistics(Request $request): Response
+    public function getClickAnalytic(Request $request): Response
     {
-        return $this->getStatisticsData($request, InteractionType::CLICK);
+        return $this->getStatisticsData($request, EventType::CLICK);
     }
 
     /**
-     * Get list of interactions for a shop.
+     * Get list of events for a shop.
      *
      * @param Request $request
      * @return Response
@@ -65,23 +65,23 @@ class ProductInteractionController extends BaseController
      * @throws ProductNotFoundException
      * @throws ShopNotFoundException
      */
-    public function getAddToCartStatistics(Request $request): Response
+    public function getAddToCartAnalytic(Request $request): Response
     {
-        return $this->getStatisticsData($request, InteractionType::ADD_TO_CART);
+        return $this->getStatisticsData($request, EventType::ADD_TO_CART);
     }
 
     /**
-     * Get list of interactions for a shop.
+     * Get list of events for a shop.
      *
      * @param Request $request
-     * @param InteractionType $interaction_type
+     * @param EventType $event_type
      * @return Response
      *
      * @throws MissingProductIdException
      * @throws ProductNotFoundException
      * @throws ShopNotFoundException
      */
-    private function getStatisticsData(Request $request, InteractionType $interaction_type): Response
+    private function getStatisticsData(Request $request, EventType $event_type): Response
     {
         $shop_id = $this->getShopId();
         $product_id = $request->query('product_id');
@@ -90,38 +90,37 @@ class ProductInteractionController extends BaseController
         $end_date = $request->query('end_date');
         $group_by = $request->query('group_by');
 
-        $interactions = match ($interaction_type) {
-            InteractionType::CLICK => $this->product_interaction_service
+        $events = match ($event_type) {
+            EventType::CLICK => $this->product_event_service
                 ->getClickData($shop_id, $product_id, $start_date, $end_date, $group_by),
-            InteractionType::ADD_TO_CART => $this->product_interaction_service
+            EventType::ADD_TO_CART => $this->product_event_service
                 ->getAddToCartData($shop_id, $product_id, $start_date, $end_date, $group_by),
         };
 
-        return response()->success('Interactions retrieved successfully', $interactions);
+        return response()->success('Events retrieved successfully', $events);
     }
 
     /**
-     * Get info statistics for a about max, min interactions for a shop.
+     * Get info analytic for a about max, min events for a shop.
      *
      * @param Request $request
      * @return Response
      * @throws ShopNotFoundException
      */
-    public function getInteractionStatistics(Request $request): Response
+    public function getProductPerformance(Request $request): Response
     {
         $shop_id = $this->getShopId();
         $start_date = $request->query('start_date');
         $end_date = $request->query('end_date');
 
-        $interactions = $this->product_interaction_service->getInteractionStatistics($shop_id, $start_date, $end_date);
+        $events = $this->product_event_service->getProductPerformance($shop_id, $start_date, $end_date);
 
-        return response()->success('Interactions retrieved successfully', $interactions);
+        return response()->success('Events retrieved successfully', $events);
     }
 
     /**
-     * Increment the number of add to cart interactions for a product.
+     * Increment the number of add to cart events for a product.
      *
-     * @param string $product_id
      * @param Request $request
      * @return Response
      *
@@ -129,21 +128,22 @@ class ProductInteractionController extends BaseController
      * @throws ProductNotFoundException
      * @throws ShopNotFoundException
      */
-    public function addToCart(string $product_id, Request $request): Response
+    public function addToCart(Request $request): Response
     {
+        $product_id = $request->input('product_id');
+        $data = $request->input('data');
+        $number_of_items = $request->input('number_of_items');
         $shop_id = $this->getShopId();
         $product_id = $this->getProductId($shop_id, $product_id);
-        $data = $request->all();
 
-        ProcessAddToCartEvent::dispatch($shop_id, $product_id, $data);
+        ProcessAddToCartEvent::dispatch($shop_id, $product_id, $data, $number_of_items);
 
-        return response()->success('Interactions updated successfully');
+        return response()->success('Events updated successfully');
     }
 
     /**
-     * Increment the number of click interactions for a product.
+     * Increment the number of click events for a product.
      *
-     * @param string $product_id
      * @param Request $request
      * @return Response
      *
@@ -151,14 +151,15 @@ class ProductInteractionController extends BaseController
      * @throws ProductNotFoundException
      * @throws ShopNotFoundException
      */
-    public function click(string $product_id, Request $request): Response
+    public function click(Request $request): Response
     {
+        $product_id = $request->input('product_id');
+        $data = $request->input('data');
         $shop_id = $this->getShopId();
         $product_id = $this->getProductId($shop_id, $product_id);
-        $data = $request->all();
 
         ProcessClickEvent::dispatch($shop_id, $product_id, $data);
 
-        return response()->success('Interactions updated successfully');
+        return response()->success('Events updated successfully');
     }
 }

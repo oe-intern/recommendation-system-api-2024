@@ -2,7 +2,7 @@
 
 namespace App\Jobs;
 
-use App\Contracts\Recommendation\IProductInteraction;
+use App\Contracts\Recommendation\IProductEvent;
 use App\Exceptions\ProductNotFoundException;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -25,16 +25,16 @@ class ProcessClickEvent implements ShouldQueue
     protected string $product_id;
 
     /**
-     * @var array
+     * @var mixed
      */
-    protected array $data;
+    protected mixed $data;
 
     /**
      * @param string $shop_id
      * @param string $product_id
-     * @param array $data
+     * @param mixed $data
      */
-    public function __construct(string $shop_id, string $product_id, array $data)
+    public function __construct(string $shop_id, string $product_id, mixed $data)
     {
         $this->shop_id = $shop_id;
         $this->product_id = $product_id;
@@ -44,16 +44,17 @@ class ProcessClickEvent implements ShouldQueue
     /**
      * Execute the job
      *
-     * @param IProductInteraction $product_interaction_service
+     * @param IProductEvent $product_event_service
      * @return void
      *
      * @throws ProductNotFoundException
      */
-    public function handle(IProductInteraction $product_interaction_service): void
+    public function handle(IProductEvent $product_event_service): void
     {
-        $product_interaction_service->click(
+        $product_event_service->click(
             $this->shop_id,
             $this->product_id,
+            $this->data
         );
     }
 }

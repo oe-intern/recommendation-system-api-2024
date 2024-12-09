@@ -85,8 +85,8 @@ class ProductQueryShopify extends BaseGraphqlService implements IProductQuerySho
         ];
 
         $query = <<<'GRAPHQL'
-            query Products($first: Int!) {
-                products(first: $first) {
+            query Products($first: Int!, $after: String) {
+                products(first: $first, after: $after) {
                     nodes {
                         %s
                     }

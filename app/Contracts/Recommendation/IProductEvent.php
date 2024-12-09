@@ -4,40 +4,42 @@ namespace App\Contracts\Recommendation;
 
 use App\Exceptions\ProductNotFoundException;
 
-interface IProductInteraction
+interface IProductEvent
 {
     /**
      * Handle click event.
      *
      * @param string $shop_id
      * @param string $product_id
+     * @param mixed $data
      * @return void
      *
      * @throws ProductNotFoundException
      */
-    public function click(string $shop_id, string $product_id): void;
+    public function click(string $shop_id, string $product_id, mixed $data): void;
 
     /**
      * Handle add to cart event.
      *
      * @param string $shop_id
      * @param string $product_id
+     * @param mixed $data
      * @param int|null $quantity
      * @return void
      *
      * @throws ProductNotFoundException
      */
-    public function addToCart(string $shop_id, string $product_id, ?int $quantity): void;
+    public function addToCart(string $shop_id, string $product_id, mixed $data, ?int $quantity): void;
 
     /**
-     * Get interaction statistics.
+     * Get event analytic.
      *
      * @param string $shop_id
      * @param string $start_date
      * @param string $end_date
      * @return array
      */
-    public function getInteractionStatistics(string $shop_id, string $start_date, string $end_date): array;
+    public function getProductPerformance(string $shop_id, string $start_date, string $end_date): array;
 
     /**
      * Get click data for a product.

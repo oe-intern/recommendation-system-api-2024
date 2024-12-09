@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\ProductInteractionController;
+use App\Http\Controllers\ProductEventController;
 use App\Http\Controllers\RecommendationController;
 use Illuminate\Support\Facades\Route;
 
@@ -9,28 +9,28 @@ Route::group(['middleware' => ['access_control_headers', 'shopify.auth', 'verify
         Route::get('/{product_id}', [RecommendationController::class, 'getProduct']);
         Route::get('/{product_id}/recommendation-type',
             [RecommendationController::class, 'getRecommendationTypes']);
-        Route::group(['middleware' => 'validate.product.statistics'], function () {
-            Route::get('/click/statistics',
-                [ProductInteractionController::class, 'getClickStatistics']);
-            Route::get('/add-to-cart/statistics',
-                [ProductInteractionController::class, 'getAddToCartStatistics']);
-        });
         Route::put('/{product_id}/recommendation-type', [RecommendationController::class, 'setRecommendationType'])
-            ->middleware('validate.recommendation.type.request');
+            ->middleware('validate.product.recommendation_type.request');
         Route::get('/{product_id}/manual-recommendation',
             [RecommendationController::class, 'getManualRecommendation']);
         Route::put('/{product_id}/manual-recommendation', [
             RecommendationController::class,
             'setManualRecommendation'
-        ])->middleware('validate.recommendation.request');
+        ])->middleware('validate.product.recommendation.request');
     });
-    Route::get('/event/performing', [ProductInteractionController::class, 'getInteractionStatistics'])
-        ->middleware('validate.product.performing.request');
+    Route::prefix('events')->group(function () {
+        Route::group(['middleware' => 'validate.event.analytic'], function () {
+            Route::get('/click/analytic', [ProductEventController::class, 'getClickAnalytic']);
+            Route::get('/add-to-cart/analytic', [ProductEventController::class, 'getAddToCartAnalytic']);
+        });
+        Route::get('/performance', [ProductEventController::class, 'getProductPerformance'])
+            ->middleware('validate.event.performance.request');
+    });
     Route::prefix('shop')->group(function () {
         Route::prefix('settings')->group(function () {
             Route::get('', [RecommendationController::class, 'getShopSetting']);
             Route::put('', [RecommendationController::class, 'setShopSetting'])
-                ->middleware('validate.auto.recommendation.request');
+                ->middleware('validate.shop.auto_recommendation.request');
         });
     });
 });
@@ -45,11 +45,16 @@ Route::group(['middleware' => ['access_control_headers', 'identify.shop.domain']
         Route::prefix('/products')->group(function () {
             Route::get('/{product_id}/recommendations',
                 [RecommendationController::class, 'getRecommendation']);
-            Route::post('/{product_id}/click', [ProductInteractionController::class, 'click']);
-            Route::post('/{product_id}/add-to-cart', [
-                ProductInteractionController::class,
+        });
+        Route::prefix('/events')->group(function () {
+            Route::post('/click', [
+                ProductEventController::class,
+                'click'
+            ])->middleware('validate.event.click.request');
+            Route::post('/add-to-cart', [
+                ProductEventController::class,
                 'addToCart'
-            ])->middleware('validate.product.addToCart.request');
+            ])->middleware('validate.event.add_to_cart.request');
         });
     });
 });

@@ -136,10 +136,7 @@ class RecommendationController extends BaseController
         $shop_id = $this->getShopId();
         $product_id = $this->getProductId($shop_id, $product_id);
 
-        $manual_gids = $this->product_recommendation_service->getManualProducts(
-            $shop_id,
-            $product_id,
-        );
+        $manual_gids = $this->product_recommendation_service->getManualProducts($product_id);
 
         return response()->success('Manual recommendation has been set.', $manual_gids);
     }

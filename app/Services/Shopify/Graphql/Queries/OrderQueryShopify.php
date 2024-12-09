@@ -26,8 +26,8 @@ class OrderQueryShopify extends BaseGraphqlService implements IOrderQueryShopify
         ];
 
         $query = <<<'GRAPHQL'
-                    query Orders($first: Int!) {
-                        orders(first: $first) {
+                    query Orders($first: Int!, $after: String) {
+                        orders(first: $first, after: $after) {
                             nodes {
                                 id
                                 email

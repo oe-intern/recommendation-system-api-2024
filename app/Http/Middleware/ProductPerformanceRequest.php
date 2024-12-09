@@ -2,12 +2,10 @@
 
 namespace App\Http\Middleware;
 
-use App\Objects\Enums\StatisticsGroupBy;
 use Closure;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rules\Enum;
 
-class ProductStatistic
+class ProductPerformanceRequest
 {
     /**
      * Handle an incoming request.
@@ -19,11 +17,6 @@ class ProductStatistic
     public function handle(Request $request, Closure $next): mixed
     {
         $request->validate([
-            'group_by' => [
-                'sometimes',
-                new Enum(StatisticsGroupBy::class),
-            ],
-            'product_id' => 'sometimes|nullable|string',
             'start_date' => 'required|date_format:Y-m-d|before_or_equal:end_date',
             'end_date' => 'required|date_format:Y-m-d|before_or_equal:today',
         ]);

@@ -8,11 +8,12 @@ use App\Http\Middleware\VerifyAuthenticationToken;
 use App\Http\Middleware\VerifyHmac;
 use App\Http\Middleware\SetProductRecommendationRequest;
 use App\Http\Middleware\SetRecommendationTypeRequest;
-use App\Http\Middleware\ProductAddToCartRequest;
-use App\Http\Middleware\ProductStatistic;
+use App\Http\Middleware\AddToCartEventRequest;
+use App\Http\Middleware\ClickEventRequest;
+use App\Http\Middleware\EventAnalyticRequest;
 use App\Http\Middleware\SettingAutoRecommendationRequest;
 use App\Http\Middleware\IdentifyShopDomain;
-use App\Http\Middleware\ProductPerformingRequest;
+use App\Http\Middleware\ProductPerformanceRequest;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -40,12 +41,13 @@ return Application::configure(basePath: dirname(__DIR__))
             'verify.token' => VerifyAuthenticationToken::class,
             'access_control_headers' => AccessControlHeaders::class,
             'csp_header' => CspHeader::class,
-            'validate.recommendation.request' => SetProductRecommendationRequest::class,
-            'validate.recommendation.type.request' => SetRecommendationTypeRequest::class,
-            'validate.auto.recommendation.request' => SettingAutoRecommendationRequest::class,
-            'validate.product.addToCart.request' => ProductAddToCartRequest::class,
-            'validate.product.statistics' => ProductStatistic::class,
-            'validate.product.performing.request' => ProductPerformingRequest::class,
+            'validate.product.recommendation.request' => SetProductRecommendationRequest::class,
+            'validate.product.recommendation_type.request' => SetRecommendationTypeRequest::class,
+            'validate.event.analytic' => EventAnalyticRequest::class,
+            'validate.event.add_to_cart.request' => AddToCartEventRequest::class,
+            'validate.event.click.request' => ClickEventRequest::class,
+            'validate.event.performance.request' => ProductPerformanceRequest::class,
+            'validate.shop.auto_recommendation.request' => SettingAutoRecommendationRequest::class,
             'identify.shop.domain' => IdentifyShopDomain::class,
         ]);
     })

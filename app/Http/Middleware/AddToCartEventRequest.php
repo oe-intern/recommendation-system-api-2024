@@ -5,7 +5,7 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 
-class ProductAddToCartRequest
+class AddToCartEventRequest
 {
     /**
      * Handle an incoming request.
@@ -18,6 +18,8 @@ class ProductAddToCartRequest
     {
         $request->validate([
             'number_of_items' => 'sometimes|nullable|integer',
+            'product_id' => 'required|string',
+            'data' => 'sometimes|nullable',
         ]);
 
         return $next($request);

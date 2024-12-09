@@ -3,7 +3,7 @@
 namespace App\Jobs;
 
 use App\Contracts\Queries\IProductQuery;
-use App\Contracts\Recommendation\IProductInteraction;
+use App\Contracts\Recommendation\IProductEvent;
 use App\Exceptions\ProductNotFoundException;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -26,39 +26,45 @@ class ProcessAddToCartEvent implements ShouldQueue
     protected string $product_id;
 
     /**
-     * @var array
+     * @var mixed
      */
-    protected array $data;
+    protected mixed $data;
+
+    /*
+     * @var int
+     */
+    protected int $number_of_items;
 
     /**
      * @param string $shop_id
      * @param string $product_id
-     * @param array $data
+     * @param mixed $data
+     * @param int|null $number_of_items
      */
-    public function __construct(string $shop_id, string $product_id, array $data)
+    public function __construct(string $shop_id, string $product_id, mixed $data, ?int $number_of_items)
     {
         $this->shop_id = $shop_id;
         $this->product_id = $product_id;
         $this->data = $data;
+        $this->number_of_items = $number_of_items;
     }
 
     /**
      * Execute the job
      *
-     * @param IProductInteraction $product_interaction_service
+     * @param IProductEvent $product_event_service
      * @param IProductQuery $product_query
      * @return void
      *
      * @throws ProductNotFoundException
      */
-    public function handle(IProductInteraction $product_interaction_service, IProductQuery $product_query): void
+    public function handle(IProductEvent $product_event_service, IProductQuery $product_query): void
     {
-        $number_of_items = data_get($this->data, 'number_of_items');
-
-        $product_interaction_service->addToCart(
+        $product_event_service->addToCart(
             $this->shop_id,
             $this->product_id,
-            $number_of_items,
+            $this->data,
+            $this->number_of_items,
         );
     }
 }

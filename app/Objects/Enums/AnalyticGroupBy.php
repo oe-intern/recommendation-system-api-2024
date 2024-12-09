@@ -2,7 +2,7 @@
 
 namespace App\Objects\Enums;
 
-enum  StatisticsGroupBy: string
+enum  AnalyticGroupBy: string
 {
     case HOUR = 'hour';
     case DAY = 'day';

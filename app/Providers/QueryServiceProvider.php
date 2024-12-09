@@ -8,8 +8,8 @@ use App\Storage\Queries\ShopQuery;
 use App\Contracts\Queries\IShopQuery;
 use App\Storage\Queries\ProductQuery;
 use App\Contracts\Queries\IProductQuery;
-use App\Contracts\Queries\IInteractionQuery;
-use App\Storage\Queries\InteractionProductQuery;
+use App\Contracts\Queries\IEventQuery;
+use App\Storage\Queries\EventQuery;
 use Illuminate\Support\ServiceProvider;
 
 class QueryServiceProvider extends ServiceProvider
@@ -35,8 +35,8 @@ class QueryServiceProvider extends ServiceProvider
         );
 
         $this->app->bind(
-            IInteractionQuery::class,
-            InteractionProductQuery::class
+            IEventQuery::class,
+            EventQuery::class
         );
     }
 

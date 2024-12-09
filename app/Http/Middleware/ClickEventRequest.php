@@ -5,7 +5,7 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 
-class ProductPerformingRequest
+class ClickEventRequest
 {
     /**
      * Handle an incoming request.
@@ -17,8 +17,8 @@ class ProductPerformingRequest
     public function handle(Request $request, Closure $next): mixed
     {
         $request->validate([
-            'start_date' => 'required|date_format:Y-m-d|before_or_equal:end_date',
-            'end_date' => 'required|date_format:Y-m-d|before_or_equal:today',
+            'product_id' => 'required|string',
+            'data' => 'sometimes|nullable',
         ]);
 
         return $next($request);

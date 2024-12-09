@@ -2,15 +2,14 @@
 
 namespace App\Storage\Commands;
 
-use App\Collections\ProductAddToCartCollection;
-use App\Collections\ProductClickCollection;
-use App\Contracts\Commands\IInteractionProductCommand;
+use App\Collections\EventCollection;
+use App\Contracts\Commands\IEventCommand;
 use App\Contracts\Queries\IProductQuery;
-use App\Objects\Enums\InteractionType;
+use App\Objects\Enums\EventType;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
-class InteractionProductCommand implements IInteractionProductCommand
+class EventCommand implements IEventCommand
 {
     /**
      * @var IProductQuery
@@ -18,7 +17,7 @@ class InteractionProductCommand implements IInteractionProductCommand
     protected IProductQuery $product_query;
 
     /**
-     * InteractionProductCommand constructor.
+     * EventCommand constructor.
      *
      * @param IProductQuery $product_query
      */
@@ -28,24 +27,32 @@ class InteractionProductCommand implements IInteractionProductCommand
     }
 
     /**
-     * Increment any interaction of a product from a shop.
+     * Increment any event of a product from a shop.
      *
      * @param string $shop_id
      * @param string $product_id
-     * @param InteractionType $interaction_type
+     * @param EventType $event_type
+     * @param mixed $data
      * @param int|null $quantity
      * @return void
      */
-    public function increment(
+    public function trigger(
         string $shop_id,
         string $product_id,
-        InteractionType $interaction_type,
+        EventType $event_type,
+        mixed $data,
         ?int $quantity
     ): void {
-        match ($interaction_type) {
-            InteractionType::CLICK => $this->incrementClicks($shop_id, $product_id, $quantity),
-            InteractionType::ADD_TO_CART => $this->incrementAddToCart($shop_id, $product_id, $quantity),
-        };
+        $quantity = $quantity ?? 1;
+        EventCollection::query()
+            ->create([
+                'type' => $event_type->value,
+                'shop_id' => $shop_id,
+                'product_id' => $product_id,
+                'created_at' => Carbon::now(),
+                'quantity' => $quantity,
+                'data' => $data,
+            ]);
     }
 
     /**
@@ -53,16 +60,19 @@ class InteractionProductCommand implements IInteractionProductCommand
      *
      * @param string $shop_id
      * @param string $product_id
+     * @param mixed $data
      * @return void
      *
      * @throws ModelNotFoundException
      */
-    public function incrementClicks(string $shop_id, string $product_id): void
+    public function incrementClicks(string $shop_id, string $product_id, mixed $data): void
     {
-        ProductClickCollection::query()->create([
+        EventCollection::query()->create([
+            'type' => EventType::CLICK,
             'shop_id' => $shop_id,
             'product_id' => $product_id,
             'created_at' => Carbon::now(),
+            'data' => $data,
         ]);
     }
 
@@ -71,18 +81,21 @@ class InteractionProductCommand implements IInteractionProductCommand
      *
      * @param string $shop_id
      * @param string $product_id
+     * @param mixed $data
      * @param int|null $quantity
      * @return void
      */
-    public function incrementAddToCart(string $shop_id, string $product_id, ?int $quantity = 1): void
+    public function incrementAddToCart(string $shop_id, string $product_id, mixed $data, ?int $quantity = 1): void
     {
         $quantity = $quantity ?? 1;
-        ProductAddToCartCollection::query()
+        EventCollection::query()
             ->create([
+                'type' => EventType::ADD_TO_CART,
                 'shop_id' => $shop_id,
                 'product_id' => $product_id,
                 'created_at' => Carbon::now(),
                 'quantity' => $quantity,
+                'data' => $data,
             ]);
     }
 }

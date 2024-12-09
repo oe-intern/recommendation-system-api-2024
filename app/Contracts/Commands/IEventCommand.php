@@ -2,24 +2,26 @@
 
 namespace App\Contracts\Commands;
 
-use App\Objects\Enums\InteractionType;
+use App\Objects\Enums\EventType;
 
-interface IInteractionProductCommand
+interface IEventCommand
 {
     /**
-     * Increment any interaction of a product from a shop.
+     * Trigger any event of a product from a shop.
      *
      * @param string $shop_id
      * @param string $product_id
-     * @param InteractionType $interaction_type
+     * @param EventType $event_type
+     * @param mixed $data
      * @param int|null $quantity
      * @return void
      */
-    public function increment(
+    public function trigger(
         string $shop_id,
         string $product_id,
-        InteractionType $interaction_type,
-        ?int $quantity
+        EventType $event_type,
+        mixed $data,
+        ?int $quantity,
     ): void;
 
     /**
@@ -27,17 +29,19 @@ interface IInteractionProductCommand
      *
      * @param string $shop_id
      * @param string $product_id
+     * @param mixed $data
      * @return void
      */
-    public function incrementClicks(string $shop_id, string $product_id): void;
+    public function incrementClicks(string $shop_id, string $product_id, mixed $data): void;
 
     /**
      * Increment the views of a product from a shop.
      *
      * @param string $shop_id
      * @param string $product_id
+     * @param mixed $data
      * @param int|null $quantity
      * @return void
      */
-    public function incrementAddToCart(string $shop_id, string $product_id, ?int $quantity = 1): void;
+    public function incrementAddToCart(string $shop_id, string $product_id, mixed $data, ?int $quantity = 1): void;
 }

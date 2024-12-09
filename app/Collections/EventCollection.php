@@ -1,17 +1,20 @@
 <?php
 
+
 declare(strict_types=1);
 
 namespace App\Collections;
 
-class ProductAddToCartCollection extends MongoCollection
+use App\Objects\Enums\EventType;
+
+class EventCollection extends MongoCollection
 {
     /**
      * The name of the collection.
      *
      * @var string
      */
-    protected $table = 'product_add_to_cart';
+    protected $table = 'events';
 
     /**
      * Indicates if the model should be timestamped.
@@ -26,10 +29,12 @@ class ProductAddToCartCollection extends MongoCollection
      * @var string[]
      */
     protected $fillable = [
+        'type',
         'created_at',
         'quantity',
         'product_id',
         'shop_id',
+        'data',
     ];
 
     /**
@@ -38,6 +43,7 @@ class ProductAddToCartCollection extends MongoCollection
      * @var string[]
      */
     protected $casts = [
+        'type' => EventType::class,
         'quantity' => 'int',
         'created_at' => 'datetime',
     ];

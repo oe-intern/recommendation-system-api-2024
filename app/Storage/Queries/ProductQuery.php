@@ -237,4 +237,35 @@ class ProductQuery implements IProductQuery
             ->pluck('gid')
             ->toArray();
     }
+
+    /**
+     * Get product GID by ID.
+     *
+     * @param string $product_id
+     * @return string
+     */
+    public function getGidById(string $product_id): string
+    {
+        return ProductCollection::query()
+            ->where('id', $product_id)
+            ->first()
+            ->getGid();
+    }
+
+    /**
+     * Get all product of a shop not in a list of product ids.
+     *
+     * @param string $shop_id
+     * @param array $product_ids
+     * @return array
+     */
+    public function getProductsNotIn(string $shop_id, array $product_ids): array
+    {
+        return ProductCollection::query()
+            ->where('shop_id', $shop_id)
+            ->whereNotIn('id', $product_ids)
+            ->get()
+            ->pluck('id')
+            ->toArray();
+    }
 }

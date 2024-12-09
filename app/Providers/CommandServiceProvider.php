@@ -8,8 +8,8 @@ use App\Storage\Commands\ShopCommand;
 use App\Contracts\Commands\IShopCommand;
 use App\Contracts\Commands\IProductCommand;
 use App\Storage\Commands\ProductCommand;
-use App\Storage\Commands\InteractionProductCommand;
-use App\Contracts\Commands\IInteractionProductCommand;
+use App\Storage\Commands\EventCommand;
+use App\Contracts\Commands\IEventCommand;
 use Illuminate\Support\ServiceProvider;
 
 class CommandServiceProvider extends ServiceProvider
@@ -35,8 +35,8 @@ class CommandServiceProvider extends ServiceProvider
         );
 
         $this->app->bind(
-            IInteractionProductCommand::class,
-            InteractionProductCommand::class
+            IEventCommand::class,
+            EventCommand::class
         );
     }
 

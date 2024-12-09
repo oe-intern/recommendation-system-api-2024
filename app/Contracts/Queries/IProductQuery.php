@@ -127,4 +127,21 @@ interface IProductQuery
      * @return array
      */
     public function getListGidByIds(array $product_ids): array;
+
+    /**
+     * Get product GID by ID.
+     *
+     * @param string $product_id
+     * @return string
+     */
+    public function getGidById(string $product_id): string;
+
+    /**
+     * Get all product of a shop not in a list of product ids.
+     *
+     * @param string $shop_id
+     * @param array $product_ids
+     * @return array
+     */
+    public function getProductsNotIn(string $shop_id, array $product_ids): array;
 }
