@@ -10,6 +10,7 @@ use App\Contracts\Queries\IShopQuery;
 use App\Contracts\Recommendation\IProductRecommendation;
 use App\Contracts\Shopify\Graphql\Queries\IProductQueryShopify;
 use App\Exceptions\ProductNotFoundException;
+use App\Objects\Enums\RecommendationState;
 use App\Objects\Enums\RecommendationType;
 
 class ProductRecommendationService implements IProductRecommendation
@@ -74,11 +75,13 @@ class ProductRecommendationService implements IProductRecommendation
         $product = $this->product_query->getByShopIdAndId($shop_id, $product_id);
         $recommendation_type = $product->getRecommendationType();
 
-        return match ($recommendation_type) {
+        $product_ids = match ($recommendation_type) {
             RecommendationType::AUTO => $this->getAutoRecommendation($shop_id, $product_id),
             RecommendationType::MANUAL => $this->getManualRecommendation($shop_id, $product_id),
             default => $this->getDefaultRecommendation($shop_id, $product_id),
         };
+
+        return $this->product_query->getHandleAndGidByIds($product_ids);
     }
 
     /**
@@ -98,9 +101,10 @@ class ProductRecommendationService implements IProductRecommendation
             "675680cbce1b798d840b3ce5",
             "675680cbce1b798d840b3ce6"
         ];
+        $active_products = $this->product_query->getActiveProducts($fake_ids);
         $number_of_items = $this->shop_query->getById($shop_id)->settings()->get()->getNumberOfItems();
 
-        return collect($fake_ids)->random(min(count($fake_ids), $number_of_items))->toArray();
+        return collect($active_products)->random(min(count($active_products), $number_of_items))->toArray();
     }
 
     /**
@@ -113,8 +117,7 @@ class ProductRecommendationService implements IProductRecommendation
     private function getManualRecommendation(string $shop_id, string $product_id): array
     {
         $list_product_ids = $this->product_query->getManualProducts($product_id);
-
-        return $this->product_query->getListGidByIds($list_product_ids);
+        return $this->product_query->getActiveProducts($list_product_ids);
     }
 
     /**
@@ -146,9 +149,10 @@ class ProductRecommendationService implements IProductRecommendation
             "675680cbce1b798d840b3ce5",
             "675680cbce1b798d840b3ce6"
         ];
+        $active_products = $this->product_query->getActiveProducts($fake_ids);
         $number_of_items = $this->shop_query->getById($shop_id)->settings()->get()->getNumberOfItems();
 
-        return collect($fake_ids)->random(min(count($fake_ids), $number_of_items))->toArray();
+        return collect($active_products)->random(min(count($active_products), $number_of_items))->toArray();
     }
 
     /**
@@ -157,6 +161,7 @@ class ProductRecommendationService implements IProductRecommendation
      * @param string $shop_id
      * @param string $product_id
      * @param array $list_recommended_gid
+     * @param string|null $recommendation_type
      * @return ProductCollection
      *
      * @throws ProductNotFoundException
@@ -165,7 +170,9 @@ class ProductRecommendationService implements IProductRecommendation
         string $shop_id,
         string $product_id,
         array $list_recommended_gid,
+        ?string $recommendation_type,
     ): ProductCollection {
+        $recommendation_type = RecommendationType::tryFrom($recommendation_type);
         $recommended_ids = $this->product_query->validateListProductGid($shop_id, $list_recommended_gid);
         $product = $this->product_query->getById($product_id);
         $recommended_ids = array_unique(array_filter($recommended_ids, fn($id) => (string)$id !== $product_id));
@@ -173,7 +180,8 @@ class ProductRecommendationService implements IProductRecommendation
         $this->product_command->setManualProduct(
             $product,
             $shop_id,
-            $recommended_ids
+            $recommended_ids,
+            $recommendation_type ?? $product->getRecommendationType(),
         );
 
         return $product;
@@ -221,9 +229,10 @@ class ProductRecommendationService implements IProductRecommendation
         $recommended_products = $this->product_query->getManualProducts($product_id);
         // relative products, ....
 
-        $product->setAttribute('recommended_products', $this->product_service->fetchByIds(
-            $this->product_query->getListGidByIds($recommended_products)
-        ));
+        $product->setAttribute(
+            'recommended_products',
+            $this->product_service->fetchByIds($this->product_query->getListGidByIds($recommended_products))
+        );
 
         return $product->toArray();
     }
@@ -253,9 +262,27 @@ class ProductRecommendationService implements IProductRecommendation
         array $settings
     ): array {
         $shop = $this->shop_query->getById($shop_id);
-        return $this->shop_command->setShopSettings(
-            $shop,
-            $settings,
-        );
+        return $this->shop_command->setShopSettings($shop, $settings);
+    }
+
+    /**
+     * Activate recommendation for all product of a shop.
+     *
+     * @param string $shop_id
+     * @param string $status
+     * @return bool
+     */
+    public function activateRecommendation(
+        string $shop_id,
+        string $status,
+    ): bool {
+        $status = RecommendationState::from($status);
+
+        match ($status) {
+            RecommendationState::ACTIVE => $this->product_command->activateRecommendation($shop_id),
+            RecommendationState::INACTIVE => $this->product_command->deactivateRecommendation($shop_id),
+        };
+
+        return true;
     }
 }
