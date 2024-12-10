@@ -21,52 +21,8 @@ class ProductQueryShopify extends BaseGraphqlService implements IProductQuerySho
      */
     private const PRODUCT_FIELDS = <<<'GRAPHQL'
             id
-            title
             handle
-            category {
-                id
-            }
-            vendor
-            variants(first: 250) {
-                nodes {
-                    id
-                    title
-                    taxCode
-                    price
-                    image {
-                        id
-                        altText
-                        url
-                    }
-                }
-            }
-            title
-            tags
             status
-            productType
-            totalInventory
-            description
-            featuredMedia {
-                id
-                alt
-                mediaContentType
-                preview {
-                    image {
-                        url
-                    }
-                }
-            }
-            priceRangeV2 {
-                maxVariantPrice {
-                    amount
-                    currencyCode
-                }
-                minVariantPrice {
-                    amount
-                    currencyCode
-                }
-            }
-            handle
         GRAPHQL;
 
     /**

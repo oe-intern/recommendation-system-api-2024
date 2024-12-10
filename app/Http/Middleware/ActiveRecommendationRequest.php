@@ -2,12 +2,12 @@
 
 namespace App\Http\Middleware;
 
-use App\Objects\Enums\RecommendationType;
-use Closure;
+use App\Objects\Enums\RecommendationState;
 use Illuminate\Http\Request;
+use Closure;
 use Illuminate\Validation\Rules\Enum;
 
-class SetProductRecommendationRequest
+class ActiveRecommendationRequest
 {
     /**
      * Handle an incoming request.
@@ -19,14 +19,11 @@ class SetProductRecommendationRequest
     public function handle(Request $request, Closure $next): mixed
     {
         $request->validate([
-            'recommended_ids' => 'required|array',
-            'recommended_ids.*' => 'string',
-            'recommendation_type' => [
-                'sometimes',
-                'nullable',
+            'active' => [
+                'required',
                 'string',
-                new Enum(RecommendationType::class),
-            ]
+                new Enum(RecommendationState::class),
+            ],
         ]);
 
         return $next($request);

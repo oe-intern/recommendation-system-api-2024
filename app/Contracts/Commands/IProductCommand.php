@@ -54,12 +54,14 @@ interface IProductCommand
      * @param ProductCollection $product
      * @param string $shop_id
      * @param array $recommendations
+     * @param RecommendationType $recommendation_type
      * @return bool
      */
     public function setManualProduct(
         ProductCollection $product,
         string $shop_id,
-        array $recommendations
+        array $recommendations,
+        RecommendationType $recommendation_type,
     ): bool;
 
     /**
@@ -90,4 +92,20 @@ interface IProductCommand
         string $product_id,
         string $recommended_product_id
     ): void;
+
+    /**
+     * Active the recommendation for all products of a shop.
+     *
+     * @param string $shop_id
+     * @return bool
+     */
+    public function activateRecommendation(string $shop_id): bool;
+
+    /**
+     * Deactivate the recommendation for all products of a shop.
+     *
+     * @param string $shop_id
+     * @return bool
+     */
+    public function deactivateRecommendation(string $shop_id): bool;
 }

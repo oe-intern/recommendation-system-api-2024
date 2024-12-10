@@ -268,4 +268,43 @@ class ProductQuery implements IProductQuery
             ->pluck('id')
             ->toArray();
     }
+
+    /**
+     * Get list of product active by IDs.
+     *
+     * @param array $ids
+     * @return array
+     */
+    public function getActiveProducts(array $ids): array
+    {
+        return ProductCollection::query()
+            ->whereIn('id', $ids)
+            ->whereIn('status', ['active', 'ACTIVE'])
+            ->get()
+            ->pluck('id')
+            ->toArray();
+    }
+
+    /**
+     * Get list of product handle and GID by IDs.
+     *
+     * @param array $product_ids
+     * @return array
+     */
+    public function getHandleAndGidByIds(array $product_ids): array
+    {
+        $products = ProductCollection::query()
+            ->whereIn('id', $product_ids)
+            ->get();
+
+        $result = [];
+        foreach ($products as $product) {
+            $result[] = [
+                'handle' => $product->handle,
+                'gid' => $product->gid
+            ];
+        }
+
+        return $result;
+    }
 }

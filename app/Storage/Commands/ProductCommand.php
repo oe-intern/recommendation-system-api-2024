@@ -87,19 +87,21 @@ class ProductCommand implements IProductCommand
      * @param ProductCollection $product
      * @param string $shop_id
      * @param array $recommendations
+     * @param RecommendationType $recommendation_type
      * @return bool
      */
     public function setManualProduct(
         ProductCollection $product,
         string $shop_id,
-        array $recommendations
+        array $recommendations,
+        RecommendationType $recommendation_type,
     ): bool {
         $product_id = $product->getId();
         $removed_recommendations = array_diff($product->getAttributeValue('manual_ids'), $recommendations);
 
         $product->update([
             'manual_ids' => $recommendations,
-            'recommendation_type' => RecommendationType::MANUAL,
+            'recommendation_type' => $recommendation_type,
         ]);
 
         foreach ($recommendations as $recommended_product_id) {
@@ -242,5 +244,37 @@ class ProductCommand implements IProductCommand
         foreach ($product_referenced_ids as $product_referenced_id) {
             $this->removeProductRecommendation($product_referenced_id, $product_id);
         }
+    }
+
+    /**
+     * Active the recommendation for all products of a shop.
+     *
+     * @param string $shop_id
+     * @return bool
+     */
+    public function activateRecommendation(string $shop_id): bool
+    {
+        return ProductCollection::query()
+            ->where('shop_id', $shop_id)
+            ->where('recommendation_type', RecommendationType::DEFAULT)
+            ->update([
+                'recommendation_type' => RecommendationType::AUTO,
+            ]);
+    }
+
+    /**
+     * Deactivate the recommendation for all products of a shop.
+     *
+     * @param string $shop_id
+     * @return bool
+     */
+    public function deactivateRecommendation(string $shop_id): bool
+    {
+        return ProductCollection::query()
+            ->where('shop_id', $shop_id)
+            ->where('recommendation_type', RecommendationType::AUTO)
+            ->update([
+                'recommendation_type' => RecommendationType::DEFAULT,
+            ]);
     }
 }

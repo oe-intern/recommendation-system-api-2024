@@ -19,6 +19,8 @@ use App\Contracts\Recommendation\IProductRecommendation;
 use App\Services\Product\ProductRecommendationService;
 use App\Contracts\Recommendation\IProductEvent;
 use App\Services\Product\ProductEventService;
+use App\Contracts\Recommendation\IRecommendationProcess;
+use App\Services\Product\RecommendationProcessService;
 use App\Services\Shopify\UserContext;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\URL;
@@ -58,6 +60,11 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(
             IProductEvent::class,
             ProductEventService::class
+        );
+
+        $this->app->bind(
+            IRecommendationProcess::class,
+            RecommendationProcessService::class
         );
     }
 

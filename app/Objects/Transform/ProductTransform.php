@@ -31,6 +31,8 @@ class ProductTransform implements IShopifyTransform
         return ([
             'gid' => $this->getShopifyId($data),
             'status' => data_get($data, 'status'),
+            'type' => data_get($data, 'productType'),
+            'handle' => data_get($data, 'handle'),
         ]);
     }
 
@@ -45,6 +47,8 @@ class ProductTransform implements IShopifyTransform
         return ([
             'gid' => $this->getWebhookId($data),
             'status' => data_get($data, 'status'),
+            'type' => data_get($data, 'product_type'),
+            'handle' => data_get($data, 'handle'),
         ]);
     }
 

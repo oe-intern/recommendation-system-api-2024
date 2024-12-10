@@ -30,21 +30,15 @@ class OrderQueryShopify extends BaseGraphqlService implements IOrderQueryShopify
                         orders(first: $first, after: $after) {
                             nodes {
                                 id
-                                email
                                 lineItems(first: 250) {
                                     nodes {
                                         id
-                                        name
-                                        quantity
+                                        product {
+                                            id
+                                            productType
+                                        }
                                     }
                                 }
-                                totalPriceSet {
-                                    presentmentMoney {
-                                        amount
-                                        currencyCode
-                                    }
-                                }
-                                createdAt
                             }
                             pageInfo {
                                 hasNextPage
