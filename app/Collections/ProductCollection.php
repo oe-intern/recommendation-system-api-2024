@@ -32,6 +32,8 @@ class ProductCollection extends MongoCollection
     protected $fillable = [
         'gid',
         'status',
+        'type',
+        'handle',
         'recommendation_type',
         'manual_ids',
         'referenced_ids',
