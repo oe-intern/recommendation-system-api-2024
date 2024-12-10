@@ -34,14 +34,16 @@ interface IProductRecommendation
      * @param string $shop_id
      * @param string $product_id
      * @param array $list_recommended_gid
+     * @param string|null $recommendation_type
      * @return ProductCollection
      *
      * @throws ProductNotFoundException
-	 */
+     */
     public function setRecommendedProducts(
         string $shop_id,
         string $product_id,
         array $list_recommended_gid,
+        ?string $recommendation_type,
     ): ProductCollection;
 
     /**
@@ -53,9 +55,9 @@ interface IProductRecommendation
      * @return ProductCollection
      *
      * @throws ProductNotFoundException
-	 */
+     */
     public function setRecommendationType(
-		string $shop_id,
+        string $shop_id,
         string $product_id,
         string $recommendation_type
     ): ProductCollection;
@@ -68,7 +70,7 @@ interface IProductRecommendation
      * @return array
      *
      * @throws ProductNotFoundException
-	 */
+     */
     public function getFullInfo(string $shop_id, string $product_id): array;
 
     /**
@@ -91,4 +93,16 @@ interface IProductRecommendation
         string $shop_id,
         array $settings
     ): array;
+
+    /**
+     * Activate recommendation for all product of a shop.
+     *
+     * @param string $shop_id
+     * @param string $status
+     * @return bool
+     */
+    public function activateRecommendation(
+        string $shop_id,
+        string $status,
+    ): bool;
 }

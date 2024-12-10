@@ -144,4 +144,20 @@ interface IProductQuery
      * @return array
      */
     public function getProductsNotIn(string $shop_id, array $product_ids): array;
+
+    /**
+     * Get list of product active by IDs.
+     *
+     * @param array $ids
+     * @return array
+     */
+    public function getActiveProducts(array $ids): array;
+
+    /**
+     * Get handle and GID by IDs.
+     *
+     * @param array $product_ids
+     * @return array
+     */
+    public function getHandleAndGidByIds(array $product_ids): array;
 }
