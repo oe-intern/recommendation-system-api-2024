@@ -3,7 +3,6 @@
 namespace App\Providers;
 
 use App\Contracts\Objects\Transform\ShopifyTransform;
-use App\Objects\Transform\OrderTransform;
 use App\Objects\Transform\ProductTransform;
 use Illuminate\Support\ServiceProvider;
 
@@ -21,7 +20,6 @@ class TransformProvider extends ServiceProvider
         );
 
         $this->app->bind('shopify.transform.product', ProductTransform::class);
-        $this->app->bind('shopify.transform.order', OrderTransform::class);
     }
 
     /**
