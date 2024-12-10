@@ -12,6 +12,7 @@ use App\Http\Middleware\AddToCartEventRequest;
 use App\Http\Middleware\ClickEventRequest;
 use App\Http\Middleware\EventAnalyticRequest;
 use App\Http\Middleware\SettingAutoRecommendationRequest;
+use App\Http\Middleware\ActiveRecommendationRequest;
 use App\Http\Middleware\IdentifyShopDomain;
 use App\Http\Middleware\ProductPerformanceRequest;
 use Illuminate\Foundation\Application;
@@ -43,6 +44,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'csp_header' => CspHeader::class,
             'validate.product.recommendation.request' => SetProductRecommendationRequest::class,
             'validate.product.recommendation_type.request' => SetRecommendationTypeRequest::class,
+            'validate.product.recommendation_active.request' => ActiveRecommendationRequest::class,
             'validate.event.analytic' => EventAnalyticRequest::class,
             'validate.event.add_to_cart.request' => AddToCartEventRequest::class,
             'validate.event.click.request' => ClickEventRequest::class,
