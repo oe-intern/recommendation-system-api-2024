@@ -6,7 +6,6 @@ use Illuminate\Support\Facades\Route;
 
 Route::group(['middleware' => ['access_control_headers', 'shopify.auth', 'verify.token']], function () {
     Route::prefix('products')->group(function () {
-        Route::get('/{product_id}', [RecommendationController::class, 'getProduct']);
         Route::get('/{product_id}/recommendation-type',
             [RecommendationController::class, 'getRecommendationTypes']);
         Route::put('/{product_id}/recommendation-type', [RecommendationController::class, 'setRecommendationType'])
