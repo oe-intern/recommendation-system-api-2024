@@ -105,11 +105,13 @@ class RecommendationController extends BaseController
         $shop_id = $this->getShopId();
         $product_id = $this->getProductId($shop_id, $product_id);
         $list_recommended_gid = array_map([Utils::class, 'getIdFromGid'], $request->input('recommended_ids'));
+        $recommended_type = $request->input('recommendation_type');
 
         $product = $this->product_recommendation_service->setRecommendedProducts(
             $shop_id,
             $product_id,
-            $list_recommended_gid
+            $list_recommended_gid,
+            $recommended_type
         );
 
         $response_data = [
@@ -139,27 +141,6 @@ class RecommendationController extends BaseController
         $manual_gids = $this->product_recommendation_service->getManualProducts($product_id);
 
         return response()->success('Manual recommendation has been set.', $manual_gids);
-    }
-
-    /**
-     * Get product information by ID (including recommendation products).
-     *
-     * @param string $product_id
-     * @param Request $request
-     * @return Response
-     *
-     * @throws MissingProductIdException
-     * @throws ProductNotFoundException
-     * @throws ShopNotFoundException
-     */
-    public function getProduct(string $product_id, Request $request): Response
-    {
-        $shop_id = $this->getShopId();
-        $product_id = $this->getProductId($shop_id, $product_id);
-
-        $product = $this->product_recommendation_service->getFullInfo($shop_id, $product_id);
-
-        return response()->success('Product information has been retrieved.', $product);
     }
 
     /**
@@ -198,5 +179,23 @@ class RecommendationController extends BaseController
         $settings = $this->product_recommendation_service->setShopSettings($shop_id, $settings);
 
         return response()->success('Auto recommendation settings has been set.', $settings);
+    }
+
+    /**
+     * Activate recommendation for all product of a shop.
+     *
+     * @param Request $request
+     * @return Response
+     *
+     * @throws ShopNotFoundException
+     */
+    public function activateRecommendation(Request $request): Response
+    {
+        $shop_id = $this->getShopId();
+        $status = $request->input('status');
+
+        $this->product_recommendation_service->activateRecommendation($shop_id, $status);
+
+        return response()->success('Recommendation has been ' . $status . 'd.');
     }
 }
