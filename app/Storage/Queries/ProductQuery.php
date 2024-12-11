@@ -87,6 +87,17 @@ class ProductQuery implements IProductQuery
     }
 
     /**
+     * Get list of optional products for recommendation.
+     *
+     * @param string $product_id
+     * @return array
+     */
+    public function getDefaultProducts(string $product_id): array
+    {
+        return $this->getProductRecommendationIds($product_id, 'manual_ids');
+    }
+
+    /**
      * Validate product IDs exist in the shop.
      *
      * @param string $shop_id
@@ -306,5 +317,37 @@ class ProductQuery implements IProductQuery
         }
 
         return $result;
+    }
+
+    /**
+     * Get existing products by GIDs and shop ID.
+     *
+     * @param string $shop_id
+     * @param array $products_gid
+     * @return array
+     */
+    public function getExistingProductsGid(string $shop_id, array $products_gid): array
+    {
+        return ProductCollection::query()
+            ->where('shop_id', $shop_id)
+            ->whereIn('gid', $products_gid)
+            ->get()
+            ->pluck('gid')
+            ->toArray();
+    }
+
+    /**
+     * Get product ID and GID by shop ID.
+     *
+     * @param string $shop_id
+     * @return array
+     */
+    public function getIdAndGidByShopId(string $shop_id): array
+    {
+        return ProductCollection::query()
+            ->where('shop_id', $shop_id)
+            ->get()
+            ->pluck('id', 'gid')
+            ->toArray();
     }
 }
