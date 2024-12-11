@@ -52,6 +52,17 @@ class ProductTransform implements IShopifyTransform
         ]);
     }
 
+    public function shopifyDataListToModelApiListData(array $data): array
+    {
+        return ([
+            'shopify_id' => data_get($data, 'id'),
+            'product_type' => data_get($data, 'productType'),
+            'name' => data_get($data, 'title'),
+            'vendor' => data_get($data, 'vendor'),
+            'image' => $this->getImageUrl($data),
+        ]);
+    }
+
     /**
      * Get id of the product.
      *
@@ -72,5 +83,19 @@ class ProductTransform implements IShopifyTransform
     private function getWebhookId(array $product): string
     {
         return data_get($product, 'id');
+    }
+
+    /**
+     * Get image url of the product.
+     *
+     * @param array $product
+     * @return string|null
+     */
+    private function getImageUrl(array $product): ?string
+    {
+        $media = data_get($product, 'featuredMedia');
+        $preview = data_get($media, 'preview');
+        $image = data_get($preview, 'image');
+        return data_get($image, 'url');
     }
 }
