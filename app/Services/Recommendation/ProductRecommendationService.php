@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Product;
+namespace App\Services\Recommendation;
 
 use App\Collections\ProductCollection;
 use App\Contracts\Commands\IProductCommand;
@@ -10,6 +10,7 @@ use App\Contracts\Queries\IShopQuery;
 use App\Contracts\Recommendation\IProductRecommendation;
 use App\Contracts\Shopify\Graphql\Queries\IProductQueryShopify;
 use App\Exceptions\ProductNotFoundException;
+use App\Lib\Utils;
 use App\Objects\Enums\RecommendationState;
 use App\Objects\Enums\RecommendationType;
 
@@ -284,5 +285,77 @@ class ProductRecommendationService implements IProductRecommendation
         };
 
         return true;
+    }
+
+    /**
+     * Update product default recommendation for a shop.
+     *
+     * @param array $recommendation_data
+     * @param string $shop_id
+     * @return bool
+     */
+    public function updateManyDefaultRecommendation(array $recommendation_data, string $shop_id): bool
+    {
+        $product_data = $this->product_query->getIdAndGidByShopId($shop_id);
+
+        return $this->product_command->updateManyDefaultRecommendation(
+            $this->matchData($recommendation_data, $product_data)
+        );
+    }
+
+    /**
+     * Update product recommendation for a shop.
+     *
+     * @param array $recommendation_data
+     * @param string $shop_id
+     * @return bool
+     */
+    public function updateManyRecommendation(array $recommendation_data, string $shop_id): bool
+    {
+        $product_data = $this->product_query->getIdAndGidByShopId($shop_id);
+
+        return $this->product_command->updateManyRecommendation(
+            $this->matchData($recommendation_data, $product_data)
+        );
+    }
+
+    /**
+     * Format Shopify product ID
+     *
+     * @param string $id
+     * @return string
+     */
+    private function formatShopifyId(string $id): string
+    {
+        if (str_starts_with($id, 'gid://')) {
+            return $id;
+        }
+        return "gid://shopify/Product/$id";
+    }
+
+    /**
+     * Match recommendation data with product data.
+     *
+     * @param array $recommendation_data
+     * @param array $product_data
+     * @return array
+     */
+    private function matchData(array $recommendation_data, array $product_data): array
+    {
+        $result = [];
+        foreach ($product_data as $product) {
+            $gid = $product['gid'];
+            $id = $product['id'];
+
+            $recommendations = $recommendation_data[$this->formatShopifyId($gid)];
+            $recommendations = array_map(fn($item) => Utils::getIdFromGid($item), $recommendations);
+
+            $result[] = [
+                'id' => $id,
+                'recommendation_ids' => $recommendations,
+            ];
+        }
+
+        return $result;
     }
 }
