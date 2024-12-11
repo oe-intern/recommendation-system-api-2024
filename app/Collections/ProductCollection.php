@@ -37,6 +37,7 @@ class ProductCollection extends MongoCollection
         'recommendation_type',
         'manual_ids',
         'referenced_ids',
+        'default_recommendation_ids',
         'recommendation_ids',
     ];
 
@@ -58,6 +59,7 @@ class ProductCollection extends MongoCollection
         'recommendation_type' => RecommendationType::DEFAULT,
         'manual_ids' => [],
         'referenced_ids' => [],
+        'default_recommendation_ids' => [],
         'recommendation_ids' => [],
     ];
 
@@ -120,4 +122,15 @@ class ProductCollection extends MongoCollection
     {
         return $this->getAttribute('manual_ids');
     }
+
+    /**
+     * Get default recommendation ids of ProductCollection
+     *
+     * @return array
+     */
+    public function getDefaultRecommendationIds(): array
+    {
+        return $this->getAttribute('default_recommendation_ids');
+    }
+
 }
