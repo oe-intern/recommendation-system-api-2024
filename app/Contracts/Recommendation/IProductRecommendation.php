@@ -105,4 +105,22 @@ interface IProductRecommendation
         string $shop_id,
         string $status,
     ): bool;
+
+    /**
+     * Update product default recommendation for a shop.
+     *
+     * @param array $recommendation_data
+     * @param string $shop_id
+     * @return bool
+     */
+    public function updateManyDefaultRecommendation(array $recommendation_data, string $shop_id): bool;
+
+    /**
+     * Update product recommendation for a shop.
+     *
+     * @param array $recommendation_data
+     * @param string $shop_id
+     * @return bool
+     */
+    public function updateManyRecommendation(array $recommendation_data, string $shop_id): bool;
 }
