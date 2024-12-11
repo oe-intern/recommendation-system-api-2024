@@ -23,6 +23,16 @@ class ProductQueryShopify extends BaseGraphqlService implements IProductQuerySho
             id
             handle
             status
+            title
+            vendor
+            productType
+            featuredMedia {
+                preview {
+                    image {
+                        url
+                    }
+                }
+            }
         GRAPHQL;
 
     /**
