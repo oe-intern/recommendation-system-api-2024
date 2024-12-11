@@ -16,11 +16,15 @@ use App\Lib\Handlers\ShopUpdate;
 use App\Models\Export;
 use App\Policies\ActivityPolicy;
 use App\Contracts\Recommendation\IProductRecommendation;
-use App\Services\Product\ProductRecommendationService;
+use App\Services\Recommendation\ProductRecommendationService;
 use App\Contracts\Recommendation\IProductEvent;
-use App\Services\Product\ProductEventService;
+use App\Services\Recommendation\ProductEventService;
 use App\Contracts\Recommendation\IRecommendationProcess;
-use App\Services\Product\RecommendationProcessService;
+use App\Services\Recommendation\RecommendationProcessService;
+use App\Contracts\ModelRecommendation\IRecommendationApi;
+use App\Services\ModelRecommendation\RecommendationApiService;
+use App\Contracts\Recommendation\IProduct;
+use App\Services\Recommendation\ProductService;
 use App\Services\Shopify\UserContext;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\URL;
@@ -65,6 +69,16 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(
             IRecommendationProcess::class,
             RecommendationProcessService::class
+        );
+
+        $this->app->bind(
+            IRecommendationApi::class,
+            RecommendationApiService::class
+        );
+
+        $this->app->bind(
+            IProduct::class,
+            ProductService::class
         );
     }
 
