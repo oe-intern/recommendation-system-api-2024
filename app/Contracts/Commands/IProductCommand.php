@@ -37,6 +37,30 @@ interface IProductCommand
     public function update(ProductCollection $product, array $product_data): bool;
 
     /**
+     * Update a list products of a shop with data from Shopify.
+     *
+     * @param array $product_data
+     * @return bool
+     */
+    public function updateManyByGid(array $product_data): bool;
+
+    /**
+     * Update list recommendation for products.
+     *
+     * @param array $recommendation_data
+     * @return bool
+     */
+    public function updateManyRecommendation(array $recommendation_data): bool;
+
+    /**
+     * Update list recommendation for products.
+     *
+     * @param array $recommendation_data
+     * @return bool
+     */
+    public function updateManyDefaultRecommendation(array $recommendation_data): bool;
+
+    /**
      * Update the recommendation type a product.
      *
      * @param ProductCollection $product
