@@ -102,13 +102,14 @@ class ShopInstalledData
         PreProcessShopInstalledData::dispatchSync($domain, $is_trashed, $products_data);
 
         $orders_process_data = $this->recommendation_process->processOrderData($domain);
-        $data = $this->getData($products_process_data, $orders_process_data);
+        $data_request = $this->getData($products_process_data, $orders_process_data);
         $shop = $this->shop_query->getByDomain($domain);
+        $map_gid_id = $this->product_query->getMapIdWithKeyGidByShopId($shop->getId());
 
-        $recommendation_data = $this->recommendation_api_service->preRecommend($data);
-        $this->product_recommendation_service->updateManyRecommendation($recommendation_data, $shop->getId());
+        $recommendation_data = $this->recommendation_api_service->preRecommend($data_request);
+        $this->product_recommendation_service->updateManyDefaultRecommendation($recommendation_data, $map_gid_id);
 
-        ProcessShopInstalledData::dispatch($shop->getId(), $products_data, $data);
+        ProcessShopInstalledData::dispatch($map_gid_id, $products_data, $data_request);
     }
 
     /**
