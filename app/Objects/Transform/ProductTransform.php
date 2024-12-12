@@ -52,7 +52,13 @@ class ProductTransform implements IShopifyTransform
         ]);
     }
 
-    public function shopifyDataListToModelApiListData(array $data): array
+    /**
+     * Convert shopify data to model api data.
+     *
+     * @param array $data
+     * @return array
+     */
+    public function shopifyDataToModelApiData(array $data): array
     {
         return ([
             'shopify_id' => data_get($data, 'id'),
@@ -61,6 +67,19 @@ class ProductTransform implements IShopifyTransform
             'vendor' => data_get($data, 'vendor'),
             'image' => $this->getImageUrl($data),
         ]);
+    }
+
+    /**
+     * Convert shopify data list to model api list data.
+     *
+     * @param array $data
+     * @return array
+     */
+    public function shopifyDataListToModelApiListData(array $data): array
+    {
+        return array_map(function ($product) {
+            return $this->shopifyDataToModelApiData($product);
+        }, $data);
     }
 
     /**
