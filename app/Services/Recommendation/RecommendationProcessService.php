@@ -71,8 +71,8 @@ class RecommendationProcessService implements IRecommendationProcess
 
         return [
             'total' => $total_orders,
-            'type_score' => $type_type_order_count,
-            'product_score' => $product_product_order_count,
+            'type_scores' => $type_type_order_count,
+            'product_scores' => $product_product_order_count,
         ];
     }
 
