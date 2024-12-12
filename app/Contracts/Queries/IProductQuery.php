@@ -185,4 +185,12 @@ interface IProductQuery
      * @return array
      */
     public function getIdAndGidByShopId(string $shop_id): array;
+
+    /**
+     * Get map of product ID with key GID by shop ID.
+     *
+     * @param string $shop_id
+     * @return array
+     */
+    public function getMapIdWithKeyGidByShopId(string $shop_id): array;
 }

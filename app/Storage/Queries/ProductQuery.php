@@ -304,19 +304,16 @@ class ProductQuery implements IProductQuery
      */
     public function getHandleAndGidByIds(array $product_ids): array
     {
-        $products = ProductCollection::query()
+        return ProductCollection::query()
             ->whereIn('id', $product_ids)
-            ->get();
-
-        $result = [];
-        foreach ($products as $product) {
-            $result[] = [
-                'handle' => $product->handle,
-                'gid' => $product->gid
-            ];
-        }
-
-        return $result;
+            ->get()
+            ->map(function ($product) {
+                return [
+                    'handle' => $product->handle,
+                    'gid' => $product->gid
+                ];
+            })
+            ->toArray();
     }
 
     /**
@@ -343,6 +340,26 @@ class ProductQuery implements IProductQuery
      * @return array
      */
     public function getIdAndGidByShopId(string $shop_id): array
+    {
+        return ProductCollection::query()
+            ->where('shop_id', $shop_id)
+            ->get()
+            ->map(function ($product) {
+                return [
+                    'id' => $product->id,
+                    'gid' => $product->gid
+                ];
+            })
+            ->toArray();
+    }
+
+    /**
+     * Get map of product ID with key GID by shop ID.
+     *
+     * @param string $shop_id
+     * @return array
+     */
+    public function getMapIdWithKeyGidByShopId(string $shop_id): array
     {
         return ProductCollection::query()
             ->where('shop_id', $shop_id)
