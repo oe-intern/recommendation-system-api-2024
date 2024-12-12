@@ -142,15 +142,10 @@ class ProductRecommendationService implements IProductRecommendation
      */
     private function getDefaultRecommendation(string $shop_id, string $product_id): array
     {
-        $fake_ids = [
-            "675680cbce1b798d840b3ce1",
-            "675680cbce1b798d840b3ce2",
-            "675680cbce1b798d840b3ce3",
-            "675680cbce1b798d840b3ce4",
-            "675680cbce1b798d840b3ce5",
-            "675680cbce1b798d840b3ce6"
-        ];
-        $active_products = $this->product_query->getActiveProducts($fake_ids);
+        $product = $this->product_query->getById($product_id);
+        $default_ids = $product->getDefaultRecommendationIds();
+
+        $active_products = $this->product_query->getActiveProducts($default_ids);
         $number_of_items = $this->shop_query->getById($shop_id)->settings()->get()->getNumberOfItems();
 
         return collect($active_products)->random(min(count($active_products), $number_of_items))->toArray();
@@ -291,15 +286,13 @@ class ProductRecommendationService implements IProductRecommendation
      * Update product default recommendation for a shop.
      *
      * @param array $recommendation_data
-     * @param string $shop_id
+     * @param array $map_gid_id
      * @return bool
      */
-    public function updateManyDefaultRecommendation(array $recommendation_data, string $shop_id): bool
+    public function updateManyDefaultRecommendation(array $recommendation_data, array $map_gid_id): bool
     {
-        $product_data = $this->product_query->getIdAndGidByShopId($shop_id);
-
         return $this->product_command->updateManyDefaultRecommendation(
-            $this->matchData($recommendation_data, $product_data)
+            $this->matchData($recommendation_data, $map_gid_id, 'default_recommendation_ids')
         );
     }
 
@@ -307,15 +300,13 @@ class ProductRecommendationService implements IProductRecommendation
      * Update product recommendation for a shop.
      *
      * @param array $recommendation_data
-     * @param string $shop_id
+     * @param array $map_gid_id
      * @return bool
      */
-    public function updateManyRecommendation(array $recommendation_data, string $shop_id): bool
+    public function updateManyRecommendation(array $recommendation_data, array $map_gid_id): bool
     {
-        $product_data = $this->product_query->getIdAndGidByShopId($shop_id);
-
         return $this->product_command->updateManyRecommendation(
-            $this->matchData($recommendation_data, $product_data)
+            $this->matchData($recommendation_data, $map_gid_id, 'recommendation_ids')
         );
     }
 
@@ -338,22 +329,17 @@ class ProductRecommendationService implements IProductRecommendation
      *
      * @param array $recommendation_data
      * @param array $product_data
+     * @param string $attribute
      * @return array
      */
-    private function matchData(array $recommendation_data, array $product_data): array
+    private function matchData(array $recommendation_data, array $product_data, string $attribute): array
     {
         $result = [];
-        foreach ($product_data as $product) {
-            $gid = $product['gid'];
-            $id = $product['id'];
+        foreach ($product_data as $gid => $id) {
+            $recommendations_gis = $recommendation_data[$this->formatShopifyId($gid)];
+            $recommendations = array_map(fn($item) => $product_data[Utils::getIdFromGid($item)], $recommendations_gis);
 
-            $recommendations = $recommendation_data[$this->formatShopifyId($gid)];
-            $recommendations = array_map(fn($item) => Utils::getIdFromGid($item), $recommendations);
-
-            $result[] = [
-                'id' => $id,
-                'recommendation_ids' => $recommendations,
-            ];
+            $result[$id] = $recommendations;
         }
 
         return $result;

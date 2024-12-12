@@ -110,17 +110,17 @@ interface IProductRecommendation
      * Update product default recommendation for a shop.
      *
      * @param array $recommendation_data
-     * @param string $shop_id
+     * @param array $map_gid_id
      * @return bool
      */
-    public function updateManyDefaultRecommendation(array $recommendation_data, string $shop_id): bool;
+    public function updateManyDefaultRecommendation(array $recommendation_data, array $map_gid_id): bool;
 
     /**
      * Update product recommendation for a shop.
      *
      * @param array $recommendation_data
-     * @param string $shop_id
+     * @param array $map_gid_id
      * @return bool
      */
-    public function updateManyRecommendation(array $recommendation_data, string $shop_id): bool;
+    public function updateManyRecommendation(array $recommendation_data, array $map_gid_id): bool;
 }
