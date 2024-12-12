@@ -7,6 +7,8 @@ use App\Collections\ShopCollection;
 use App\Contracts\Commands\IProductCommand;
 use App\Contracts\Queries\IProductQuery;
 use App\Objects\Enums\RecommendationType;
+use Illuminate\Support\Facades\DB;
+use MongoDB\BSON\ObjectId;
 
 class ProductCommand implements IProductCommand
 {
@@ -123,11 +125,19 @@ class ProductCommand implements IProductCommand
      */
     private function updateRecommendation(array $recommendation_data, string $attribute): bool
     {
-        return ProductCollection::query()->upsert(
-            $recommendation_data,
-            ['id'],
-            [$attribute]
-        );
+        $collection = DB::connection('mongodb')->getCollection('products');
+        $operations = [];
+        foreach ($recommendation_data as $product_id => $recommendation_ids) {
+            $operations[] = [
+                'updateOne' => [
+                    ['_id' => new ObjectId($product_id)],
+                    ['$set' => [$attribute => $recommendation_ids]],
+                ],
+            ];
+        }
+
+        $result = $collection->bulkWrite($operations);
+        return $result->getModifiedCount() > 0;
     }
 
     /**
