@@ -123,7 +123,7 @@ class ShopInstalledData
     {
         return array_merge([
                 'products' => $products_data,
-                'numberOfItems' => $this->MAX_RECOMMENDATION_PRODUCTS
+                'number_of_items' => $this->MAX_RECOMMENDATION_PRODUCTS
             ], $orders_process_data);
     }
 }

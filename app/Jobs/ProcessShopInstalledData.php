@@ -14,9 +14,9 @@ class ProcessShopInstalledData implements ShouldQueue
     use Queueable, Dispatchable;
 
     /**
-     * @var string
+     * @var array
      */
-    protected string $shop_id;
+    protected array $map_gid_id;
 
     /**
      * @var array
@@ -31,13 +31,13 @@ class ProcessShopInstalledData implements ShouldQueue
     /**
      * Create a new job instance.
      *
-     * @param string $shop_id
+     * @param array $map_gid_id
      * @param array $products
      * @param array $data
      */
-    public function __construct(string $shop_id, array $products, array $data)
+    public function __construct(array $map_gid_id, array $products, array $data)
     {
-        $this->shop_id = $shop_id;
+        $this->map_gid_id = $map_gid_id;
         $this->products = $products;
         $this->data = $data;
     }
@@ -55,8 +55,8 @@ class ProcessShopInstalledData implements ShouldQueue
         IRecommendationApi $recommendation_api_service,
         IProductRecommendation $product_recommendation_service
     ): void {
-        $recommendation_data = $recommendation_api_service->preRecommend($this->data);
-        $product_recommendation_service->updateManyRecommendation($recommendation_data, $this->shop_id);
+        $recommendation_data = $recommendation_api_service->recommend($this->data);
+        $product_recommendation_service->updateManyRecommendation($recommendation_data, $this->map_gid_id);
     }
 
 }
