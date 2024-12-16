@@ -66,6 +66,8 @@ class ProductTransform implements IShopifyTransform
             'name' => data_get($data, 'title'),
             'vendor' => data_get($data, 'vendor'),
             'image' => $this->getImageUrl($data),
+            'description' => data_get($data, 'description'),
+            'title' => data_get($data, 'title'),
         ]);
     }
 
