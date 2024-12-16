@@ -275,11 +275,35 @@ class ProductRecommendationService implements IProductRecommendation
         $status = RecommendationState::from($status);
 
         match ($status) {
-            RecommendationState::ACTIVE => $this->product_command->activateRecommendation($shop_id),
-            RecommendationState::INACTIVE => $this->product_command->deactivateRecommendation($shop_id),
+            RecommendationState::ACTIVE => $this->activate($shop_id),
+            RecommendationState::INACTIVE => $this->deactivate($shop_id),
         };
 
         return true;
+    }
+
+    /**
+     * Activate recommendation for all product of a shop.
+     *
+     * @param string $shop_id
+     * @return void
+     */
+    private function activate(string $shop_id): void
+    {
+        $this->shop_command->setRecommendationState($shop_id, RecommendationState::ACTIVE);
+        $this->product_command->activateRecommendation($shop_id);
+    }
+
+    /**
+     * Deactivate recommendation for all product of a shop.
+     *
+     * @param string $shop_id
+     * @return void
+     */
+    private function deactivate(string $shop_id): void
+    {
+        $this->shop_command->setRecommendationState($shop_id, RecommendationState::INACTIVE);
+        $this->product_command->deactivateRecommendation($shop_id);
     }
 
     /**
