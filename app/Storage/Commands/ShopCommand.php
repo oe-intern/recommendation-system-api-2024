@@ -6,6 +6,7 @@ use App\Collections\Schema\ShopSettingSchema;
 use App\Collections\ShopCollection;
 use App\Contracts\Commands\IShopCommand;
 use App\Contracts\Queries\IShopQuery;
+use App\Objects\Enums\RecommendationState;
 
 class ShopCommand implements IShopCommand
 {
@@ -43,6 +44,22 @@ class ShopCommand implements IShopCommand
         }
 
         return $shop_settings->toArray();
+    }
+
+    /**
+     * Set the recommendation state for a shop.
+     *
+     * @param string $shop_id
+     * @param RecommendationState $state
+     * @return void
+     */
+    public function setRecommendationState(string $shop_id, RecommendationState $state): void
+    {
+        ShopCollection::query()
+            ->where('id', $shop_id)
+            ->update([
+                'recommendation_state' => $state->value,
+            ]);
     }
 
     /**
