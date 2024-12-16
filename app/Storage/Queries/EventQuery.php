@@ -116,6 +116,19 @@ class EventQuery implements IEventQuery
                         ],
                     ],
                     [
+                        '$lookup' => [
+                            'from' => 'products',
+                            'localField' => 'product_id',
+                            'foreignField' => 'id',
+                            'as' => 'product',
+                        ],
+                    ],
+                    [
+                        '$match' => [
+                            'product' => ['$ne' => []],
+                        ],
+                    ],
+                    [
                         '$project' => [
                             '_id' => 0,
                             'date' => 1,
@@ -228,6 +241,19 @@ class EventQuery implements IEventQuery
                         '$group' => [
                             '_id' => '$product_id',
                             'quantity' => ['$sum' => '$quantity'],
+                        ],
+                    ],
+                    [
+                        '$lookup' => [
+                            'from' => 'products',
+                            'localField' => 'product_id',
+                            'foreignField' => 'id',
+                            'as' => 'product',
+                        ],
+                    ],
+                    [
+                        '$match' => [
+                            'product' => ['$ne' => []],
                         ],
                     ],
                     [

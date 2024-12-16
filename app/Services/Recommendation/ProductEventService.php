@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Product;
+namespace App\Services\Recommendation;
 
 use App\Contracts\Commands\IEventCommand;
 use App\Contracts\Queries\IEventQuery;

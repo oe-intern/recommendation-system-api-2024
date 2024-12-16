@@ -87,6 +87,14 @@ interface IProductQuery
      */
     public function getManualProducts(string $product_id): array;
 
+    /**
+     * Get list of optional products for recommendation.
+     *
+     * @param string $product_id
+     * @return array
+     */
+    public function getDefaultProducts(string $product_id): array;
+
 	/**
 	 * Validate product IDs exist in the shop.
 	 *
@@ -160,4 +168,29 @@ interface IProductQuery
      * @return array
      */
     public function getHandleAndGidByIds(array $product_ids): array;
+
+    /**
+     * Get existing products by GIDs and shop ID.
+     *
+     * @param string $shop_id
+     * @param array $products_gid
+     * @return array
+     */
+    public function getExistingProductsGid(string $shop_id, array $products_gid): array;
+
+    /**
+     * Get product ID and GID by shop ID.
+     *
+     * @param string $shop_id
+     * @return array
+     */
+    public function getIdAndGidByShopId(string $shop_id): array;
+
+    /**
+     * Get map of product ID with key GID by shop ID.
+     *
+     * @param string $shop_id
+     * @return array
+     */
+    public function getMapIdWithKeyGidByShopId(string $shop_id): array;
 }

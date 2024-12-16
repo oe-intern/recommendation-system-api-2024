@@ -2,55 +2,61 @@
 
 namespace App\Jobs;
 
-use App\Contracts\Commands\IProductCommand;
-use App\Contracts\Commands\IShopCommand;
-use App\Contracts\Shopify\Graphql\Queries\IProductQueryShopify;
-use App\Objects\Transform\ProductTransform;
+use App\Contracts\ModelRecommendation\IRecommendationApi;
+use App\Contracts\Recommendation\IProductRecommendation;
+use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
-use Illuminate\Foundation\Queue\Queueable;
-use Illuminate\Queue\InteractsWithQueue;
-use Illuminate\Queue\SerializesModels;
+use Exception;
 
 class ProcessShopInstalledData implements ShouldQueue
 {
-    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+    use Queueable, Dispatchable;
 
     /**
-     * @var string
+     * @var array
      */
-    protected string $domain;
+    protected array $map_gid_id;
 
     /**
-     * @param string $domain
+     * @var array
      */
-    public function __construct(string $domain)
+    protected array $products;
+
+    /**
+     * @var array
+     */
+    protected array $data;
+
+    /**
+     * Create a new job instance.
+     *
+     * @param array $map_gid_id
+     * @param array $products
+     * @param array $data
+     */
+    public function __construct(array $map_gid_id, array $products, array $data)
     {
-        $this->domain = $domain;
+        $this->map_gid_id = $map_gid_id;
+        $this->products = $products;
+        $this->data = $data;
     }
 
     /**
-     * Execute the job
+     * Execute the job.
      *
-     * @param IProductQueryShopify $product_query
-     * @param IShopCommand $shop_command
-     * @param IProductCommand $product_command
-     * @param ProductTransform $product_transform
+     * @param IRecommendationApi $recommendation_api_service
+     * @param IProductRecommendation $product_recommendation_service
      * @return void
+     *
+     * @throws Exception
      */
     public function handle(
-        IProductQueryShopify $product_query,
-        IShopCommand $shop_command,
-        IProductCommand $product_command,
-        ProductTransform $product_transform,
+        IRecommendationApi $recommendation_api_service,
+        IProductRecommendation $product_recommendation_service
     ): void {
-        // Get the products from the shop
-        $products = $product_query->fetchAll();
-
-        $products_data = $product_transform->shopifyDataListToCollectionDataList($products);
-
-        // Create the shop and its data
-        $new_shop = $shop_command->create($this->domain);
-        $product_command->createMany($new_shop, $products_data);
+        $recommendation_data = $recommendation_api_service->recommend($this->data);
+        $product_recommendation_service->updateManyRecommendation($recommendation_data, $this->map_gid_id);
     }
+
 }

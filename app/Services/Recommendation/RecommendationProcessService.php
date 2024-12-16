@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Services\Product;
+namespace App\Services\Recommendation;
 
+use App\Contracts\ModelRecommendation\IRecommendationApi;
 use App\Contracts\Recommendation\IRecommendationProcess;
 use App\Contracts\Shopify\Graphql\Queries\IOrderQueryShopify;
 
@@ -10,14 +11,19 @@ class RecommendationProcessService implements IRecommendationProcess
     /**
      * @var IOrderQueryShopify
      */
-    protected IOrderQueryShopify $orderQueryShopify;
+    protected IOrderQueryShopify $order_query_shopify;
 
     /**
-     * @param IOrderQueryShopify $orderQueryShopify
+     * @var IRecommendationApi $recommendation_api_service;
      */
-    public function __construct(IOrderQueryShopify $orderQueryShopify)
+    protected IRecommendationApi $recommendation_api_service;
+
+    /**
+     * @param IOrderQueryShopify $order_query_shopify
+     */
+    public function __construct(IOrderQueryShopify $order_query_shopify)
     {
-        $this->orderQueryShopify = $orderQueryShopify;
+        $this->order_query_shopify = $order_query_shopify;
     }
 
     /**
@@ -28,7 +34,7 @@ class RecommendationProcessService implements IRecommendationProcess
      */
     public function processOrderData(string $shop_id): array
     {
-        $order_data = $this->orderQueryShopify->fetchAll();
+        $order_data = $this->order_query_shopify->fetchAll();
 
         $total_orders = count($order_data);
         $type_type_order_count = [];
@@ -65,8 +71,8 @@ class RecommendationProcessService implements IRecommendationProcess
 
         return [
             'total' => $total_orders,
-            'type_score' => $type_type_order_count,
-            'product_score' => $product_product_order_count,
+            'type_scores' => $type_type_order_count,
+            'product_scores' => $product_product_order_count,
         ];
     }
 
@@ -107,4 +113,13 @@ class RecommendationProcessService implements IRecommendationProcess
         }
     }
 
+    /**
+     * Process pre-recommendation data.
+     *
+     * @param string $shop_id
+     * @return array
+     */
+    public function processPreRecommendationData(string $shop_id): array
+    {
+    }
 }

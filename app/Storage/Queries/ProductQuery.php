@@ -87,6 +87,17 @@ class ProductQuery implements IProductQuery
     }
 
     /**
+     * Get list of optional products for recommendation.
+     *
+     * @param string $product_id
+     * @return array
+     */
+    public function getDefaultProducts(string $product_id): array
+    {
+        return $this->getProductRecommendationIds($product_id, 'manual_ids');
+    }
+
+    /**
      * Validate product IDs exist in the shop.
      *
      * @param string $shop_id
@@ -293,18 +304,67 @@ class ProductQuery implements IProductQuery
      */
     public function getHandleAndGidByIds(array $product_ids): array
     {
-        $products = ProductCollection::query()
+        return ProductCollection::query()
             ->whereIn('id', $product_ids)
-            ->get();
+            ->get()
+            ->map(function ($product) {
+                return [
+                    'handle' => $product->handle,
+                    'id' => $product->gid
+                ];
+            })
+            ->toArray();
+    }
 
-        $result = [];
-        foreach ($products as $product) {
-            $result[] = [
-                'handle' => $product->handle,
-                'gid' => $product->gid
-            ];
-        }
+    /**
+     * Get existing products by GIDs and shop ID.
+     *
+     * @param string $shop_id
+     * @param array $products_gid
+     * @return array
+     */
+    public function getExistingProductsGid(string $shop_id, array $products_gid): array
+    {
+        return ProductCollection::query()
+            ->where('shop_id', $shop_id)
+            ->whereIn('gid', $products_gid)
+            ->get()
+            ->pluck('gid')
+            ->toArray();
+    }
 
-        return $result;
+    /**
+     * Get product ID and GID by shop ID.
+     *
+     * @param string $shop_id
+     * @return array
+     */
+    public function getIdAndGidByShopId(string $shop_id): array
+    {
+        return ProductCollection::query()
+            ->where('shop_id', $shop_id)
+            ->get()
+            ->map(function ($product) {
+                return [
+                    'id' => $product->id,
+                    'gid' => $product->gid
+                ];
+            })
+            ->toArray();
+    }
+
+    /**
+     * Get map of product ID with key GID by shop ID.
+     *
+     * @param string $shop_id
+     * @return array
+     */
+    public function getMapIdWithKeyGidByShopId(string $shop_id): array
+    {
+        return ProductCollection::query()
+            ->where('shop_id', $shop_id)
+            ->get()
+            ->pluck('id', 'gid')
+            ->toArray();
     }
 }

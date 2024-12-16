@@ -3,9 +3,8 @@
 namespace App\Collections\Schema;
 
 use App\Collections\MongoCollection;
-use App\Objects\Enums\RecommendationState;
 
-class ShopSettingSchema extends MongoCollection
+class ShopRecommendationSchema extends MongoCollection
 {
     /**
      * Indicates if the model should be timestamped.
@@ -20,11 +19,9 @@ class ShopSettingSchema extends MongoCollection
      * @var string[]
      */
     protected $fillable = [
-        'layout',
-        'background_color',
-        'text_color',
-        'number_of_items',
-        'auto_recommendation',
+        'last_recommendation_task_id',
+        'refresh_count',
+        'expires_at',
     ];
 
     /**
@@ -33,8 +30,8 @@ class ShopSettingSchema extends MongoCollection
      * @var string[]
      */
     protected $casts = [
-        'number_of_items' => 'int',
-        'auto_recommendation' => RecommendationState::class,
+        'expires_at' => 'datetime',
+        'refresh_count' => 'integer',
     ];
 
     /**
@@ -43,20 +40,16 @@ class ShopSettingSchema extends MongoCollection
      * @var int[]
      */
     protected $attributes = [
-        'number_of_items' => 4,
-        'background_color' => '',
-        'text_color' => '',
-        'layout' => '',
-        'auto_recommendation' => RecommendationState::INACTIVE,
+        'refresh_count' => 5,
     ];
 
     /**
-     * Get number of items.
+     * Get the number of times the recommendation can be refreshed
      *
      * @return int
      */
-    public function getNumberOfItems(): int
+    public function getRefreshCount(): int
     {
-        return $this->getAttribute('number_of_items');
+        return $this->getAttribute('refresh_count');
     }
 }

@@ -18,7 +18,7 @@ class AddToCartEventRequest
     {
         $request->validate([
             'number_of_items' => 'sometimes|nullable|integer',
-            'product_id' => 'required|string',
+            'product_id' => ['required', 'regex:/^\d+$/'],
             'data' => 'sometimes|nullable',
         ]);
 

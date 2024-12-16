@@ -17,7 +17,7 @@ class ClickEventRequest
     public function handle(Request $request, Closure $next): mixed
     {
         $request->validate([
-            'product_id' => 'required|string',
+            'product_id' => ['required', 'regex:/^\d+$/'],
             'data' => 'sometimes|nullable',
         ]);
 

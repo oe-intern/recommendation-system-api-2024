@@ -7,6 +7,8 @@ use App\Collections\ShopCollection;
 use App\Contracts\Commands\IProductCommand;
 use App\Contracts\Queries\IProductQuery;
 use App\Objects\Enums\RecommendationType;
+use Illuminate\Support\Facades\DB;
+use MongoDB\BSON\ObjectId;
 
 class ProductCommand implements IProductCommand
 {
@@ -82,6 +84,63 @@ class ProductCommand implements IProductCommand
     }
 
     /**
+     * Update a list products of a shop with data from Shopify.
+     *
+     * @param array $product_data
+     * @return bool
+     */
+    public function updateManyByGid(array $product_data): bool
+    {
+        return ProductCollection::query()->upsert($product_data, ['gid'], ['status', 'type', 'handle']);
+    }
+
+    /**
+     * Update list recommendation for products.
+     *
+     * @param array $recommendation_data
+     * @return bool
+     */
+    public function updateManyRecommendation(array $recommendation_data): bool
+    {
+        return $this->updateRecommendation($recommendation_data, 'recommendation_ids');
+    }
+
+    /**
+     * Update list recommendation for products.
+     *
+     * @param array $recommendation_data
+     * @return bool
+     */
+    public function updateManyDefaultRecommendation(array $recommendation_data): bool
+    {
+        return $this->updateRecommendation($recommendation_data, 'default_recommendation_ids');
+    }
+
+    /**
+     * Update product recommendation with attribute.
+     *
+     * @param array $recommendation_data
+     * @param string $attribute
+     * @return bool
+     */
+    private function updateRecommendation(array $recommendation_data, string $attribute): bool
+    {
+        $collection = DB::connection('mongodb')->getCollection('products');
+        $operations = [];
+        foreach ($recommendation_data as $product_id => $recommendation_ids) {
+            $operations[] = [
+                'updateOne' => [
+                    ['_id' => new ObjectId($product_id)],
+                    ['$set' => [$attribute => $recommendation_ids]],
+                ],
+            ];
+        }
+
+        $result = $collection->bulkWrite($operations);
+        return $result->getModifiedCount() > 0;
+    }
+
+    /**
      * Customize the recommendation products for each product.
      *
      * @param ProductCollection $product
@@ -127,8 +186,10 @@ class ProductCommand implements IProductCommand
         $product = $this->product_query->getById($product_id);
 
         $product?->update([
-            'referenced_ids' => array_unique(array_merge($product->getAttributeValue('referenced_ids'),
-                [$reference_product_id])),
+            'referenced_ids' => array_unique(array_merge(
+                $product->getAttributeValue('referenced_ids'),
+                [$reference_product_id])
+            ),
         ]);
     }
 

@@ -5,11 +5,9 @@ namespace App\Actions;
 use App\Contracts\Commands\User as UserCommand;
 use App\Contracts\Queries\User as UserQuery;
 use App\Objects\Values\AccessToken;
-use App\Objects\Values\NullAccessToken;
 use App\Objects\Values\UserDomain;
 use App\Objects\Values\UserId;
 use Shopify\Auth\Session;
-use App\Jobs\ProcessShopInstalledData;
 
 class InstallShop
 {
@@ -24,12 +22,18 @@ class InstallShop
     protected UserCommand $user_command;
 
     /**
+     * @var ShopInstalledData
+     */
+    protected ShopInstalledData $shop_installed_data;
+
+    /**
      * InstallShop constructor.
      */
-    public function __construct(UserQuery $user_query, UserCommand $user_command)
+    public function __construct(UserQuery $user_query, UserCommand $user_command, ShopInstalledData $shop_installed_data)
     {
         $this->user_query = $user_query;
         $this->user_command = $user_command;
+        $this->shop_installed_data = $shop_installed_data;
     }
 
     /**
@@ -45,14 +49,14 @@ class InstallShop
         if ($user === null) {
             $this->user_command->make($domain, AccessToken::fromNative($session->getAccessToken()));
             $user = $this->user_query->getByDomain($domain);
-            ProcessShopInstalledData::dispatch($domain->toNative());
+            call_user_func($this->shop_installed_data, $domain->toNative(), false);
         }
 
         if ($user->trashed()) {
             $user->restore();
             $this->user_command->setAccessToken($user->getId(), AccessToken::fromNative($session->getAccessToken()));
+            call_user_func($this->shop_installed_data, $domain->toNative(), true);
         }
-
 
         return $user->getId();
     }

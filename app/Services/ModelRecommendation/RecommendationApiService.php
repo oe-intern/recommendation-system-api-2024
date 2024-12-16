@@ -5,6 +5,7 @@ namespace App\Services\ModelRecommendation;
 use App\Contracts\ModelRecommendation\IRecommendationApi;
 use Exception;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class RecommendationApiService implements IRecommendationApi
 {
@@ -12,53 +13,46 @@ class RecommendationApiService implements IRecommendationApi
 
     public function __construct()
     {
-        $this->base_url = config('services.recommendation_api.base_url');
+        $this->base_url = config('services.recommendation_url');
     }
 
     /**
      * Call the external recommend endpoint.
      *
-     * @param int $total_order
-     * @param array $type_scores
-     * @param array $product_scores
-     * @param array $products
+     * @param array $data
      * @return array
      *
      * @throws Exception
      */
-    public function recommend(int $total_order, array $type_scores, array $product_scores, array $products): array
+    public function recommend(array $data): array
     {
-        $response = Http::post("{$this->base_url}/recommend", [
-            'total' => $total_order,
-            'type_scores' => $type_scores,
-            'product_scores' => $product_scores,
-            'products' => $products,
-        ]);
+        try {
+            $response = Http::post("$this->base_url/recommend", $data);
 
-        // handle ...
+            return $response->json();
+        } catch (Exception $e) {
+            throw new Exception('Failed to call the external recommend endpoint.');
+        }
 
     }
 
     /**
      * Call the external pre-recommend endpoint.
      *
-     * @param int $total_order
-     * @param array $type_scores
-     * @param array $product_scores
-     * @param array $products
+     * @param array $data
      * @return array
      *
      * @throws Exception
      */
-    public function preRecommend(int $total_order, array $type_scores, array $product_scores, array $products): array
+    public function preRecommend(array $data): array
     {
-        $response = Http::post("{$this->base_url}/prerecommend", [
-            'total' => $total_order,
-            'type_scores' => $type_scores,
-            'product_scores' => $product_scores,
-            'products' => $products,
-        ]);
+        try {
+            $response = Http::post("$this->base_url/prerecommend", $data);
 
-        // handle ...
+            return $response->json();
+        } catch (Exception $e) {
+            Log::log('error', 'Failed to call the external pre-recommend endpoint.', ['exception' => $e]);
+            throw new Exception('Failed to call the external pre-recommend endpoint.');
+        }
     }
 }
