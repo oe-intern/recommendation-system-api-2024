@@ -3,6 +3,7 @@
 namespace App\Collections\Schema;
 
 use App\Collections\MongoCollection;
+use App\Objects\Enums\RecommendationState;
 
 class ShopSettingSchema extends MongoCollection
 {
@@ -23,6 +24,7 @@ class ShopSettingSchema extends MongoCollection
         'background_color',
         'text_color',
         'number_of_items',
+        'auto_recommendation',
     ];
 
     /**
@@ -32,6 +34,7 @@ class ShopSettingSchema extends MongoCollection
      */
     protected $casts = [
         'number_of_items' => 'int',
+        'auto_recommendation' => RecommendationState::class,
     ];
 
     /**
@@ -44,6 +47,7 @@ class ShopSettingSchema extends MongoCollection
         'background_color' => '',
         'text_color' => '',
         'layout' => '',
+        'auto_recommendation' => RecommendationState::INACTIVE,
     ];
 
     /**
