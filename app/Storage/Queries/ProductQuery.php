@@ -310,7 +310,7 @@ class ProductQuery implements IProductQuery
             ->map(function ($product) {
                 return [
                     'handle' => $product->handle,
-                    'gid' => $product->gid
+                    'id' => $product->gid
                 ];
             })
             ->toArray();
