@@ -14,14 +14,11 @@ use App\Jobs\PreProcessShopInstalledData;
 use App\Jobs\ProcessShopInstalledData;
 use App\Objects\Transform\ProductTransform;
 use Exception;
+use App\DTO\Payload\ShopProductRecommendationRequestDTO;
+use Illuminate\Support\Facades\Log;
 
 class ShopInstalledData
 {
-    /**
-     * @var int
-     */
-    private int $MAX_RECOMMENDATION_PRODUCTS = 6;
-
     /**
      * @var IProductQueryShopify
      */
@@ -63,6 +60,11 @@ class ShopInstalledData
     protected ProductTransform $product_transform;
 
     /**
+     * @var int
+     */
+    private int $MAX_RECOMMENDATION_PRODUCTS = 6;
+
+    /**
      * InstallShop constructor.
      */
     public function __construct(
@@ -97,19 +99,30 @@ class ShopInstalledData
     public function __invoke(string $domain, bool $is_trashed): void
     {
         $products_data = $this->product_query_shopify->fetchAll();
-        $products_process_data = $this->product_transform->shopifyDataListToModelApiListData($products_data);
 
         PreProcessShopInstalledData::dispatchSync($domain, $is_trashed, $products_data);
 
-        $orders_process_data = $this->recommendation_process->processOrderData($domain);
-        $data_request = $this->getData($products_process_data, $orders_process_data);
-        $shop = $this->shop_query->getByDomain($domain);
-        $map_gid_id = $this->product_query->getMapIdWithKeyGidByShopId($shop->getId());
+        $data_request = $this->getRequestData($domain);
+        $map_gid_id = $this->getMapIdWithKeyGid($domain);
 
-        $recommendation_data = $this->recommendation_api_service->preRecommend($data_request);
-        $this->product_recommendation_service->updateManyDefaultRecommendation($recommendation_data, $map_gid_id);
+        $this->updateDefaultRecommendation($data_request, $map_gid_id);
 
+        Log::info('Process shop installed data.');
         ProcessShopInstalledData::dispatch($map_gid_id, $products_data, $data_request);
+    }
+
+    /**
+     * Get request data for recommendation api
+     *
+     * @param string $domain
+     * @return ShopProductRecommendationRequestDTO
+     */
+    private function getRequestData(string $domain): ShopProductRecommendationRequestDTO
+    {
+        $products_data = $this->product_query_shopify->fetchAll();
+        $orders_process_data = $this->recommendation_process->processOrderData($domain);
+
+        return $this->mergeData($products_data, $orders_process_data);
     }
 
     /**
@@ -117,13 +130,48 @@ class ShopInstalledData
      *
      * @param array $products_data
      * @param array $orders_process_data
+     * @return ShopProductRecommendationRequestDTO
+     */
+    private function mergeData(array $products_data, array $orders_process_data): ShopProductRecommendationRequestDTO
+    {
+        $total = data_get($orders_process_data, 'total');
+        $type_scores = data_get($orders_process_data, 'type_scores');
+        $product_scores = data_get($orders_process_data, 'product_scores');
+
+        return new ShopProductRecommendationRequestDTO(
+            $this->MAX_RECOMMENDATION_PRODUCTS,
+            $products_data,
+            $type_scores,
+            $total,
+            $product_scores,
+        );
+    }
+
+    /**
+     * Get map id with key gid
+     *
+     * @param string $domain
      * @return array
      */
-    private function getData(array $products_data, array $orders_process_data): array
+    private function getMapIdWithKeyGid(string $domain): array
     {
-        return array_merge([
-                'products' => $products_data,
-                'number_of_items' => $this->MAX_RECOMMENDATION_PRODUCTS
-            ], $orders_process_data);
+        $shop = $this->shop_query->getByDomain($domain);
+        return $this->product_query->getMapIdWithKeyGidByShopId($shop->getId());
+    }
+
+    /**
+     * Update default recommendation
+     *
+     * @param ShopProductRecommendationRequestDTO $data_request
+     * @param array $map_gid_id
+     * @return void
+     * @throws Exception
+     */
+    private function updateDefaultRecommendation(
+        ShopProductRecommendationRequestDTO $data_request,
+        array $map_gid_id,
+    ): void {
+        $recommendation_data = $this->recommendation_api_service->preRecommend($data_request);
+        $this->product_recommendation_service->updateManyDefaultRecommendation($recommendation_data, $map_gid_id);
     }
 }
