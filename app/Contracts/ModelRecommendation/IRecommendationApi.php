@@ -2,6 +2,10 @@
 
 namespace App\Contracts\ModelRecommendation;
 
+use App\DTO\Payload\ProductRecommendationRequestDTO;
+use App\DTO\Payload\ShopProductRecommendationRequestDTO;
+use App\DTO\Service\GetJobRecommendationResponse;
+use App\DTO\Service\JobRecommendationResponse;
 use Exception;
 
 interface IRecommendationApi
@@ -9,40 +13,50 @@ interface IRecommendationApi
     /**
      * Call the external recommend endpoint.
      *
-     * @param array $data
-     * @return array
+     * @param ShopProductRecommendationRequestDTO $data
+     * @return JobRecommendationResponse
      *
      * @throws Exception
      */
-    public function recommend(array $data): array;
+    public function recommend(ShopProductRecommendationRequestDTO $data): JobRecommendationResponse;
 
     /**
      * Call the external pre-recommend endpoint.
      *
-     * @param array $data
+     * @param ShopProductRecommendationRequestDTO $data
      * @return array
      *
      * @throws Exception
      */
-    public function preRecommend(array $data): array;
+    public function preRecommend(ShopProductRecommendationRequestDTO $data): array;
 
     /**
      * Call the external recommend for 1 product endpoint.
      *
-     * @param array $data
+     * @param ProductRecommendationRequestDTO $data
      * @return array
      *
      * @throws Exception
      */
-    public function recommendProduct(array $data): array;
+    public function recommendProduct(ProductRecommendationRequestDTO $data): array;
 
     /**
      * Call the external recommend for check state of task recommendation endpoint.
      *
-     * @param array $data
+     * @param string $job_id
+     * @return GetJobRecommendationResponse
+     *
+     * @throws Exception
+     */
+    public function getJobRecommendation(string $job_id): GetJobRecommendationResponse;
+
+    /**
+     * Call the external recommend for check state of task recommendation endpoint.
+     *
+     * @param string $url
      * @return array
      *
      * @throws Exception
      */
-    public function checkStateTaskRecommendation(array $data): array;
+    public function getJobRecommendationResult(string $url): array;
 }
