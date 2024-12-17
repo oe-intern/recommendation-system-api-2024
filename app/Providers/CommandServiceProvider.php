@@ -10,6 +10,8 @@ use App\Contracts\Commands\IProductCommand;
 use App\Storage\Commands\ProductCommand;
 use App\Storage\Commands\EventCommand;
 use App\Contracts\Commands\IEventCommand;
+use App\Contracts\Commands\IJobRecommendationCommand;
+use App\Storage\Commands\JobRecommendationCommand;
 use Illuminate\Support\ServiceProvider;
 
 class CommandServiceProvider extends ServiceProvider
@@ -37,6 +39,11 @@ class CommandServiceProvider extends ServiceProvider
         $this->app->bind(
             IEventCommand::class,
             EventCommand::class
+        );
+
+        $this->app->bind(
+            IJobRecommendationCommand::class,
+            JobRecommendationCommand::class
         );
     }
 
