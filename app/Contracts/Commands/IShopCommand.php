@@ -22,4 +22,14 @@ interface IShopCommand
      * @return array
      */
     public function setShopSettings(ShopCollection $shop, array $settings): array;
+
+    /**
+     * Update the last job recommendation by shop id.
+     *
+     * @param string $shop_id
+     * @param string $job_recommendation_id
+     *
+     * @return bool
+     */
+    public function updateLastJobRecommendation(string $shop_id, string $job_recommendation_id): bool;
 }
