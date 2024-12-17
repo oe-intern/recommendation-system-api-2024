@@ -42,5 +42,7 @@ return [
      |--------------------------------------------------------------------------
      */
     'recommendation_url' => env('SERVICE_RECOMMENDATION_URL', 'http://localhost:5001'),
+    'recommendation_max_retries' => env('SERVICE_RECOMMENDATION_MAX_RETRIES', 3),
+    'recommendation_timeout' => env('SERVICE_RECOMMENDATION_TIMEOUT', 20),
 
 ];
