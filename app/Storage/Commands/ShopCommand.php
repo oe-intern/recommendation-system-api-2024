@@ -6,7 +6,6 @@ use App\Collections\Schema\ShopSettingSchema;
 use App\Collections\ShopCollection;
 use App\Contracts\Commands\IShopCommand;
 use App\Contracts\Queries\IShopQuery;
-use App\Objects\Enums\RecommendationState;
 
 class ShopCommand implements IShopCommand
 {
@@ -47,22 +46,6 @@ class ShopCommand implements IShopCommand
     }
 
     /**
-     * Set the recommendation state for a shop.
-     *
-     * @param string $shop_id
-     * @param RecommendationState $state
-     * @return void
-     */
-    public function setRecommendationState(string $shop_id, RecommendationState $state): void
-    {
-        ShopCollection::query()
-            ->where('id', $shop_id)
-            ->update([
-                'recommendation_state' => $state->value,
-            ]);
-    }
-
-    /**
      * Create a shop.
      *
      * @param string $shop_domain
@@ -77,5 +60,22 @@ class ShopCommand implements IShopCommand
             ]);
         $shop->settings()->create($setting->toArray());
         return $shop;
+    }
+
+    /**
+     * Update the last job recommendation by shop id.
+     *
+     * @param string $shop_id
+     * @param string $job_recommendation_id
+     *
+     * @return bool
+     */
+    public function updateLastJobRecommendation(string $shop_id, string $job_recommendation_id): bool
+    {
+        return ShopCollection::query()
+            ->where('id', $shop_id)
+            ->update([
+                'last_job_recommendation_id' => $job_recommendation_id,
+            ]);
     }
 }
