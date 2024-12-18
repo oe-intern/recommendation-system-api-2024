@@ -30,9 +30,9 @@ class GetJobRecommendationResponse
     /**
      * Error message.
      *
-     * @var string
+     * @var mixed
      */
-    public string $error_message;
+    public mixed $error_message;
 
     /**
      * JobRecommendationResponseDTO constructor.
@@ -40,9 +40,9 @@ class GetJobRecommendationResponse
      * @param string $job_id
      * @param string $status
      * @param string|null $result_url
-     * @param string|null $error_message
+     * @param mixed $error_message
      */
-    public function __construct(string $job_id, string $status, ?string $result_url, ?string $error_message)
+    public function __construct(string $job_id, string $status, ?string $result_url, mixed $error_message)
     {
         $this->job_id = $job_id;
         $this->status = JobRecommendationStatus::from($status);
