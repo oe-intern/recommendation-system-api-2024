@@ -41,8 +41,11 @@ return [
      | Recommendation model API
      |--------------------------------------------------------------------------
      */
-    'recommendation_url' => env('SERVICE_RECOMMENDATION_URL', 'http://localhost:5001'),
-    'recommendation_max_retries' => env('SERVICE_RECOMMENDATION_MAX_RETRIES', 3),
-    'recommendation_timeout' => env('SERVICE_RECOMMENDATION_TIMEOUT', 20),
-
+    'recommendation' => [
+        'url' => env('SERVICE_RECOMMENDATION_URL', 'http://localhost:5001'),
+        'max_retries' => env('SERVICE_RECOMMENDATION_MAX_RETRIES', 3),
+        'timeout' => env('SERVICE_RECOMMENDATION_TIMEOUT', 20),
+        'refresh_interval_days' => env('SERVICE_RECOMMENDATION_REFRESH_INTERVAL_DAYS', 30),
+        'refresh_limit' => env('SERVICE_RECOMMENDATION_REFRESH_LIMIT', 5),
+    ],
 ];
