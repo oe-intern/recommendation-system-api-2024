@@ -95,6 +95,22 @@ class ProductCommand implements IProductCommand
     }
 
     /**
+     * Update recommendation for a product.
+     *
+     * @param string $product_id
+     * @param array $recommendations
+     * @return bool
+     */
+    public function updateProductRecommendation(string $product_id, array $recommendations): bool
+    {
+        return ProductCollection::query()
+            ->where('_id', $product_id)
+            ->update([
+                'recommendation_ids' => $recommendations,
+            ]);
+    }
+
+    /**
      * Update list recommendation for products.
      *
      * @param array $recommendation_data

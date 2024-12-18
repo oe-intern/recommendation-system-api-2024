@@ -98,6 +98,17 @@ class ProductQuery implements IProductQuery
     }
 
     /**
+     * Get list of optional products for recommendation.
+     *
+     * @param string $product_id
+     * @return array
+     */
+    public function getAutoRecommendationProducts(string $product_id): array
+    {
+        return $this->getProductRecommendationIds($product_id, 'recommendation_ids');
+    }
+
+    /**
      * Validate product IDs exist in the shop.
      *
      * @param string $shop_id
@@ -246,6 +257,21 @@ class ProductQuery implements IProductQuery
             ->whereIn('id', $product_ids)
             ->get()
             ->pluck('gid')
+            ->toArray();
+    }
+
+    /**
+     * Get list of product ID by GIDs.
+     *
+     * @param array $product_gids
+     * @return array
+     */
+    public function getIdsByGids(array $product_gids): array
+    {
+        return ProductCollection::query()
+            ->whereIn('gid', $product_gids)
+            ->get()
+            ->pluck('id')
             ->toArray();
     }
 
