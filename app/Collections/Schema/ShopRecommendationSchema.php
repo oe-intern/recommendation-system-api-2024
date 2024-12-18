@@ -22,6 +22,8 @@ class ShopRecommendationSchema extends MongoCollection
         'last_job_recommendation_id',
         'refresh_count',
         'expires_at',
+        'email',
+        'email_notification',
     ];
 
     /**
@@ -32,6 +34,7 @@ class ShopRecommendationSchema extends MongoCollection
     protected $casts = [
         'expires_at' => 'datetime',
         'refresh_count' => 'integer',
+        'email_notification' => 'boolean',
     ];
 
     /**
@@ -41,6 +44,7 @@ class ShopRecommendationSchema extends MongoCollection
      */
     protected $attributes = [
         'refresh_count' => 5,
+        'email_notification' => true,
     ];
 
     /**

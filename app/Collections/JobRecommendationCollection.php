@@ -35,7 +35,6 @@ class JobRecommendationCollection extends MongoCollection
      */
     protected $casts = [
         'status' => JobRecommendationStatus::class,
-        'result' => 'array',
         'retry_count' => 'int',
     ];
 
