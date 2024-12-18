@@ -94,18 +94,12 @@ class ProductRecommendationService implements IProductRecommendation
      */
     private function getAutoRecommendation(string $shop_id, string $product_id): array
     {
-        $fake_ids = [
-            "675680cbce1b798d840b3ce1",
-            "675680cbce1b798d840b3ce2",
-            "675680cbce1b798d840b3ce3",
-            "675680cbce1b798d840b3ce4",
-            "675680cbce1b798d840b3ce5",
-            "675680cbce1b798d840b3ce6"
-        ];
-        $active_products = $this->product_query->getActiveProducts($fake_ids);
+        $list_product_ids = $this->product_query->getAutoRecommendationProducts($product_id);
+
+        $active_products = $this->product_query->getActiveProducts($list_product_ids);
         $number_of_items = $this->shop_query->getById($shop_id)->settings()->get()->getNumberOfItems();
 
-        return collect($active_products)->random(min(count($active_products), $number_of_items))->toArray();
+        return array_slice($active_products, 0, $number_of_items);
     }
 
     /**
@@ -360,7 +354,12 @@ class ProductRecommendationService implements IProductRecommendation
     {
         $result = [];
         foreach ($product_data as $gid => $id) {
-            $recommendations_gis = $recommendation_data[$this->formatShopifyId($gid)];
+            $formatted_gid = $this->formatShopifyId($gid);
+            if (!isset($recommendation_data[$formatted_gid])) {
+                continue;
+            }
+
+            $recommendations_gis = $recommendation_data[$formatted_gid];
             $recommendations = array_map(fn($item) => $product_data[Utils::getIdFromGid($item)], $recommendations_gis);
 
             $result[$id] = $recommendations;
