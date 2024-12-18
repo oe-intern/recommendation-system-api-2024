@@ -95,6 +95,14 @@ interface IProductQuery
      */
     public function getDefaultProducts(string $product_id): array;
 
+    /**
+     * Get list of optional products for recommendation.
+     *
+     * @param string $product_id
+     * @return array
+     */
+    public function getAutoRecommendationProducts(string $product_id): array;
+
 	/**
 	 * Validate product IDs exist in the shop.
 	 *
@@ -135,6 +143,14 @@ interface IProductQuery
      * @return array
      */
     public function getListGidByIds(array $product_ids): array;
+
+    /**
+     * Get list of product ID by GIDs.
+     *
+     * @param array $product_gids
+     * @return array
+     */
+    public function getIdsByGids(array $product_gids): array;
 
     /**
      * Get product GID by ID.
