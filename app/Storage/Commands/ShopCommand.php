@@ -6,7 +6,9 @@ use App\Collections\Schema\ShopSettingSchema;
 use App\Collections\ShopCollection;
 use App\Contracts\Commands\IShopCommand;
 use App\Contracts\Queries\IShopQuery;
+use App\Collections\Schema\ShopRecommendationSchema;
 use App\Objects\Enums\RecommendationState;
+use App\Lib\Utils;
 
 class ShopCommand implements IShopCommand
 {
@@ -47,22 +49,6 @@ class ShopCommand implements IShopCommand
     }
 
     /**
-     * Set the recommendation state for a shop.
-     *
-     * @param string $shop_id
-     * @param RecommendationState $state
-     * @return void
-     */
-    public function setRecommendationState(string $shop_id, RecommendationState $state): void
-    {
-        ShopCollection::query()
-            ->where('id', $shop_id)
-            ->update([
-                'recommendation_state' => $state->value,
-            ]);
-    }
-
-    /**
      * Create a shop.
      *
      * @param string $shop_domain
@@ -71,11 +57,51 @@ class ShopCommand implements IShopCommand
     public function create(string $shop_domain): ShopCollection
     {
         $setting = new ShopSettingSchema();
+        $shop_recommendation = new ShopRecommendationSchema(
+            [
+                'expires_at' => Utils::refreshDay(),
+                'refresh_count' => config('services.recommendation.refresh_count') + 1,
+            ],
+        );
+
         $shop = ShopCollection::query()
             ->create([
                 'domain' => $shop_domain,
             ]);
         $shop->settings()->create($setting->toArray());
+        $shop->shopRecommendation()->create($shop_recommendation->toArray());
         return $shop;
+    }
+
+    /**
+     * Update the last job recommendation by shop id.
+     *
+     * @param string $shop_id
+     * @param string $job_recommendation_id
+     *
+     * @return bool
+     */
+    public function updateLastJobRecommendation(string $shop_id, string $job_recommendation_id): bool
+    {
+        $shop = $this->shop_query->getById($shop_id);
+        $shop?->shopRecommendation()->update([
+            'last_job_recommendation_id' => $job_recommendation_id,
+        ]);
+    }
+
+    /**
+     * Set the recommendation state for a shop.
+     *
+     * @param string $shop_id
+     * @param RecommendationState $state
+     * @return bool
+     */
+    public function setRecommendationState(string $shop_id, RecommendationState $state): bool
+    {
+        $shop = $this->shop_query->getById($shop_id);
+
+        $shop?->settings()->update([
+            'auto_recommendation' => $state,
+        ]);
     }
 }

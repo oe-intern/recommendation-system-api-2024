@@ -149,4 +149,15 @@ final class Utils
     {
         return Carbon::today()->format('Y-m-d');
     }
+
+    /**
+     * The last date time refresh recommendation.
+     *
+     * @return Carbon
+     */
+    public static function refreshDay(): Carbon
+    {
+        $refresh_interval_days = config('services.recommendation.refresh_interval_days');
+        return Carbon::today()->subDays($refresh_interval_days);
+    }
 }

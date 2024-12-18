@@ -45,6 +45,15 @@ interface IProductCommand
     public function updateManyByGid(array $product_data): bool;
 
     /**
+     * Update recommendation for a product.
+     *
+     * @param string $product_id
+     * @param array $recommendations
+     * @return bool
+     */
+    public function updateProductRecommendation(string $product_id, array $recommendations): bool;
+
+    /**
      * Update list recommendation for products.
      *
      * @param array $recommendation_data

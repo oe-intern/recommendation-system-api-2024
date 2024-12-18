@@ -10,6 +10,8 @@ use App\Storage\Queries\ProductQuery;
 use App\Contracts\Queries\IProductQuery;
 use App\Contracts\Queries\IEventQuery;
 use App\Storage\Queries\EventQuery;
+use App\Contracts\Queries\IJobRecommendationQuery;
+use App\Storage\Queries\JobRecommendationQuery;
 use Illuminate\Support\ServiceProvider;
 
 class QueryServiceProvider extends ServiceProvider
@@ -37,6 +39,11 @@ class QueryServiceProvider extends ServiceProvider
         $this->app->bind(
             IEventQuery::class,
             EventQuery::class
+        );
+
+        $this->app->bind(
+            IJobRecommendationQuery::class,
+            JobRecommendationQuery::class
         );
     }
 

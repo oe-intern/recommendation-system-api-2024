@@ -2,20 +2,20 @@
 
 use App\Http\Controllers\ProductEventController;
 use App\Http\Controllers\RecommendationController;
+use App\Http\Controllers\ShopSettingController;
+use App\Http\Controllers\ProductRecommendationController;
 use Illuminate\Support\Facades\Route;
 
 Route::group(['middleware' => ['access_control_headers', 'shopify.auth', 'verify.token']], function () {
     Route::prefix('products')->group(function () {
         Route::get('/{product_id}/recommendation-type',
-            [RecommendationController::class, 'getRecommendationTypes']);
-        Route::put('/recommendation/active', [RecommendationController::class, 'activateRecommendation'])
-            ->middleware('validate.product.recommendation_active.request');
-        Route::put('/{product_id}/recommendation-type', [RecommendationController::class, 'setRecommendationType'])
+            [ProductRecommendationController::class, 'getRecommendationTypes']);
+        Route::put('/{product_id}/recommendation-type', [ProductRecommendationController::class, 'setRecommendationType'])
             ->middleware('validate.product.recommendation_type.request');
         Route::get('/{product_id}/manual-recommendation',
-            [RecommendationController::class, 'getManualRecommendation']);
+            [ProductRecommendationController::class, 'getManualRecommendation']);
         Route::put('/{product_id}/manual-recommendation', [
-            RecommendationController::class,
+            ProductRecommendationController::class,
             'setManualRecommendation'
         ])->middleware('validate.product.recommendation.request');
     });
@@ -29,9 +29,19 @@ Route::group(['middleware' => ['access_control_headers', 'shopify.auth', 'verify
     });
     Route::prefix('shop')->group(function () {
         Route::prefix('settings')->group(function () {
-            Route::get('', [RecommendationController::class, 'getShopSetting']);
-            Route::put('', [RecommendationController::class, 'setShopSetting'])
+            Route::get('', [ShopSettingController::class, 'getShopSetting']);
+            Route::put('', [ShopSettingController::class, 'setShopSetting'])
+                ->middleware('validate.shop.settings.request');
+            Route::put('/auto_recommendation', [ShopSettingController::class, 'activateRecommendation'])
                 ->middleware('validate.shop.auto_recommendation.request');
+        });
+        Route::prefix('recommendations')->group(function () {
+            Route::get('', [RecommendationController::class, 'getShopRecommendations']);
+            Route::put('', [RecommendationController::class, 'setShopRecommendations'])
+                ->middleware('validate.shop.notification_settings.request');
+            Route::get('/process', [RecommendationController::class, 'processRecommendation']);
+            Route::post('/refresh', [RecommendationController::class, 'refreshRecommendation']);
+            Route::post('/cancel', [RecommendationController::class, 'cancelRecommendation']);
         });
     });
 });
@@ -40,12 +50,12 @@ Route::group(['middleware' => ['access_control_headers', 'identify.shop.domain']
     Route::prefix("sdk")->group(function () {
         Route::prefix('/shop')->group(function () {
             Route::prefix('settings')->group(function () {
-                Route::get('', [RecommendationController::class, 'getShopSetting']);
+                Route::get('', [ShopSettingController::class, 'getShopSetting']);
             });
         });
         Route::prefix('/products')->group(function () {
             Route::get('/{product_id}/recommendations',
-                [RecommendationController::class, 'getRecommendation']);
+                [ProductRecommendationController::class, 'getRecommendation']);
         });
         Route::prefix('/events')->group(function () {
             Route::post('/click', [

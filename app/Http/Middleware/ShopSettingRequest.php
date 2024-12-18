@@ -5,7 +5,7 @@ namespace App\Http\Middleware;
 use Illuminate\Http\Request;
 use Closure;
 
-class SettingAutoRecommendationRequest
+class ShopSettingRequest
 {
     /**
      * Handle an incoming request.

@@ -19,9 +19,11 @@ class ShopRecommendationSchema extends MongoCollection
      * @var string[]
      */
     protected $fillable = [
-        'last_recommendation_task_id',
+        'last_job_recommendation_id',
         'refresh_count',
         'expires_at',
+        'email',
+        'email_notification',
     ];
 
     /**
@@ -32,6 +34,7 @@ class ShopRecommendationSchema extends MongoCollection
     protected $casts = [
         'expires_at' => 'datetime',
         'refresh_count' => 'integer',
+        'email_notification' => 'boolean',
     ];
 
     /**
@@ -41,6 +44,7 @@ class ShopRecommendationSchema extends MongoCollection
      */
     protected $attributes = [
         'refresh_count' => 5,
+        'email_notification' => true,
     ];
 
     /**
@@ -51,5 +55,15 @@ class ShopRecommendationSchema extends MongoCollection
     public function getRefreshCount(): int
     {
         return $this->getAttribute('refresh_count');
+    }
+
+    /**
+     * Get the last job recommendation ID
+     *
+     * @return string
+     */
+    public function getLastJobRecommendationId(): string
+    {
+        return $this->getAttribute('last_job_recommendation_id');
     }
 }
