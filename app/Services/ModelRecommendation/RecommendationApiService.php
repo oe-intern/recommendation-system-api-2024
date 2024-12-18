@@ -10,7 +10,6 @@ use App\DTO\Service\JobRecommendationResponse;
 use Exception;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
 
 class RecommendationApiService implements IRecommendationApi
 {
@@ -38,9 +37,9 @@ class RecommendationApiService implements IRecommendationApi
      */
     public function __construct()
     {
-        $this->base_url = config('services.recommendation_url');
-        $this->MAX_RETRIES = config('services.recommendation_max_retries');
-        $this->TIMEOUT = config('services.recommendation_timeout');
+        $this->base_url = config('services.recommendation.url');
+        $this->MAX_RETRIES = config('services.recommendation.max_retries');
+        $this->TIMEOUT = config('services.recommendation.timeout');
     }
 
     /**
@@ -52,8 +51,8 @@ class RecommendationApiService implements IRecommendationApi
      */
     public function recommend(ShopProductRecommendationRequestDTO $data): JobRecommendationResponse
     {
-        Log::info('Calling external recommend endpoint.');
         $response = $this->makePostRequest('recommendation', $data->toArray());
+
         return new JobRecommendationResponse($response['job_id'], $response['status']);
     }
 
@@ -72,7 +71,6 @@ class RecommendationApiService implements IRecommendationApi
             $response = $this->getHttpRequest()->post("$this->base_url/$endpoint", $data);
             return $this->handleResponse($response);
         } catch (Exception $e) {
-            Log::error("Exception while calling $endpoint", ['exception' => $e]);
             throw new Exception("Failed to call the $endpoint endpoint.");
         }
     }
@@ -98,7 +96,7 @@ class RecommendationApiService implements IRecommendationApi
      */
     public function recommendProduct(ProductRecommendationRequestDTO $data): array
     {
-        return $this->makePostRequest('recommendation-product', $data->toArray());
+        return $this->makePostRequest('product', $data->toArray());
     }
 
     /**
@@ -111,11 +109,12 @@ class RecommendationApiService implements IRecommendationApi
     public function getJobRecommendation(string $job_id): GetJobRecommendationResponse
     {
         $response = $this->makeGetRequest("job/$job_id");
+
         return new GetJobRecommendationResponse(
             $response['job_id'],
             $response['status'],
-            $response['result_url'],
-            $response['error_message'],
+            $response['result_url'] ?? '',
+            null
         );
     }
 
@@ -132,14 +131,11 @@ class RecommendationApiService implements IRecommendationApi
         try {
             $response = $this->getHttpRequest()->get($url);
             if ($response->getStatusCode() !== 200) {
-                Log::error("Failed to call the getJobRecommendationResult endpoint.",
-                    ['response' => $response]);
                 throw new Exception("Failed to call the getJobRecommendationResult endpoint.");
             }
 
             return $response->json();
         } catch (Exception $e) {
-            Log::error("Exception while calling getJobRecommendationResult", ['exception' => $e]);
             throw new Exception("Failed to call the getJobRecommendationResult endpoint.");
         }
     }
@@ -158,7 +154,6 @@ class RecommendationApiService implements IRecommendationApi
             $response = $this->getHttpRequest()->get("$this->base_url/$endpoint");
             return $this->handleResponse($response);
         } catch (Exception $e) {
-            Log::error("Exception while calling $endpoint", ['exception' => $e]);
             throw new Exception("Failed to call the $endpoint endpoint.");
         }
     }
@@ -183,15 +178,11 @@ class RecommendationApiService implements IRecommendationApi
     private function handleResponse($response): array
     {
         if ($response->getStatusCode() !== 200) {
-            Log::error("Failed to call the recommendation API.",
-                ['response' => $response]);
             throw new Exception("Failed to call the recommendation API.");
         }
 
         $responseData = $response->json();
         if (!isset($responseData['data'])) {
-            Log::error("Invalid response structure from getJobRecommendation",
-                ['response' => $responseData]);
             throw new Exception("Unexpected response structure from getJobRecommendation.");
         }
 
