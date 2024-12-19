@@ -19,7 +19,7 @@ class ActiveRecommendationRequest
     public function handle(Request $request, Closure $next): mixed
     {
         $request->validate([
-            'active' => [
+            'status' => [
                 'required',
                 'string',
                 new Enum(RecommendationState::class),
