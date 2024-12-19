@@ -4,7 +4,7 @@ namespace App\Services\Recommendation;
 
 use App\Collections\ProductCollection;
 use App\Contracts\Commands\IProductCommand;
-use App\Contracts\Commands\IShopCommand;
+use App\Contracts\Commands\IShopSettingCommand;
 use App\Contracts\Queries\IProductQuery;
 use App\Contracts\Queries\IShopQuery;
 use App\Contracts\Recommendation\IProductRecommendation;
@@ -37,9 +37,9 @@ class ProductRecommendationService implements IProductRecommendation
     protected IProductQueryShopify $product_service;
 
     /**
-     * @var IShopCommand
+     * @var IShopSettingCommand
      */
-    protected IShopCommand $shop_command;
+    protected IShopSettingCommand $shop_setting_command;
 
     /**
      * ProductRecommendationService constructor.
@@ -48,20 +48,20 @@ class ProductRecommendationService implements IProductRecommendation
      * @param IShopQuery $shop_query
      * @param IProductCommand $product_command
      * @param IProductQueryShopify $product_service
-     * @param IShopCommand $shop_command
+     * @param IShopSettingCommand $shop_setting_command
      */
     public function __construct(
         IProductQuery $product_query,
         IShopQuery $shop_query,
         IProductCommand $product_command,
         IProductQueryShopify $product_service,
-        IShopCommand $shop_command,
+        IShopSettingCommand $shop_setting_command,
     ) {
         $this->product_query = $product_query;
         $this->shop_query = $shop_query;
         $this->product_command = $product_command;
         $this->product_service = $product_service;
-        $this->shop_command = $shop_command;
+        $this->shop_setting_command = $shop_setting_command;
     }
 
     /**
@@ -190,7 +190,7 @@ class ProductRecommendationService implements IProductRecommendation
     public function setRecommendationType(
         string $shop_id,
         string $product_id,
-        string $recommendation_type
+        string $recommendation_type,
     ): ProductCollection {
         $this->product_query->validateProductId($shop_id, $product_id);
 
@@ -221,7 +221,7 @@ class ProductRecommendationService implements IProductRecommendation
 
         $product->setAttribute(
             'recommended_products',
-            $this->product_service->fetchByIds($this->product_query->getListGidByIds($recommended_products))
+            $this->product_service->fetchByIds($this->product_query->getListGidByIds($recommended_products)),
         );
 
         return $product->toArray();
@@ -249,10 +249,10 @@ class ProductRecommendationService implements IProductRecommendation
      */
     public function setShopSettings(
         string $shop_id,
-        array $settings
+        array $settings,
     ): array {
         $shop = $this->shop_query->getById($shop_id);
-        return $this->shop_command->setShopSettings($shop, $settings);
+        return $this->shop_setting_command->setShopSettings($shop, $settings);
     }
 
     /**
@@ -267,6 +267,9 @@ class ProductRecommendationService implements IProductRecommendation
         string $status,
     ): bool {
         $status = RecommendationState::from($status);
+        if ($status === $this->getShopRecommendationState($shop_id)) {
+            return true;
+        }
 
         match ($status) {
             RecommendationState::ACTIVE => $this->activate($shop_id),
@@ -284,7 +287,7 @@ class ProductRecommendationService implements IProductRecommendation
      */
     private function activate(string $shop_id): void
     {
-        $this->shop_command->setRecommendationState($shop_id, RecommendationState::ACTIVE);
+        $this->settingShop($shop_id, RecommendationState::ACTIVE);
         $this->product_command->activateRecommendation($shop_id);
     }
 
@@ -296,8 +299,32 @@ class ProductRecommendationService implements IProductRecommendation
      */
     private function deactivate(string $shop_id): void
     {
-        $this->shop_command->setRecommendationState($shop_id, RecommendationState::INACTIVE);
+        $this->settingShop($shop_id, RecommendationState::INACTIVE);
         $this->product_command->deactivateRecommendation($shop_id);
+    }
+
+    /**
+     * Set recommendation state for a shop.
+     *
+     * @param string $shop_id
+     * @param RecommendationState $status
+     * @return void
+     */
+    private function settingShop(string $shop_id, RecommendationState $status): void
+    {
+        $this->shop_setting_command->setRecommendationState($shop_id, $status);
+    }
+
+    /**
+     * Get shop recommendation state.
+     *
+     * @param string $shop_id
+     * @return RecommendationState
+     */
+    private function getShopRecommendationState(string $shop_id): RecommendationState
+    {
+        return $this->shop_query->getById($shop_id)
+            ->settings()->get()->getAutoRecommendation();
     }
 
     /**
@@ -310,7 +337,7 @@ class ProductRecommendationService implements IProductRecommendation
     public function updateManyDefaultRecommendation(array $recommendation_data, array $map_gid_id): bool
     {
         return $this->product_command->updateManyDefaultRecommendation(
-            $this->matchData($recommendation_data, $map_gid_id, 'default_recommendation_ids')
+            $this->matchData($recommendation_data, $map_gid_id, 'default_recommendation_ids'),
         );
     }
 
@@ -324,7 +351,7 @@ class ProductRecommendationService implements IProductRecommendation
     public function updateManyRecommendation(array $recommendation_data, array $map_gid_id): bool
     {
         return $this->product_command->updateManyRecommendation(
-            $this->matchData($recommendation_data, $map_gid_id, 'recommendation_ids')
+            $this->matchData($recommendation_data, $map_gid_id, 'recommendation_ids'),
         );
     }
 
