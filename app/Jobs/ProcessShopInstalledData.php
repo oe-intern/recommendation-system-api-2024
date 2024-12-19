@@ -4,7 +4,7 @@ namespace App\Jobs;
 
 use App\Contracts\Commands\IJobRecommendationCommand;
 use App\Collections\JobRecommendationCollection;
-use App\Contracts\Commands\IShopCommand;
+use App\Contracts\Commands\IShopRecommendationCommand;
 use App\Contracts\ModelRecommendation\IRecommendationApi;
 use App\Contracts\Recommendation\IProductRecommendation;
 use App\DTO\Payload\ShopProductRecommendationRequestDTO;
@@ -76,9 +76,9 @@ class ProcessShopInstalledData implements ShouldQueue
     private IJobRecommendationCommand $job_recommendation_command;
 
     /**
-     * @var IShopCommand
+     * @var IShopRecommendationCommand
      */
-    private IShopCommand $shop_command;
+    private IShopRecommendationCommand $shop_recommendation_command;
 
     /**
      * Create a new job instance.
@@ -102,20 +102,20 @@ class ProcessShopInstalledData implements ShouldQueue
      * @param IRecommendationApi $recommendation_api_service
      * @param IProductRecommendation $product_recommendation_service
      * @param IJobRecommendationCommand $job_recommendation_command
-     * @param IShopCommand $shop_command
+     * @param IShopRecommendationCommand $shop_recommendation_command
      * @return void
      */
     public function handle(
         IRecommendationApi $recommendation_api_service,
         IProductRecommendation $product_recommendation_service,
         IJobRecommendationCommand $job_recommendation_command,
-        IShopCommand $shop_command,
+        IShopRecommendationCommand $shop_recommendation_command,
     ): void {
         $this->initializeServices(
             $recommendation_api_service,
             $product_recommendation_service,
             $job_recommendation_command,
-            $shop_command,
+            $shop_recommendation_command,
         );
 
         $job = $this->createPendingJob();
@@ -141,19 +141,19 @@ class ProcessShopInstalledData implements ShouldQueue
      * @param IRecommendationApi $recommendation_api_service
      * @param IProductRecommendation $product_recommendation_service
      * @param IJobRecommendationCommand $job_recommendation_command
-     * @param IShopCommand $shop_command
+     * @param IShopRecommendationCommand $shop_recommendation_command
      * @return void
      */
     private function initializeServices(
         IRecommendationApi $recommendation_api_service,
         IProductRecommendation $product_recommendation_service,
         IJobRecommendationCommand $job_recommendation_command,
-        IShopCommand $shop_command,
+        IShopRecommendationCommand $shop_recommendation_command,
     ): void {
         $this->recommendation_api_service = $recommendation_api_service;
         $this->product_recommendation_service = $product_recommendation_service;
         $this->job_recommendation_command = $job_recommendation_command;
-        $this->shop_command = $shop_command;
+        $this->shop_recommendation_command = $shop_recommendation_command;
     }
 
     /**
@@ -168,7 +168,7 @@ class ProcessShopInstalledData implements ShouldQueue
             JobRecommendationStatus::PENDING,
             0,
         );
-        $this->shop_command->updateLastJobRecommendation($this->shop_id, $job->getId());
+        $this->shop_recommendation_command->updateLastJobRecommendation($this->shop_id, $job->getId());
 
         return $job;
     }
@@ -315,6 +315,7 @@ class ProcessShopInstalledData implements ShouldQueue
             $this->map_gid_id,
         );
         $this->job_recommendation_command->update($job_id, JobRecommendationStatus::SUCCESS, $result);
+        $this->shop_recommendation_command->decreaseRefreshRecommendation($this->shop_id);
     }
 
     /**
