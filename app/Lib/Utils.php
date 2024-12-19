@@ -150,6 +150,17 @@ final class Utils
         return Carbon::today()->format('Y-m-d');
     }
 
+
+    /**
+     * Get current date time.
+     *
+     * @return Carbon
+     */
+    public static function getNow(): Carbon
+    {
+        return Carbon::now();
+    }
+
     /**
      * The last date time refresh recommendation.
      *
@@ -158,6 +169,6 @@ final class Utils
     public static function refreshDay(): Carbon
     {
         $refresh_interval_days = config('services.recommendation.refresh_interval_days');
-        return Carbon::today()->subDays($refresh_interval_days);
+        return Carbon::today()->addDay($refresh_interval_days);
     }
 }
