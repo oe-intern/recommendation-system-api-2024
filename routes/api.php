@@ -39,7 +39,7 @@ Route::group(['middleware' => ['access_control_headers', 'shopify.auth', 'verify
             Route::get('', [RecommendationController::class, 'getShopRecommendations']);
             Route::put('', [RecommendationController::class, 'setShopRecommendations'])
                 ->middleware('validate.shop.notification_settings.request');
-            Route::get('/process', [RecommendationController::class, 'processRecommendation']);
+            Route::get('/status', [RecommendationController::class, 'getProcessRecommendation']);
             Route::post('/refresh', [RecommendationController::class, 'refreshRecommendation']);
             Route::post('/cancel', [RecommendationController::class, 'cancelRecommendation']);
         });
