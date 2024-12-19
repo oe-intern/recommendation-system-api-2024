@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Contracts\Queries\IShopRecommendationQuery;
+use App\Storage\Queries\ShopRecommendationQuery;
 use App\Storage\Queries\User as UserQuery;
 use App\Contracts\Queries\User as IUserQuery;
 use App\Storage\Queries\ShopQuery;
@@ -44,6 +46,11 @@ class QueryServiceProvider extends ServiceProvider
         $this->app->bind(
             IJobRecommendationQuery::class,
             JobRecommendationQuery::class
+        );
+
+        $this->app->bind(
+            IShopRecommendationQuery::class,
+            ShopRecommendationQuery::class
         );
     }
 
