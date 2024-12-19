@@ -62,7 +62,7 @@ class CreateProduct implements ShouldQueue
             $product_data = $product_transform->webhookDataToCollectionData($this->product);
             $product_command->create($shop, $product_data);
 
-            UpdateRecommendationProduct::dispatch($product->getId());
+            UpdateRecommendationProduct::dispatch($product->getId(), $shop->getDomain());
         }
     }
 }

@@ -9,6 +9,8 @@ use App\Contracts\Queries\IProductQuery;
 use App\Contracts\Shopify\Graphql\Queries\IProductQueryShopify;
 use App\DTO\Payload\ProductRecommendationRequestDTO;
 use App\Objects\Transform\ProductTransform;
+use App\Models\User;
+use App\Services\Shopify\UserContext;
 use Exception;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -39,6 +41,11 @@ class UpdateRecommendationProduct implements ShouldQueue
     protected string $product_id; // 1 minute
 
     /**
+     * @var string
+     */
+    protected string $shop_domain;
+
+    /**
      * @var IProductQueryShopify
      */
     private IProductQueryShopify $product_query_shopify;
@@ -66,9 +73,10 @@ class UpdateRecommendationProduct implements ShouldQueue
     /**
      * UpdateRecommendationProduct constructor.
      */
-    public function __construct(string $product_id)
+    public function __construct(string $product_id, string $shop_domain)
     {
         $this->product_id = $product_id;
+        $this->shop_domain = $shop_domain;
     }
 
     /**
@@ -124,6 +132,18 @@ class UpdateRecommendationProduct implements ShouldQueue
         $this->product_command = $product_command;
         $this->product_query = $product_query;
         $this->product_transform = $product_transform;
+
+        $this->setContext();
+    }
+
+    /**
+     * Set user context
+     */
+    private function setContext(): void
+    {
+        $user_context = app(UserContext::class);
+        $shop_session = User::query()->where('name', $this->shop_domain)->first();
+        $user_context->setUser($shop_session);
     }
 
     /**
