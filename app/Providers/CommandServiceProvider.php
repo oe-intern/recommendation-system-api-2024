@@ -2,6 +2,10 @@
 
 namespace App\Providers;
 
+use App\Contracts\Commands\IShopRecommendationCommand;
+use App\Contracts\Commands\IShopSettingCommand;
+use App\Storage\Commands\ShopRecommendationCommand;
+use App\Storage\Commands\ShopSettingCommand;
 use App\Storage\Commands\User as UserCommand;
 use App\Contracts\Commands\User as IUserCommand;
 use App\Storage\Commands\ShopCommand;
@@ -44,6 +48,16 @@ class CommandServiceProvider extends ServiceProvider
         $this->app->bind(
             IJobRecommendationCommand::class,
             JobRecommendationCommand::class
+        );
+
+        $this->app->bind(
+            IShopSettingCommand::class,
+            ShopSettingCommand::class
+        );
+
+        $this->app->bind(
+            IShopRecommendationCommand::class,
+            ShopRecommendationCommand::class
         );
     }
 
