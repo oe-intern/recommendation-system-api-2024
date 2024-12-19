@@ -3,6 +3,7 @@
 namespace App\Collections\Schema;
 
 use App\Collections\MongoCollection;
+use Carbon\Carbon;
 
 class ShopRecommendationSchema extends MongoCollection
 {
@@ -45,6 +46,8 @@ class ShopRecommendationSchema extends MongoCollection
     protected $attributes = [
         'refresh_count' => 5,
         'email_notification' => true,
+        'email' => '',
+        'last_job_recommendation_id' => '',
     ];
 
     /**
@@ -65,5 +68,35 @@ class ShopRecommendationSchema extends MongoCollection
     public function getLastJobRecommendationId(): string
     {
         return $this->getAttribute('last_job_recommendation_id');
+    }
+
+    /**
+     * Get the expiration date for the recommendation
+     *
+     * @return Carbon
+     */
+    public function getExpiresAt(): Carbon
+    {
+        return $this->getAttribute('expires_at');
+    }
+
+    /**
+     * Get the email address for the recommendation
+     *
+     * @return string
+     */
+    public function getEmail(): string
+    {
+        return $this->getAttribute('email');
+    }
+
+    /**
+     * Get the email notification status for the recommendation
+     *
+     * @return bool
+     */
+    public function getEmailNotification(): bool
+    {
+        return $this->getAttribute('email_notification');
     }
 }
