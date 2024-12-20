@@ -4,6 +4,8 @@ namespace App\Providers;
 
 use App\Contracts\Commands\IShopRecommendationCommand;
 use App\Contracts\Commands\IShopSettingCommand;
+use App\Contracts\Mail\IEmailSender;
+use App\Services\Mail\EmailSenderService;
 use App\Storage\Commands\ShopRecommendationCommand;
 use App\Storage\Commands\ShopSettingCommand;
 use App\Storage\Commands\User as UserCommand;
@@ -58,6 +60,11 @@ class CommandServiceProvider extends ServiceProvider
         $this->app->bind(
             IShopRecommendationCommand::class,
             ShopRecommendationCommand::class
+        );
+
+        $this->app->bind(
+            IEmailSender::class,
+            EmailSenderService::class
         );
     }
 
