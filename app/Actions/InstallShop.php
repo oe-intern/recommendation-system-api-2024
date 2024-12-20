@@ -49,15 +49,31 @@ class InstallShop
         if ($user === null) {
             $this->user_command->make($domain, AccessToken::fromNative($session->getAccessToken()));
             $user = $this->user_query->getByDomain($domain);
-            call_user_func($this->shop_installed_data, $domain->toNative(), false);
+            $this->installShopData($domain, false);
         }
 
         if ($user->trashed()) {
             $user->restore();
             $this->user_command->setAccessToken($user->getId(), AccessToken::fromNative($session->getAccessToken()));
-            call_user_func($this->shop_installed_data, $domain->toNative(), true);
+            $this->installShopData($domain, true);
         }
 
         return $user->getId();
+    }
+
+    /**
+     * Install shop data
+     *
+     * @param UserDomain $domain
+     * @param bool $is_trashed
+     * @return void
+     */
+    private function installShopData(UserDomain $domain, bool $is_trashed): void
+    {
+        call_user_func(
+            $this->shop_installed_data,
+            $domain->toNative(),
+            $is_trashed
+        );
     }
 }
