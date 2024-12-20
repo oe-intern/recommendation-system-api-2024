@@ -69,4 +69,9 @@ class ShopSettingSchema extends MongoCollection
     {
         return $this->getAttribute('auto_recommendation');
     }
+
+    public function isAutoRecommendationActive(): bool
+    {
+        return RecommendationState::ACTIVE === $this->getAutoRecommendation();
+    }
 }
