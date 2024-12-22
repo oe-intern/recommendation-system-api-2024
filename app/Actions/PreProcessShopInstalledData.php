@@ -37,12 +37,10 @@ class PreProcessShopInstalledData
      */
     protected IProduct $product_service;
 
-
     /**
      * @var ProductTransform
      */
     protected ProductTransform $product_transform;
-
 
     /**
      * Execute the job
@@ -79,14 +77,12 @@ class PreProcessShopInstalledData
      */
     public function __invoke(string $domain, bool $is_trashed, array $products): void
     {
-        $products_data = $this->product_transform->shopifyDataListToCollectionDataList($products);
-
         if ($is_trashed) {
             $shop = $this->shop_query->getByDomain($domain);
-            $this->product_service->createOrUpdateMany($shop, $products_data);
+            $this->product_service->createOrUpdateMany($shop, $products);
         } else {
             $new_shop = $this->shop_command->create($domain);
-            $this->product_command->createMany($new_shop, $products_data);
+            $this->product_command->createMany($new_shop, $products);
         }
     }
 }

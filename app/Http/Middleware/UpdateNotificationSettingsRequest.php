@@ -2,12 +2,10 @@
 
 namespace App\Http\Middleware;
 
-use App\Objects\Enums\RecommendationState;
-use Illuminate\Http\Request;
 use Closure;
-use Illuminate\Validation\Rules\Enum;
+use Illuminate\Http\Request;
 
-class ActiveRecommendationRequest
+class UpdateNotificationSettingsRequest
 {
     /**
      * Handle an incoming request.
@@ -19,11 +17,8 @@ class ActiveRecommendationRequest
     public function handle(Request $request, Closure $next): mixed
     {
         $request->validate([
-            'status' => [
-                'required',
-                'string',
-                new Enum(RecommendationState::class),
-            ],
+            'email_notification' => 'required|boolean',
+            'email' => 'required_if:email_notification,true|email',
         ]);
 
         return $next($request);

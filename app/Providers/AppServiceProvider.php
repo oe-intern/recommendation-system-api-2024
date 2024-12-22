@@ -25,6 +25,8 @@ use App\Contracts\ModelRecommendation\IRecommendationApi;
 use App\Services\ModelRecommendation\RecommendationApiService;
 use App\Contracts\Recommendation\IProduct;
 use App\Services\Recommendation\ProductService;
+use App\Contracts\Recommendation\IShopRecommendation;
+use App\Services\Recommendation\ShopRecommendationService;
 use App\Services\Shopify\UserContext;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\URL;
@@ -79,6 +81,11 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(
             IProduct::class,
             ProductService::class
+        );
+
+        $this->app->bind(
+            IShopRecommendation::class,
+            ShopRecommendationService::class
         );
     }
 

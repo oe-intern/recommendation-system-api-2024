@@ -100,9 +100,9 @@ class JobRecommendationCollection extends MongoCollection
     /**
      * Get the status of the job.
      *
-     * @return string
+     * @return JobRecommendationStatus
      */
-    public function getStatus(): string
+    public function getStatus(): JobRecommendationStatus
     {
         return $this->getAttribute('status');
     }

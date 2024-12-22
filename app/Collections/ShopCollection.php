@@ -84,7 +84,7 @@ class ShopCollection extends MongoCollection
      */
     public function shopRecommendation(): EmbedsOne
     {
-        return $this->embedsOne(ShopRecommendationSchema::class);
+        return $this->embedsOne(ShopRecommendationSchema::class, 'shop_recommendations');
     }
 
     /**
@@ -95,5 +95,15 @@ class ShopCollection extends MongoCollection
     public function getId(): string
     {
         return $this->getAttribute('_id');
+    }
+
+    /**
+     * Get the domain of the shop.
+     *
+     * @return string
+     */
+    public function getDomain(): string
+    {
+        return $this->getAttribute('domain');
     }
 }

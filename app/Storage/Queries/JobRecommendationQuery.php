@@ -58,6 +58,8 @@ class JobRecommendationQuery implements IJobRecommendationQuery
     public function getLastByShop(ShopCollection $shop): JobRecommendationCollection
     {
         $shop_recommendation = $shop->shopRecommendation()->get();
-        return $shop_recommendation->getLastJobRecommendationId();
+        $job_recommendation_id = $shop_recommendation->getLastJobRecommendationId();
+
+        return $this->getById($job_recommendation_id);
     }
 }

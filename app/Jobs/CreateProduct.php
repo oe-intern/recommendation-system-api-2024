@@ -60,9 +60,9 @@ class CreateProduct implements ShouldQueue
         $product = $product_query->getByShopIdAndGid($this->shop_id, $this->product['id']);
         if (!$product) {
             $product_data = $product_transform->webhookDataToCollectionData($this->product);
-            $product_command->create($shop, $product_data);
+            $new_product = $product_command->create($shop, $product_data);
 
-            UpdateRecommendationProduct::dispatch($product->getId());
+            UpdateRecommendationProduct::dispatch($new_product->getId(), $shop->getDomain());
         }
     }
 }

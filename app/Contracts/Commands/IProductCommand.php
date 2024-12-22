@@ -13,9 +13,9 @@ interface IProductCommand
      *
      * @param ShopCollection $shop
      * @param array $product
-     * @return void
+     * @return ProductCollection
      */
-    public function create(ShopCollection $shop, array $product): void;
+    public function create(ShopCollection $shop, array $product): ProductCollection;
 
 
     /**
@@ -52,6 +52,16 @@ interface IProductCommand
      * @return bool
      */
     public function updateProductRecommendation(string $product_id, array $recommendations): bool;
+
+    /**
+     * Update recommendation for a new product.
+     *
+     * @param string $product_id
+     * @param array $recommendations
+     * @param RecommendationType $recommendation_type
+     * @return bool
+     */
+    public function updateNewProductRecommendation(string $product_id, array $recommendations, RecommendationType $recommendation_type): bool;
 
     /**
      * Update list recommendation for products.

@@ -33,9 +33,9 @@ class ProductCommand implements IProductCommand
      *
      * @param ShopCollection $shop
      * @param array $product
-     * @return void
+     * @return ProductCollection
      */
-    public function create(ShopCollection $shop, array $product): void
+    public function create(ShopCollection $shop, array $product): ProductCollection
     {
         $shop->products()->create($product);
     }
@@ -111,6 +111,25 @@ class ProductCommand implements IProductCommand
     }
 
     /**
+     * Update recommendation for a new product.
+     *
+     * @param string $product_id
+     * @param array $recommendations
+     * @param RecommendationType $recommendation_type
+     * @return bool
+     */
+    public function updateNewProductRecommendation(string $product_id, array $recommendations, RecommendationType $recommendation_type): bool
+    {
+        return ProductCollection::query()
+            ->where('_id', $product_id)
+            ->update([
+                'default_recommendation_ids' => $recommendations,
+                'recommendation_ids' => $recommendations,
+                'recommendation_type' => $recommendation_type,
+            ]);
+    }
+
+    /**
      * Update list recommendation for products.
      *
      * @param array $recommendation_data
@@ -150,6 +169,9 @@ class ProductCommand implements IProductCommand
                     ['$set' => [$attribute => $recommendation_ids]],
                 ],
             ];
+        }
+        if (empty($operations)) {
+            return true;
         }
 
         $result = $collection->bulkWrite($operations);

@@ -124,4 +124,14 @@ class User extends Authenticatable
     {
         return UserDomain::fromNative($this->myshopify_domain);
     }
+
+    /**
+     * Get the email.
+     *
+     * @return string
+     */
+    public function getShopEmail(): string
+    {
+        return $this->shop_email;
+    }
 }

@@ -6,9 +6,13 @@ use App\Contracts\Commands\IProductCommand;
 use App\Contracts\ModelRecommendation\IRecommendationApi;
 use App\Contracts\Objects\Transform\ShopifyTransform;
 use App\Contracts\Queries\IProductQuery;
+use App\Contracts\Queries\IShopQuery;
 use App\Contracts\Shopify\Graphql\Queries\IProductQueryShopify;
 use App\DTO\Payload\ProductRecommendationRequestDTO;
+use App\Objects\Enums\RecommendationType;
 use App\Objects\Transform\ProductTransform;
+use App\Models\User;
+use App\Services\Shopify\UserContext;
 use Exception;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -39,6 +43,11 @@ class UpdateRecommendationProduct implements ShouldQueue
     protected string $product_id; // 1 minute
 
     /**
+     * @var string
+     */
+    protected string $shop_domain;
+
+    /**
      * @var IProductQueryShopify
      */
     private IProductQueryShopify $product_query_shopify;
@@ -59,6 +68,11 @@ class UpdateRecommendationProduct implements ShouldQueue
     private IProductQuery $product_query;
 
     /**
+     * @var IShopQuery
+     */
+    private IShopQuery $shop_query;
+
+    /**
      * @var ShopifyTransform
      */
     private ShopifyTransform $product_transform;
@@ -66,9 +80,10 @@ class UpdateRecommendationProduct implements ShouldQueue
     /**
      * UpdateRecommendationProduct constructor.
      */
-    public function __construct(string $product_id)
+    public function __construct(string $product_id, string $shop_domain)
     {
         $this->product_id = $product_id;
+        $this->shop_domain = $shop_domain;
     }
 
     /**
@@ -78,6 +93,7 @@ class UpdateRecommendationProduct implements ShouldQueue
      * @param IRecommendationApi $recommendation_api_service
      * @param IProductCommand $product_command
      * @param IProductQuery $product_query
+     * @param IShopQuery $shop_query
      * @param ProductTransform $product_transform
      * @return void
      */
@@ -86,6 +102,7 @@ class UpdateRecommendationProduct implements ShouldQueue
         IRecommendationApi $recommendation_api_service,
         IProductCommand $product_command,
         IProductQuery $product_query,
+        IShopQuery $shop_query,
         ProductTransform $product_transform,
     ): void {
         $this->initializeServices(
@@ -93,13 +110,14 @@ class UpdateRecommendationProduct implements ShouldQueue
             $recommendation_api_service,
             $product_command,
             $product_query,
+            $shop_query,
             $product_transform,
         );
 
         $request_data = $this->getRequestData();
         $recommendations = $this->getRecommendations($request_data);
 
-        $product_command->updateProductRecommendation($this->product_id, $recommendations);
+        $this->updateRecommendationProduct($this->product_id, $recommendations);
     }
 
     /**
@@ -109,6 +127,7 @@ class UpdateRecommendationProduct implements ShouldQueue
      * @param IRecommendationApi $recommendation_api_service
      * @param IProductCommand $product_command
      * @param IProductQuery $product_query
+     * @param IShopQuery $shop_query
      * @param ProductTransform $product_transform
      * @return void
      */
@@ -117,13 +136,27 @@ class UpdateRecommendationProduct implements ShouldQueue
         IRecommendationApi $recommendation_api_service,
         IProductCommand $product_command,
         IProductQuery $product_query,
+        IShopQuery $shop_query,
         ProductTransform $product_transform,
     ): void {
         $this->product_query_shopify = $product_query_shopify;
         $this->recommendation_api_service = $recommendation_api_service;
         $this->product_command = $product_command;
         $this->product_query = $product_query;
+        $this->shop_query = $shop_query;
         $this->product_transform = $product_transform;
+
+        $this->setContext();
+    }
+
+    /**
+     * Set user context
+     */
+    private function setContext(): void
+    {
+        $user_context = app(UserContext::class);
+        $shop_session = User::query()->where('name', $this->shop_domain)->first();
+        $user_context->setUser($shop_session);
     }
 
     /**
@@ -174,6 +207,32 @@ class UpdateRecommendationProduct implements ShouldQueue
         } while ($retry < self::MAX_RETRY_PROCESS);
 
         return [];
+    }
+
+
+    /**
+     * Update recommendation for a product
+     *
+     * @param string $product_id
+     * @param array $recommendations
+     * @return void
+     */
+    private function updateRecommendationProduct(string $product_id, array $recommendations): void
+    {
+        $recommendation_type = $this->getRecommendationType();
+        $this->product_command->updateNewProductRecommendation($product_id, $recommendations, $recommendation_type);
+    }
+
+    /**
+     * Get recommendation type of shop for a product
+     *
+     * @return RecommendationType
+     */
+    private function getRecommendationType(): RecommendationType
+    {
+        $shop = $this->shop_query->getByDomain($this->shop_domain);
+        return $shop->settings()->get()
+            ->isAutoRecommendationActive() ? RecommendationType::AUTO : RecommendationType::DEFAULT;
     }
 
 }
