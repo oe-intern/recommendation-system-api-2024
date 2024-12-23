@@ -244,10 +244,15 @@ class EventQuery implements IEventQuery
                         ],
                     ],
                     [
+                        '$addFields' => [
+                            'product_id' => ['$toObjectId' => '$_id'],
+                        ],
+                    ],
+                    [
                         '$lookup' => [
                             'from' => 'products',
                             'localField' => 'product_id',
-                            'foreignField' => 'id',
+                            'foreignField' => '_id',
                             'as' => 'product',
                         ],
                     ],
@@ -259,6 +264,14 @@ class EventQuery implements IEventQuery
                     [
                         '$sort' => ['quantity' => -1],
                     ],
+                    [
+                        '$project' => [
+                            'id' => '$_id',
+                            'gid' => ['$arrayElemAt' => ['$product.gid', 0]],
+                            'quantity' => 1,
+                            '_id' => 0,
+                        ],
+                    ]
                 ]);
             });
 
