@@ -64,7 +64,7 @@ class ProductCommand implements IProductCommand
      */
     public function setRecommendationType(
         ProductCollection $product,
-        RecommendationType $recommendation_type
+        RecommendationType $recommendation_type,
     ): bool {
         return $product->update([
             'recommendation_type' => $recommendation_type,
@@ -118,8 +118,11 @@ class ProductCommand implements IProductCommand
      * @param RecommendationType $recommendation_type
      * @return bool
      */
-    public function updateNewProductRecommendation(string $product_id, array $recommendations, RecommendationType $recommendation_type): bool
-    {
+    public function updateNewProductRecommendation(
+        string $product_id,
+        array $recommendations,
+        RecommendationType $recommendation_type,
+    ): bool {
         return ProductCollection::query()
             ->where('_id', $product_id)
             ->update([
@@ -138,17 +141,6 @@ class ProductCommand implements IProductCommand
     public function updateManyRecommendation(array $recommendation_data): bool
     {
         return $this->updateRecommendation($recommendation_data, 'recommendation_ids');
-    }
-
-    /**
-     * Update list recommendation for products.
-     *
-     * @param array $recommendation_data
-     * @return bool
-     */
-    public function updateManyDefaultRecommendation(array $recommendation_data): bool
-    {
-        return $this->updateRecommendation($recommendation_data, 'default_recommendation_ids');
     }
 
     /**
@@ -176,6 +168,17 @@ class ProductCommand implements IProductCommand
 
         $result = $collection->bulkWrite($operations);
         return $result->getModifiedCount() > 0;
+    }
+
+    /**
+     * Update list recommendation for products.
+     *
+     * @param array $recommendation_data
+     * @return bool
+     */
+    public function updateManyDefaultRecommendation(array $recommendation_data): bool
+    {
+        return $this->updateRecommendation($recommendation_data, 'default_recommendation_ids');
     }
 
     /**
@@ -240,7 +243,7 @@ class ProductCommand implements IProductCommand
      */
     public function removeProductRecommendation(
         string $product_id,
-        string $recommended_product_id
+        string $recommended_product_id,
     ): void {
         $product = $this->product_query->getById($product_id);
         $product?->update([
@@ -259,7 +262,7 @@ class ProductCommand implements IProductCommand
      */
     private function removeReferenceProduct(
         string $product_id,
-        string $reference_product_id
+        string $reference_product_id,
     ): void {
         $product = $this->product_query->getById($product_id);
         $product?->update([
@@ -283,6 +286,19 @@ class ProductCommand implements IProductCommand
         ]);
 
         $this->addReferenceProduct($recommended_product_id, $product_id);
+    }
+
+    /**
+     * Delete a list of products by gid.
+     *
+     * @param array $product_gids
+     * @return bool
+     */
+    public function deleteManyByGid(array $product_gids): bool
+    {
+        return ProductCollection::query()
+            ->whereIn('gid', $product_gids)
+            ->delete();
     }
 
     /**
@@ -318,7 +334,7 @@ class ProductCommand implements IProductCommand
      * @return void
      */
     private function removeRelationshipRecommendationProduct(
-        ProductCollection $product
+        ProductCollection $product,
     ): void {
         $product_id = $product->getId();
         $product_recommendation_ids = $product->getManualIds();
