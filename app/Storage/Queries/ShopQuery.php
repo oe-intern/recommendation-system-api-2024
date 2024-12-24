@@ -11,13 +11,13 @@ class ShopQuery implements IShopQuery
     /**
      * Get a shop by domain.
      *
-     * @param string $shop_domain
+     * @param string $shopDomain
      * @return ShopCollection|null
      */
-    public function getByDomain(string $shop_domain): ?ShopCollection
+    public function getByDomain(string $shopDomain): ?ShopCollection
     {
         return ShopCollection::query()
-            ->where('domain', $shop_domain)
+            ->where('domain', $shopDomain)
             ->first();
     }
 
@@ -36,29 +36,29 @@ class ShopQuery implements IShopQuery
     /**
      * Get a shop by ID.
      *
-     * @param string $shop_id
+     * @param string $shopId
      * @return ShopCollection|null
      */
-    public function getById(string $shop_id): ?ShopCollection
+    public function getById(string $shopId): ?ShopCollection
     {
         return ShopCollection::query()
-            ->where('_id', $shop_id)
+            ->where('_id', $shopId)
             ->first();
     }
 
     /**
      * Get a shop by domain.
      *
-     * @param string $shop_domain
+     * @param string $shopDomain
      * @return string
      *
      * @throws ShopNotFoundException
      */
-    public function getShopIdByDomain(string $shop_domain): string
+    public function getShopIdByDomain(string $shopDomain): string
     {
-        $shop = $this->getByDomain($shop_domain);
+        $shop = $this->getByDomain($shopDomain);
         if (!$shop) {
-            throw new ShopNotFoundException($shop_domain);
+            throw new ShopNotFoundException($shopDomain);
         }
 
         return $shop->getId();

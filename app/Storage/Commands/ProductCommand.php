@@ -8,6 +8,7 @@ use App\Contracts\Commands\IProductCommand;
 use App\Contracts\Queries\IProductQuery;
 use App\Objects\Enums\RecommendationType;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use MongoDB\BSON\ObjectId;
 
 class ProductCommand implements IProductCommand
@@ -15,17 +16,17 @@ class ProductCommand implements IProductCommand
     /**
      * @var IProductQuery
      */
-    protected IProductQuery $product_query;
+    protected IProductQuery $productQuery;
 
     /**
      * ProductCommand constructor.
      *
-     * @param IProductQuery $product_query
+     * @param IProductQuery $productQuery
      */
     public function __construct(
-        IProductQuery $product_query,
+        IProductQuery $productQuery,
     ) {
-        $this->product_query = $product_query;
+        $this->productQuery = $productQuery;
     }
 
     /**
@@ -37,7 +38,8 @@ class ProductCommand implements IProductCommand
      */
     public function create(ShopCollection $shop, array $product): ProductCollection
     {
-        $shop->products()->create($product);
+        $product['shop_id'] = $shop->getId();
+        return ProductCollection::query()->create($product);
     }
 
     /**
@@ -59,15 +61,15 @@ class ProductCommand implements IProductCommand
      * Update the recommendation type a product.
      *
      * @param ProductCollection $product
-     * @param RecommendationType $recommendation_type
+     * @param RecommendationType $recommendationType
      * @return bool
      */
     public function setRecommendationType(
         ProductCollection $product,
-        RecommendationType $recommendation_type,
+        RecommendationType $recommendationType,
     ): bool {
         return $product->update([
-            'recommendation_type' => $recommendation_type,
+            'recommendation_type' => $recommendationType,
         ]);
     }
 
@@ -75,36 +77,36 @@ class ProductCommand implements IProductCommand
      * Update a product of a shop with data from Shopify.
      *
      * @param ProductCollection $product
-     * @param array $product_data
+     * @param array $productData
      * @return bool
      */
-    public function update(ProductCollection $product, array $product_data): bool
+    public function update(ProductCollection $product, array $productData): bool
     {
-        return $product->update($product_data);
+        return $product->update($productData);
     }
 
     /**
      * Update a list products of a shop with data from Shopify.
      *
-     * @param array $product_data
+     * @param array $productData
      * @return bool
      */
-    public function updateManyByGid(array $product_data): bool
+    public function updateManyByGid(array $productData): bool
     {
-        return ProductCollection::query()->upsert($product_data, ['gid'], ['status', 'type', 'handle']);
+        return ProductCollection::query()->upsert($productData, ['gid'], ['status', 'type', 'handle']);
     }
 
     /**
      * Update recommendation for a product.
      *
-     * @param string $product_id
+     * @param string $productId
      * @param array $recommendations
      * @return bool
      */
-    public function updateProductRecommendation(string $product_id, array $recommendations): bool
+    public function updateProductRecommendation(string $productId, array $recommendations): bool
     {
         return ProductCollection::query()
-            ->where('_id', $product_id)
+            ->where('_id', $productId)
             ->update([
                 'recommendation_ids' => $recommendations,
             ]);
@@ -113,52 +115,57 @@ class ProductCommand implements IProductCommand
     /**
      * Update recommendation for a new product.
      *
-     * @param string $product_id
+     * @param string $productId
      * @param array $recommendations
-     * @param RecommendationType $recommendation_type
+     * @param RecommendationType $recommendationType
      * @return bool
      */
     public function updateNewProductRecommendation(
-        string $product_id,
+        string $productId,
         array $recommendations,
-        RecommendationType $recommendation_type,
+        RecommendationType $recommendationType,
     ): bool {
+        Log::info('Update new product recommendation', [
+            'productId' => $productId,
+            'recommendations' => $recommendations,
+            'recommendationType' => $recommendationType,
+        ]);
         return ProductCollection::query()
-            ->where('_id', $product_id)
+            ->where('_id', $productId)
             ->update([
                 'default_recommendation_ids' => $recommendations,
                 'recommendation_ids' => $recommendations,
-                'recommendation_type' => $recommendation_type,
+                'recommendation_type' => $recommendationType,
             ]);
     }
 
     /**
      * Update list recommendation for products.
      *
-     * @param array $recommendation_data
+     * @param array $recommendationData
      * @return bool
      */
-    public function updateManyRecommendation(array $recommendation_data): bool
+    public function updateManyRecommendation(array $recommendationData): bool
     {
-        return $this->updateRecommendation($recommendation_data, 'recommendation_ids');
+        return $this->updateRecommendation($recommendationData, 'recommendation_ids');
     }
 
     /**
      * Update product recommendation with attribute.
      *
-     * @param array $recommendation_data
+     * @param array $recommendationData
      * @param string $attribute
      * @return bool
      */
-    private function updateRecommendation(array $recommendation_data, string $attribute): bool
+    private function updateRecommendation(array $recommendationData, string $attribute): bool
     {
         $collection = DB::connection('mongodb')->getCollection('products');
         $operations = [];
-        foreach ($recommendation_data as $product_id => $recommendation_ids) {
+        foreach ($recommendationData as $productId => $recommendationIds) {
             $operations[] = [
                 'updateOne' => [
-                    ['_id' => new ObjectId($product_id)],
-                    ['$set' => [$attribute => $recommendation_ids]],
+                    ['_id' => new ObjectId($productId)],
+                    ['$set' => [$attribute => $recommendationIds]],
                 ],
             ];
         }
@@ -173,43 +180,43 @@ class ProductCommand implements IProductCommand
     /**
      * Update list recommendation for products.
      *
-     * @param array $recommendation_data
+     * @param array $recommendationData
      * @return bool
      */
-    public function updateManyDefaultRecommendation(array $recommendation_data): bool
+    public function updateManyDefaultRecommendation(array $recommendationData): bool
     {
-        return $this->updateRecommendation($recommendation_data, 'default_recommendation_ids');
+        return $this->updateRecommendation($recommendationData, 'default_recommendation_ids');
     }
 
     /**
      * Customize the recommendation products for each product.
      *
      * @param ProductCollection $product
-     * @param string $shop_id
+     * @param string $shopId
      * @param array $recommendations
-     * @param RecommendationType $recommendation_type
+     * @param RecommendationType $recommendationType
      * @return bool
      */
     public function setManualProduct(
         ProductCollection $product,
-        string $shop_id,
+        string $shopId,
         array $recommendations,
-        RecommendationType $recommendation_type,
+        RecommendationType $recommendationType,
     ): bool {
-        $product_id = $product->getId();
-        $removed_recommendations = array_diff($product->getAttributeValue('manual_ids'), $recommendations);
+        $productId = $product->getId();
+        $removedRecommendations = array_diff($product->getAttributeValue('manual_ids'), $recommendations);
 
         $product->update([
             'manual_ids' => $recommendations,
-            'recommendation_type' => $recommendation_type,
+            'recommendation_type' => $recommendationType,
         ]);
 
-        foreach ($recommendations as $recommended_product_id) {
-            $this->addReferenceProduct($recommended_product_id, $product_id);
+        foreach ($recommendations as $recommendedProductId) {
+            $this->addReferenceProduct($recommendedProductId, $productId);
         }
 
-        foreach ($removed_recommendations as $removed_recommendation) {
-            $this->removeProductRecommendation($product_id, $removed_recommendation);
+        foreach ($removedRecommendations as $removedRecommendation) {
+            $this->removeProductRecommendation($productId, $removedRecommendation);
         }
 
         return true;
@@ -218,18 +225,18 @@ class ProductCommand implements IProductCommand
     /**
      * Add a reference this product using product for recommendation.
      *
-     * @param string $product_id
-     * @param string $reference_product_id
+     * @param string $productId
+     * @param string $referenceProductId
      * @return void
      */
-    private function addReferenceProduct(string $product_id, string $reference_product_id): void
+    private function addReferenceProduct(string $productId, string $referenceProductId): void
     {
-        $product = $this->product_query->getById($product_id);
+        $product = $this->productQuery->getById($productId);
 
         $product?->update([
             'referenced_ids' => array_unique(array_merge(
                 $product->getAttributeValue('referenced_ids'),
-                [$reference_product_id])
+                [$referenceProductId])
             ),
         ]);
     }
@@ -237,67 +244,67 @@ class ProductCommand implements IProductCommand
     /**
      * Remove a product recommended for this product.
      *
-     * @param string $product_id
-     * @param string $recommended_product_id
+     * @param string $productId
+     * @param string $recommendedProductId
      * @return void
      */
     public function removeProductRecommendation(
-        string $product_id,
-        string $recommended_product_id,
+        string $productId,
+        string $recommendedProductId,
     ): void {
-        $product = $this->product_query->getById($product_id);
+        $product = $this->productQuery->getById($productId);
         $product?->update([
-            'manual_ids' => array_diff($product->getAttributeValue('manual_ids'), [$recommended_product_id]),
+            'manual_ids' => array_diff($product->getAttributeValue('manual_ids'), [$recommendedProductId]),
         ]);
 
-        $this->removeReferenceProduct($recommended_product_id, $product_id);
+        $this->removeReferenceProduct($recommendedProductId, $productId);
     }
 
     /**
      * Remove a reference this product using product for recommendation.
      *
-     * @param string $product_id
-     * @param string $reference_product_id
+     * @param string $productId
+     * @param string $referenceProductId
      * @return void
      */
     private function removeReferenceProduct(
-        string $product_id,
-        string $reference_product_id,
+        string $productId,
+        string $referenceProductId,
     ): void {
-        $product = $this->product_query->getById($product_id);
+        $product = $this->productQuery->getById($productId);
         $product?->update([
-            'referenced_ids' => array_diff($product->getAttributeValue('referenced_ids'), [$reference_product_id]),
+            'referenced_ids' => array_diff($product->getAttributeValue('referenced_ids'), [$referenceProductId]),
         ]);
     }
 
     /**
      * Add a product recommended for this product.
      *
-     * @param string $product_id
-     * @param string $recommended_product_id
+     * @param string $productId
+     * @param string $recommendedProductId
      * @return void
      */
-    public function addRecommendation(string $product_id, string $recommended_product_id): void
+    public function addRecommendation(string $productId, string $recommendedProductId): void
     {
-        $product = $this->product_query->getById($product_id);
+        $product = $this->productQuery->getById($productId);
         $product?->update([
             'manual_ids' => array_unique(array_merge($product->getAttributeValue('manual_ids'),
-                [$recommended_product_id])),
+                [$recommendedProductId])),
         ]);
 
-        $this->addReferenceProduct($recommended_product_id, $product_id);
+        $this->addReferenceProduct($recommendedProductId, $productId);
     }
 
     /**
      * Delete a list of products by gid.
      *
-     * @param array $product_gids
+     * @param array $productGids
      * @return bool
      */
-    public function deleteManyByGid(array $product_gids): bool
+    public function deleteManyByGid(array $productGids): bool
     {
         return ProductCollection::query()
-            ->whereIn('gid', $product_gids)
+            ->whereIn('gid', $productGids)
             ->delete();
     }
 
@@ -336,11 +343,11 @@ class ProductCommand implements IProductCommand
     private function removeRelationshipRecommendationProduct(
         ProductCollection $product,
     ): void {
-        $product_id = $product->getId();
-        $product_recommendation_ids = $product->getManualIds();
+        $productId = $product->getId();
+        $productRecommendationIds = $product->getManualIds();
 
-        foreach ($product_recommendation_ids as $product_recommendation_id) {
-            $this->removeReferenceProduct($product_recommendation_id, $product_id);
+        foreach ($productRecommendationIds as $productRecommendationId) {
+            $this->removeReferenceProduct($productRecommendationId, $productId);
         }
     }
 
@@ -353,24 +360,24 @@ class ProductCommand implements IProductCommand
     private function removeRelationshipReferencedProduct(
         ProductCollection $product,
     ): void {
-        $product_id = $product->getId();
-        $product_referenced_ids = $product->getAttributeValue('referenced_ids');
+        $productId = $product->getId();
+        $productReferencedIds = $product->getAttributeValue('referenced_ids');
 
-        foreach ($product_referenced_ids as $product_referenced_id) {
-            $this->removeProductRecommendation($product_referenced_id, $product_id);
+        foreach ($productReferencedIds as $productReferencedId) {
+            $this->removeProductRecommendation($productReferencedId, $productId);
         }
     }
 
     /**
      * Active the recommendation for all products of a shop.
      *
-     * @param string $shop_id
+     * @param string $shopId
      * @return bool
      */
-    public function activateRecommendation(string $shop_id): bool
+    public function activateRecommendation(string $shopId): bool
     {
         return ProductCollection::query()
-            ->where('shop_id', $shop_id)
+            ->where('shop_id', $shopId)
             ->where('recommendation_type', RecommendationType::DEFAULT)
             ->update([
                 'recommendation_type' => RecommendationType::AUTO,
@@ -380,13 +387,13 @@ class ProductCommand implements IProductCommand
     /**
      * Deactivate the recommendation for all products of a shop.
      *
-     * @param string $shop_id
+     * @param string $shopId
      * @return bool
      */
-    public function deactivateRecommendation(string $shop_id): bool
+    public function deactivateRecommendation(string $shopId): bool
     {
         return ProductCollection::query()
-            ->where('shop_id', $shop_id)
+            ->where('shop_id', $shopId)
             ->where('recommendation_type', RecommendationType::AUTO)
             ->update([
                 'recommendation_type' => RecommendationType::DEFAULT,

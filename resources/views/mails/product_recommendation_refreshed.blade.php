@@ -9,13 +9,13 @@
         <div
             style="box-sizing:border-box;font-family:Roboto,serif; display: inline-block; text-align: center; padding: 20px; border: 1px solid #fff; margin: 20px 0">
             <div style="box-sizing:border-box;font-size:16px!important;font-family:Roboto">
-                The product recommendations refresh process for your shop {{ $shop_domain }} has been {{ $status === \App\Objects\Enums\JobRecommendationStatus::SUCCESS ? 'completed successfully' : 'failed' }}.
+                The product recommendations refresh process for your shop {{ $shopDomain }} has been {{ $status === \App\Objects\Enums\JobRecommendationStatus::SUCCESS ? 'completed successfully' : 'failed' }}.
             </div>
             <div
                 style='box-sizing:border-box;color:#24292e!important;display:block;background-color:#eaf5ff;border-radius:6px;padding:2px 6px;margin: 20px 0;font:300 48px "SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace'>
                 {{ $status === \App\Objects\Enums\JobRecommendationStatus::SUCCESS ? 'Refresh completed successfully!' : 'An error occurred, please try again!' }}
             </div>
-            <a href="https://admin.shopify.com/store/{{ $shop_domain }}/apps/product-recommendation-2212"
+            <a href="https://admin.shopify.com/store/{{ $shopDomain }}/apps/product-recommendation-2212"
                rel="noopener noreferrer"
                style='background-color:#1f883d!important;box-sizing:border-box;color:#fff;text-decoration:none;display:inline-block;font-size:inherit;font-weight:500;line-height:1.5;white-space:nowrap;vertical-align:middle;border-radius:.5em;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji"!important;padding:.75em 1.5em;border:1px solid #1f883d'
                target="_blank">

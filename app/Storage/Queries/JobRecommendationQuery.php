@@ -12,40 +12,40 @@ class JobRecommendationQuery implements IJobRecommendationQuery
     /**
      * @var IShopQuery
      */
-    protected IShopQuery $shop_query;
+    protected IShopQuery $shopQuery;
 
     /**
      * JobRecommendationQuery constructor.
      *
-     * @param IShopQuery $shop_query
+     * @param IShopQuery $shopQuery
      */
-    public function __construct(IShopQuery $shop_query)
+    public function __construct(IShopQuery $shopQuery)
     {
-        $this->shop_query = $shop_query;
+        $this->shopQuery = $shopQuery;
     }
 
     /**
      * Get last job recommendation by shop id.
      *
-     * @param string $shop_id
+     * @param string $shopId
      * @return JobRecommendationCollection
      */
-    public function getLastByShopId(string $shop_id): JobRecommendationCollection
+    public function getLastByShopId(string $shopId): JobRecommendationCollection
     {
-        $shop = $this->shop_query->getById($shop_id);
+        $shop = $this->shopQuery->getById($shopId);
         return $this->getLastByShop($shop);
     }
 
     /**
      * Get the job recommendation by job id.
      *
-     * @param string $job_id
+     * @param string $jobId
      * @return JobRecommendationCollection
      */
-    public function getById(string $job_id): JobRecommendationCollection
+    public function getById(string $jobId): JobRecommendationCollection
     {
         return JobRecommendationCollection::query()
-            ->where('_id', $job_id)
+            ->where('_id', $jobId)
             ->first();
     }
 
@@ -57,9 +57,9 @@ class JobRecommendationQuery implements IJobRecommendationQuery
      */
     public function getLastByShop(ShopCollection $shop): JobRecommendationCollection
     {
-        $shop_recommendation = $shop->shopRecommendation()->get();
-        $job_recommendation_id = $shop_recommendation->getLastJobRecommendationId();
+        $shopRecommendation = $shop->shopRecommendation()->get();
+        $recommendationJobId = $shopRecommendation->getLastJobRecommendationId();
 
-        return $this->getById($job_recommendation_id);
+        return $this->getById($recommendationJobId);
     }
 }

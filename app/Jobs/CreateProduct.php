@@ -17,7 +17,7 @@ class CreateProduct implements ShouldQueue
     /**
      * @var string
      */
-    protected string $shop_id;
+    protected string $shopId;
 
     /**
      * @var array
@@ -27,42 +27,42 @@ class CreateProduct implements ShouldQueue
     /**
      * Create a new job instance.
      *
-     * @param string $shop_id
+     * @param string $shopId
      * @param array $product
      */
-    public function __construct(string $shop_id, array $product)
+    public function __construct(string $shopId, array $product)
     {
-        $this->shop_id = $shop_id;
+        $this->shopId = $shopId;
         $this->product = $product;
     }
 
     /**
      * Execute the job.
      *
-     * @param IProductCommand $product_command
-     * @param IShopQuery $shop_query
-     * @param IProductQuery $product_query
-     * @param ProductTransform $product_transform
+     * @param IProductCommand $productCommand
+     * @param IShopQuery $shopQuery
+     * @param IProductQuery $productQuery
+     * @param ProductTransform $productTransform
      * @return void
      */
     public function handle(
-        IProductCommand $product_command,
-        IShopQuery $shop_query,
-        IProductQuery $product_query,
-        ProductTransform $product_transform
+        IProductCommand $productCommand,
+        IShopQuery $shopQuery,
+        IProductQuery $productQuery,
+        ProductTransform $productTransform
     ): void {
-        $shop = $shop_query->getById($this->shop_id);
+        $shop = $shopQuery->getById($this->shopId);
 
         if (!$shop) {
             return;
         }
 
-        $product = $product_query->getByShopIdAndGid($this->shop_id, $this->product['id']);
+        $product = $productQuery->getByShopIdAndGid($this->shopId, $this->product['id']);
         if (!$product) {
-            $product_data = $product_transform->webhookDataToCollectionData($this->product);
-            $new_product = $product_command->create($shop, $product_data);
+            $productData = $productTransform->webhookDataToCollectionData($this->product);
+            $newProduct = $productCommand->create($shop, $productData);
 
-            UpdateRecommendationProduct::dispatch($new_product->getId(), $shop->getDomain());
+            UpdateRecommendationProduct::dispatch($newProduct->getId(), $shop->getDomain());
         }
     }
 }

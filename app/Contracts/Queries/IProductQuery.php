@@ -12,10 +12,10 @@ interface IProductQuery
     /**
      * Get a product of a shop by ID.
      *
-     * @param string $product_id
+     * @param string $productId
      * @return ProductCollection|null
      */
-    public function getById(string $product_id): ?ProductCollection;
+    public function getById(string $productId): ?ProductCollection;
 
     /**
      * Get a product of a shop by GID.
@@ -28,11 +28,11 @@ interface IProductQuery
     /**
      * Get list products of a shop by IDs
      *
-     * @param array $product_ids
-     * @param string $shop_id
+     * @param array $productIds
+     * @param string $shopId
      * @return array
      */
-    public function getByShopIdAndIds(string $shop_id, array $product_ids): array;
+    public function getByShopIdAndIds(string $shopId, array $productIds): array;
 
     /**
      * Get list products of a shop by collection
@@ -45,138 +45,138 @@ interface IProductQuery
     /**
      * Check if the products exist in the database.
      *
-     * @param string $shop_id
-     * @param string $product_id
+     * @param string $shopId
+     * @param string $productId
      * @return ProductCollection
      *
      * @throws ModelNotFoundException
      */
-    public function checkProductExist(string $shop_id, string $product_id): ProductCollection;
+    public function checkProductExist(string $shopId, string $productId): ProductCollection;
 
     /**
      * Get a product of a shop by ID and shop domain.
      *
-     * @param string $shop_id
-     * @param string $product_id
+     * @param string $shopId
+     * @param string $productId
      * @return ProductCollection|null
      */
-    public function getByShopIdAndId(string $shop_id, string $product_id): ?ProductCollection;
+    public function getByShopIdAndId(string $shopId, string $productId): ?ProductCollection;
 
     /**
      * Get a product of a shop by Shopify ID.
      *
-     * @param string $shop_id
+     * @param string $shopId
      * @param string $gid
      * @return ProductCollection|null
      */
-    public function getByShopIdAndGid(string $shop_id, string $gid): ?ProductCollection;
+    public function getByShopIdAndGid(string $shopId, string $gid): ?ProductCollection;
 
     /**
      * Get list products ID using this product for recommendation.
      *
-     * @param string $product_id
+     * @param string $productId
      * @return array
      */
-    public function getReferencedProducts(string $product_id): array;
+    public function getReferencedProducts(string $productId): array;
 
     /**
      * Get list of optional products for recommendation.
      *
-     * * @param string $product_id
+     * * @param string $productId
      * * @return array
      */
-    public function getManualProducts(string $product_id): array;
+    public function getManualProducts(string $productId): array;
 
     /**
      * Get list of optional products for recommendation.
      *
-     * @param string $product_id
+     * @param string $productId
      * @return array
      */
-    public function getDefaultProducts(string $product_id): array;
+    public function getDefaultProducts(string $productId): array;
 
     /**
      * Get list of optional products for recommendation.
      *
-     * @param string $product_id
+     * @param string $productId
      * @return array
      */
-    public function getAutoRecommendationProducts(string $product_id): array;
+    public function getAutoRecommendationProducts(string $productId): array;
 
 	/**
 	 * Validate product IDs exist in the shop.
 	 *
-	 * @param string $shop_id
-	 * @param array $product_ids
+	 * @param string $shopId
+	 * @param array $productIds
 	 * @return array
 	 *
 	 * @throws ProductNotFoundException
 	 */
-	public function validateProductIds(string $shop_id, array $product_ids): array;
+	public function validateProductIds(string $shopId, array $productIds): array;
 
     /**
      * Validate product IDs exist in the shop.
      *
-     * @param string $shop_id
-     * @param array $list_product_gid
+     * @param string $shopId
+     * @param array $productGids
      * @return array
      *
      * @throws ProductNotFoundException
      */
-    public function validateListProductGid(string $shop_id, array $list_product_gid): array;
+    public function validateListProductGid(string $shopId, array $productGids): array;
 
 	/**
 	 * Validate product ID exist in the shop.
 	 *
-	 * @param string $shop_id
-	 * @param string $product_id
+	 * @param string $shopId
+	 * @param string $productId
 	 * @return ProductCollection
 	 *
 	 * @throws ProductNotFoundException
 	 */
-	public function validateProductId(string $shop_id, string $product_id): ProductCollection;
+	public function validateProductId(string $shopId, string $productId): ProductCollection;
 
     /**
      * Get list of product GID by IDs.
      *
-     * @param array $product_ids
+     * @param array $productIds
      * @return array
      */
-    public function getListGidByIds(array $product_ids): array;
+    public function getListGidByIds(array $productIds): array;
 
     /**
      * Get list of product ID by GIDs.
      *
-     * @param array $product_gids
+     * @param array $productGids
      * @return array
      */
-    public function getIdsByGids(array $product_gids): array;
+    public function getIdsByGids(array $productGids): array;
 
     /**
      * Get product GID by ID.
      *
-     * @param string $product_id
+     * @param string $productId
      * @return string
      */
-    public function getGidById(string $product_id): string;
+    public function getGidById(string $productId): string;
 
     /**
      * Get all product of a shop not in a list of product ids.
      *
-     * @param string $shop_id
-     * @param array $product_ids
+     * @param string $shopId
+     * @param array $productIds
      * @return array
      */
-    public function getProductsNotIn(string $shop_id, array $product_ids): array;
+    public function getProductsNotIn(string $shopId, array $productIds): array;
 
     /**
      * Get all product of a shop not in a list of product GIDs.
      *
-     * @param string $shop_id
-     * @param array $product_gids
+     * @param string $shopId
+     * @param array $productGids
      * @return array
      */
-    public function getProductGidsNotIn(string $shop_id, array $product_gids): array;
+    public function getProductGidsNotIn(string $shopId, array $productGids): array;
 
     /**
      * Get list of product active by IDs.
@@ -189,33 +189,33 @@ interface IProductQuery
     /**
      * Get handle and GID by IDs.
      *
-     * @param array $product_ids
+     * @param array $productIds
      * @return array
      */
-    public function getHandleAndGidByIds(array $product_ids): array;
+    public function getHandleAndGidByIds(array $productIds): array;
 
     /**
      * Get existing products by GIDs and shop ID.
      *
-     * @param string $shop_id
-     * @param array $products_gid
+     * @param string $shopId
+     * @param array $productGids
      * @return array
      */
-    public function getExistingProductsGid(string $shop_id, array $products_gid): array;
+    public function getExistingProductsGid(string $shopId, array $productGids): array;
 
     /**
      * Get product ID and GID by shop ID.
      *
-     * @param string $shop_id
+     * @param string $shopId
      * @return array
      */
-    public function getIdAndGidByShopId(string $shop_id): array;
+    public function getIdAndGidByShopId(string $shopId): array;
 
     /**
      * Get map of product ID with key GID by shop ID.
      *
-     * @param string $shop_id
+     * @param string $shopId
      * @return array
      */
-    public function getMapIdWithKeyGidByShopId(string $shop_id): array;
+    public function getMapIdWithKeyGidByShopId(string $shopId): array;
 }

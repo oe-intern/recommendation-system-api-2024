@@ -20,24 +20,24 @@ class ProductEventController extends BaseController
     /**
      * @var IProductEvent
      */
-    protected IProductEvent $product_event_service;
+    protected IProductEvent $productEventService;
 
     /**
      * ProductEventController constructor.
      *
-     * @param UserContext $user_context
-     * @param IProductEvent $product_event_service
-     * @param IShopQuery $shop_query
-     * @param IProductQuery $product_query
+     * @param UserContext $userContext
+     * @param IProductEvent $productEventService
+     * @param IShopQuery $shopQuery
+     * @param IProductQuery $productQuery
      */
     public function __construct(
-        UserContext $user_context,
-        IProductEvent $product_event_service,
-        IShopQuery $shop_query,
-        IProductQuery $product_query,
+        UserContext $userContext,
+        IProductEvent $productEventService,
+        IShopQuery $shopQuery,
+        IProductQuery $productQuery,
     ) {
-        parent::__construct($user_context, $product_query, $shop_query);
-        $this->product_event_service = $product_event_service;
+        parent::__construct($userContext, $productQuery, $shopQuery);
+        $this->productEventService = $productEventService;
     }
 
     /**
@@ -74,27 +74,27 @@ class ProductEventController extends BaseController
      * Get list of events for a shop.
      *
      * @param Request $request
-     * @param EventType $event_type
+     * @param EventType $eventType
      * @return Response
      *
      * @throws MissingProductIdException
      * @throws ProductNotFoundException
      * @throws ShopNotFoundException
      */
-    private function getStatisticsData(Request $request, EventType $event_type): Response
+    private function getStatisticsData(Request $request, EventType $eventType): Response
     {
-        $shop_id = $this->getShopId();
-        $product_id = $request->query('product_id');
-        $product_id = $product_id ? $this->getProductId($shop_id, $product_id) : null;
-        $start_date = $request->query('start_date');
-        $end_date = $request->query('end_date');
-        $group_by = $request->query('group_by');
+        $shopId = $this->getShopId();
+        $productId = $request->query('product_id');
+        $productId = $productId ? $this->getProductId($shopId, $productId) : null;
+        $startDate = $request->query('start_date');
+        $endDate = $request->query('end_date');
+        $groupBy = $request->query('group_by');
 
-        $events = match ($event_type) {
-            EventType::CLICK => $this->product_event_service
-                ->getClickData($shop_id, $product_id, $start_date, $end_date, $group_by),
-            EventType::ADD_TO_CART => $this->product_event_service
-                ->getAddToCartData($shop_id, $product_id, $start_date, $end_date, $group_by),
+        $events = match ($eventType) {
+            EventType::CLICK => $this->productEventService
+                ->getClickData($shopId, $productId, $startDate, $endDate, $groupBy),
+            EventType::ADD_TO_CART => $this->productEventService
+                ->getAddToCartData($shopId, $productId, $startDate, $endDate, $groupBy),
         };
 
         return response()->success('Events retrieved successfully', $events);
@@ -109,11 +109,11 @@ class ProductEventController extends BaseController
      */
     public function getProductPerformance(Request $request): Response
     {
-        $shop_id = $this->getShopId();
-        $start_date = $request->query('start_date');
-        $end_date = $request->query('end_date');
+        $shopId = $this->getShopId();
+        $startDate = $request->query('start_date');
+        $endDate = $request->query('end_date');
 
-        $events = $this->product_event_service->getProductPerformance($shop_id, $start_date, $end_date);
+        $events = $this->productEventService->getProductPerformance($shopId, $startDate, $endDate);
 
         return response()->success('Events retrieved successfully', $events);
     }
@@ -130,13 +130,13 @@ class ProductEventController extends BaseController
      */
     public function addToCart(Request $request): Response
     {
-        $product_id = $request->input('product_id');
+        $productId = $request->input('product_id');
         $data = $request->input('data');
-        $number_of_items = $request->input('number_of_items');
-        $shop_id = $this->getShopId();
-        $product_id = $this->getProductId($shop_id, $product_id);
+        $numberOfItems = $request->input('number_of_items');
+        $shopId = $this->getShopId();
+        $productId = $this->getProductId($shopId, $productId);
 
-        ProcessAddToCartEvent::dispatch($shop_id, $product_id, $data, $number_of_items);
+        ProcessAddToCartEvent::dispatch($shopId, $productId, $data, $numberOfItems);
 
         return response()->success('Events updated successfully');
     }
@@ -153,12 +153,12 @@ class ProductEventController extends BaseController
      */
     public function click(Request $request): Response
     {
-        $product_id = $request->input('product_id');
+        $productId = $request->input('product_id');
         $data = $request->input('data');
-        $shop_id = $this->getShopId();
-        $product_id = $this->getProductId($shop_id, $product_id);
+        $shopId = $this->getShopId();
+        $productId = $this->getProductId($shopId, $productId);
 
-        ProcessClickEvent::dispatch($shop_id, $product_id, $data);
+        ProcessClickEvent::dispatch($shopId, $productId, $data);
 
         return response()->success('Events updated successfully');
     }

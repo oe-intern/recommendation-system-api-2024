@@ -12,70 +12,70 @@ class JobRecommendationCommand implements IJobRecommendationCommand
     /**
      * @var IJobRecommendationQuery
      */
-    protected IJobRecommendationQuery $job_recommendation_query;
+    protected IJobRecommendationQuery $jobRecommendationQuery;
 
     /**
      * JobRecommendationCommand constructor.
      *
-     * @param IJobRecommendationQuery $job_recommendation_query
+     * @param IJobRecommendationQuery $jobRecommendationQuery
      */
-    public function __construct(IJobRecommendationQuery $job_recommendation_query)
+    public function __construct(IJobRecommendationQuery $jobRecommendationQuery)
     {
-        $this->job_recommendation_query = $job_recommendation_query;
+        $this->jobRecommendationQuery = $jobRecommendationQuery;
     }
 
     /**
      * Create a new job recommendation.
      *
-     * @param string $shop_id
+     * @param string $shopId
      * @param JobRecommendationStatus $status
-     * @param int|null $retry_count
+     * @param int|null $retryCount
      * @return JobRecommendationCollection
      */
     public function create(
-        string $shop_id,
+        string $shopId,
         JobRecommendationStatus $status,
-        ?int $retry_count,
+        ?int $retryCount,
     ): JobRecommendationCollection {
         return JobRecommendationCollection::query()
             ->create([
-                'shop_id' => $shop_id,
+                'shop_id' => $shopId,
                 'status' => $status->value,
-                'retry_count' => $retry_count ?? 0,
+                'retry_count' => $retryCount ?? 0,
             ]);
     }
 
     /**
      * Increment the retry count of the job recommendation.
      *
-     * @param string $job_id
+     * @param string $jobId
      * @return JobRecommendationCollection
      */
-    public function incrementRetryCount(string $job_id): JobRecommendationCollection
+    public function incrementRetryCount(string $jobId): JobRecommendationCollection
     {
-        $job_recommendation = $this->job_recommendation_query->getById($job_id);
-        $job_recommendation->update(
-            ['retry_count' => $job_recommendation->getRetryCount() + 1],
+        $jobRecommendation = $this->jobRecommendationQuery->getById($jobId);
+        $jobRecommendation->update(
+            ['retry_count' => $jobRecommendation->getRetryCount() + 1],
         );
 
-        return $job_recommendation;
+        return $jobRecommendation;
     }
 
     /**
      * Update the job recommendation.
      *
-     * @param string $job_id
+     * @param string $jobId
      * @param JobRecommendationStatus $status
      * @param array|null $result
      * @return bool
      */
     public function update(
-        string $job_id,
+        string $jobId,
         JobRecommendationStatus $status,
         ?array $result,
     ): bool {
-        return $this->job_recommendation_query
-            ->getById($job_id)
+        return $this->jobRecommendationQuery
+            ->getById($jobId)
             ->update([
                 'status' => $status->value,
                 'result' => $result,

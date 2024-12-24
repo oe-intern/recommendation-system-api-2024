@@ -13,14 +13,14 @@ class ShopUpdate implements Handler
     /**
      * @var UserQuery
      */
-    protected UserQuery $user_query;
+    protected UserQuery $userQuery;
 
     /**
      * Shop Update constructor.
      */
-    public function __construct(UserQuery $user_query)
+    public function __construct(UserQuery $userQuery)
     {
-        $this->user_query = $user_query;
+        $this->userQuery = $userQuery;
     }
 
     /**
@@ -28,16 +28,16 @@ class ShopUpdate implements Handler
      */
     public function handle(string $topic, string $shop, array $body): void
     {
-        $user_domain = UserDomain::fromNative($shop);
-        $user = $this->user_query->getByDomain($user_domain);
+        $userDomain = UserDomain::fromNative($shop);
+        $user = $this->userQuery->getByDomain($userDomain);
 
         if (!$user) {
             return;
         }
 
         $data = $body;
-        $data['name'] = $user_domain->toNative();
-        $data['email'] =  "shop@{$user_domain->toNative()}";
+        $data['name'] = $userDomain->toNative();
+        $data['email'] =  "shop@{$userDomain->toNative()}";
         $data['shop_name'] = data_get($body, 'name');
         $data['shop_email'] = data_get($body, 'email');
         $data['shop_id'] = data_get($body, 'id');

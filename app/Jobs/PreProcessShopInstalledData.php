@@ -27,7 +27,7 @@ class PreProcessShopInstalledData implements ShouldQueue
     /**
      * @var bool
      */
-    protected bool $is_trashed;
+    protected bool $isTrashed;
 
     /**
      * @var array
@@ -38,46 +38,46 @@ class PreProcessShopInstalledData implements ShouldQueue
      * Create a new job instance
      *
      * @param string $domain
-     * @param bool $is_trashed
+     * @param bool $isTrashed
      * @param array $products
      */
-    public function __construct(string $domain, bool $is_trashed, array $products)
+    public function __construct(string $domain, bool $isTrashed, array $products)
     {
         $this->domain = $domain;
-        $this->is_trashed = $is_trashed;
+        $this->isTrashed = $isTrashed;
         $this->products = $products;
     }
 
     /**
      * Execute the job
      *
-     * @param IProductQueryShopify $product_query
-     * @param IProductCommand $product_command
-     * @param IProduct $product_service
-     * @param IShopQuery $shop_query
-     * @param IShopCommand $shop_command
-     * @param ShopifyTransform $product_transform
+     * @param IProductQueryShopify $productQuery
+     * @param IProductCommand $productCommand
+     * @param IProduct $productService
+     * @param IShopQuery $shopQuery
+     * @param IShopCommand $shopCommand
+     * @param ShopifyTransform $productTransform
      * @return void
      *
      * @throws Exception
      */
     public function handle(
-        IProductQueryShopify $product_query,
-        IProductCommand $product_command,
-        IProduct $product_service,
-        IShopQuery $shop_query,
-        IShopCommand $shop_command,
-        ShopifyTransform $product_transform,
+        IProductQueryShopify $productQuery,
+        IProductCommand $productCommand,
+        IProduct $productService,
+        IShopQuery $shopQuery,
+        IShopCommand $shopCommand,
+        ShopifyTransform $productTransform,
     ): void {
-        $products_data = $product_transform->shopifyDataListToCollectionDataList($this->products);
+        $productsData = $productTransform->shopifyDataListToCollectionDataList($this->products);
 
         // Create or update the shop and its data
-        if ($this->is_trashed) {
-            $shop = $shop_query->getByDomain($this->domain);
-            $product_service->createOrUpdateMany($shop, $products_data);
+        if ($this->isTrashed) {
+            $shop = $shopQuery->getByDomain($this->domain);
+            $productService->createOrUpdateMany($shop, $productsData);
         } else {
-            $new_shop = $shop_command->create($this->domain);
-            $product_command->createMany($new_shop, $products_data);
+            $newShop = $shopCommand->create($this->domain);
+            $productCommand->createMany($newShop, $productsData);
         }
     }
 }

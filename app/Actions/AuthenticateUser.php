@@ -18,23 +18,23 @@ class AuthenticateUser
     /**
      * @var InstallShop
      */
-    protected InstallShop $install_shop;
+    protected InstallShop $installShop;
 
     /**
      * @var AfterAuthorize
      */
-    protected AfterAuthorize $after_authorize;
+    protected AfterAuthorize $afterAuthorize;
 
     /**
      * Create a new action instance.
      */
     public function __construct(
-        InstallShop $install_shop,
-        AfterAuthorize $after_authorize,
+        InstallShop $installShop,
+        AfterAuthorize $afterAuthorize,
 
     ) {
-        $this->install_shop = $install_shop;
-        $this->after_authorize = $after_authorize;
+        $this->installShop = $installShop;
+        $this->afterAuthorize = $afterAuthorize;
     }
 
     /**
@@ -52,16 +52,16 @@ class AuthenticateUser
         );
 
         $domain = UserDomain::fromNative($request->query('shop'));
-        $user_context = app(UserContext::class);
-        $user_context->setShopifySession($session);
+        $userContext = app(UserContext::class);
+        $userContext->setShopifySession($session);
 
         // Install the shop
-        $user_id = call_user_func(
-            $this->install_shop,
+        $userId = call_user_func(
+            $this->installShop,
             $domain,
             $session
         );
 
-        call_user_func($this->after_authorize, $user_id);
+        call_user_func($this->afterAuthorize, $userId);
     }
 }

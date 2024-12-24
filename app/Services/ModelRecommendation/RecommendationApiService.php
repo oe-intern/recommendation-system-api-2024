@@ -30,14 +30,14 @@ class RecommendationApiService implements IRecommendationApi
     /**
      * @var string
      */
-    protected string $base_url;
+    protected string $baseUrl;
 
     /**
      * RecommendationApiService constructor.
      */
     public function __construct()
     {
-        $this->base_url = config('services.recommendation.url');
+        $this->baseUrl = config('services.recommendation.url');
         $this->MAX_RETRIES = config('services.recommendation.max_retries');
         $this->TIMEOUT = config('services.recommendation.timeout');
     }
@@ -68,7 +68,7 @@ class RecommendationApiService implements IRecommendationApi
     private function makePostRequest(string $endpoint, array $data): array
     {
         try {
-            $response = $this->getHttpRequest()->post("$this->base_url/$endpoint", $data);
+            $response = $this->getHttpRequest()->post("$this->baseUrl/$endpoint", $data);
             return $this->handleResponse($response);
         } catch (Exception $e) {
             throw new Exception("Failed to call the $endpoint endpoint.");
@@ -102,13 +102,13 @@ class RecommendationApiService implements IRecommendationApi
     /**
      * Call the external check state of task recommendation endpoint.
      *
-     * @param string $job_id
+     * @param string $jobId
      * @return GetJobRecommendationResponse
      * @throws Exception
      */
-    public function getJobRecommendation(string $job_id): GetJobRecommendationResponse
+    public function getJobRecommendation(string $jobId): GetJobRecommendationResponse
     {
-        $response = $this->makeGetRequest("job/$job_id");
+        $response = $this->makeGetRequest("job/$jobId");
 
         return new GetJobRecommendationResponse(
             $response['job_id'],
@@ -151,7 +151,7 @@ class RecommendationApiService implements IRecommendationApi
     private function makeGetRequest(string $endpoint): array
     {
         try {
-            $response = $this->getHttpRequest()->get("$this->base_url/$endpoint");
+            $response = $this->getHttpRequest()->get("$this->baseUrl/$endpoint");
             return $this->handleResponse($response);
         } catch (Exception $e) {
             throw new Exception("Failed to call the $endpoint endpoint.");

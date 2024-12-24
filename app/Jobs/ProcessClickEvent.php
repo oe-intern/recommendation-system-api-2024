@@ -17,12 +17,12 @@ class ProcessClickEvent implements ShouldQueue
     /**
      * @var string
      */
-    protected string $shop_id;
+    protected string $shopId;
 
     /**
      * @var string
      */
-    protected string $product_id;
+    protected string $productId;
 
     /**
      * @var mixed
@@ -30,30 +30,30 @@ class ProcessClickEvent implements ShouldQueue
     protected mixed $data;
 
     /**
-     * @param string $shop_id
-     * @param string $product_id
+     * @param string $shopId
+     * @param string $productId
      * @param mixed $data
      */
-    public function __construct(string $shop_id, string $product_id, mixed $data)
+    public function __construct(string $shopId, string $productId, mixed $data)
     {
-        $this->shop_id = $shop_id;
-        $this->product_id = $product_id;
+        $this->shopId = $shopId;
+        $this->productId = $productId;
         $this->data = $data;
     }
 
     /**
      * Execute the job
      *
-     * @param IProductEvent $product_event_service
+     * @param IProductEvent $productEventService
      * @return void
      *
      * @throws ProductNotFoundException
      */
-    public function handle(IProductEvent $product_event_service): void
+    public function handle(IProductEvent $productEventService): void
     {
-        $product_event_service->click(
-            $this->shop_id,
-            $this->product_id,
+        $productEventService->click(
+            $this->shopId,
+            $this->productId,
             $this->data
         );
     }

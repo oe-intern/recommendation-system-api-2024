@@ -13,12 +13,12 @@ class ProductQuery implements IProductQuery
     /**
      * Get a product of a shop by ID.
      *
-     * @param string $product_id
+     * @param string $productId
      * @return ProductCollection|null
      */
-    public function getById(string $product_id): ?ProductCollection
+    public function getById(string $productId): ?ProductCollection
     {
-        return ProductCollection::query()->find($product_id);
+        return ProductCollection::query()->find($productId);
     }
 
     /**
@@ -35,42 +35,42 @@ class ProductQuery implements IProductQuery
     /**
      * Check if the product exist in the database.
      *
-     * @param string $shop_id
-     * @param string $product_id
+     * @param string $shopId
+     * @param string $productId
      * @return ProductCollection
      *
      * @throws ModelNotFoundException
      */
-    public function checkProductExist(string $shop_id, string $product_id): ProductCollection
+    public function checkProductExist(string $shopId, string $productId): ProductCollection
     {
         return ProductCollection::query()
-            ->where('id', $product_id)
-            ->where('shop_id', $shop_id)
+            ->where('id', $productId)
+            ->where('shop_id', $shopId)
             ->firstOrFail();
     }
 
     /**
      * Get list of referenced products for recommendation.
      *
-     * @param string $product_id
+     * @param string $productId
      * @return array
      */
-    public function getReferencedProducts(string $product_id): array
+    public function getReferencedProducts(string $productId): array
     {
-        return $this->getProductRecommendationIds($product_id, 'referenced_ids');
+        return $this->getProductRecommendationIds($productId, 'referenced_ids');
     }
 
     /**
      * Get list of product IDs using a specific attribute for recommendation.
      *
-     * @param string $product_id
+     * @param string $productId
      * @param string $attribute
      * @return array
      */
-    private function getProductRecommendationIds(string $product_id, string $attribute): array
+    private function getProductRecommendationIds(string $productId, string $attribute): array
     {
         return ProductCollection::query()
-            ->where('id', $product_id)
+            ->where('id', $productId)
             ->first()
             ->getAttributeValue($attribute);
     }
@@ -78,92 +78,92 @@ class ProductQuery implements IProductQuery
     /**
      * Get list of optional products for recommendation.
      *
-     * @param string $product_id
+     * @param string $productId
      * @return array
      */
-    public function getManualProducts(string $product_id): array
+    public function getManualProducts(string $productId): array
     {
-        return $this->getProductRecommendationIds($product_id, 'manual_ids');
+        return $this->getProductRecommendationIds($productId, 'manual_ids');
     }
 
     /**
      * Get list of optional products for recommendation.
      *
-     * @param string $product_id
+     * @param string $productId
      * @return array
      */
-    public function getDefaultProducts(string $product_id): array
+    public function getDefaultProducts(string $productId): array
     {
-        return $this->getProductRecommendationIds($product_id, 'manual_ids');
+        return $this->getProductRecommendationIds($productId, 'manual_ids');
     }
 
     /**
      * Get list of optional products for recommendation.
      *
-     * @param string $product_id
+     * @param string $productId
      * @return array
      */
-    public function getAutoRecommendationProducts(string $product_id): array
+    public function getAutoRecommendationProducts(string $productId): array
     {
-        return $this->getProductRecommendationIds($product_id, 'recommendation_ids');
+        return $this->getProductRecommendationIds($productId, 'recommendation_ids');
     }
 
     /**
      * Validate product IDs exist in the shop.
      *
-     * @param string $shop_id
-     * @param array $product_ids
+     * @param string $shopId
+     * @param array $productIds
      * @return array
      *
      * @throws ProductNotFoundException
      */
-    public function validateProductIds(string $shop_id, array $product_ids): array
+    public function validateProductIds(string $shopId, array $productIds): array
     {
-        $existing_products = $this->getByShopIdAndIds($shop_id, $product_ids);
-        $existing_product_ids = collect($existing_products)->pluck('id')->toArray();
+        $existingProducts = $this->getByShopIdAndIds($shopId, $productIds);
+        $existing_product_ids = collect($existingProducts)->pluck('id')->toArray();
 
-        $not_existing = array_diff($product_ids, $existing_product_ids);
+        $not_existing = array_diff($productIds, $existing_product_ids);
         if (!empty($not_existing)) {
             throw new ProductNotFoundException($not_existing);
         }
 
-        return $existing_products;
+        return $existingProducts;
     }
 
     /**
      * Validate product IDs exist in the shop.
      *
-     * @param string $shop_id
-     * @param array $list_product_gid
+     * @param string $shopId
+     * @param array $productGids
      * @return array
      *
      * @throws ProductNotFoundException
      */
-    public function validateListProductGid(string $shop_id, array $list_product_gid): array
+    public function validateListProductGid(string $shopId, array $productGids): array
     {
-        $existing_products = $this->getByShopIdAndListGid($shop_id, $list_product_gid);
-        $existing_product_ids = collect($existing_products)->pluck('gid')->toArray();
+        $existingProducts = $this->getByShopIdAndListGid($shopId, $productGids);
+        $existing_product_ids = collect($existingProducts)->pluck('gid')->toArray();
 
-        $not_existing = array_diff($list_product_gid, $existing_product_ids);
+        $not_existing = array_diff($productGids, $existing_product_ids);
         if (!empty($not_existing)) {
             throw new ProductNotFoundException($not_existing);
         }
 
-        return collect($existing_products)->pluck('id')->toArray();
+        return collect($existingProducts)->pluck('id')->toArray();
     }
 
     /**
      * Get list products of a shop by IDs
      *
-     * @param array $product_ids
-     * @param string $shop_id
+     * @param array $productIds
+     * @param string $shopId
      * @return array
      */
-    public function getByShopIdAndIds(string $shop_id, array $product_ids): array
+    public function getByShopIdAndIds(string $shopId, array $productIds): array
     {
         return ProductCollection::query()
-            ->where('shop_id', $shop_id)
-            ->whereIn('id', $product_ids)
+            ->where('shop_id', $shopId)
+            ->whereIn('id', $productIds)
             ->get()
             ->all();
     }
@@ -171,15 +171,15 @@ class ProductQuery implements IProductQuery
     /**
      * Get list products of a shop by list Gid
      *
-     * @param array $list_product_gid
-     * @param string $shop_id
+     * @param array $productGids
+     * @param string $shopId
      * @return array
      */
-    public function getByShopIdAndListGid(string $shop_id, array $list_product_gid): array
+    public function getByShopIdAndListGid(string $shopId, array $productGids): array
     {
         return ProductCollection::query()
-            ->where('shop_id', $shop_id)
-            ->whereIn('gid', $list_product_gid)
+            ->where('shop_id', $shopId)
+            ->whereIn('gid', $productGids)
             ->get()
             ->all();
     }
@@ -198,18 +198,18 @@ class ProductQuery implements IProductQuery
     /**
      * Validate product IDs exist in the shop.
      *
-     * @param string $shop_id
-     * @param string $product_id
+     * @param string $shopId
+     * @param string $productId
      * @return ProductCollection
      *
      * @throws ProductNotFoundException
      */
-    public function validateProductId(string $shop_id, string $product_id): ProductCollection
+    public function validateProductId(string $shopId, string $productId): ProductCollection
     {
-        $product = $this->getByShopIdAndId($shop_id, $product_id);
+        $product = $this->getByShopIdAndId($shopId, $productId);
 
         if (!$product) {
-            throw new ProductNotFoundException($product_id);
+            throw new ProductNotFoundException($productId);
         }
 
         return $product;
@@ -218,29 +218,29 @@ class ProductQuery implements IProductQuery
     /**
      * Get a product of a shop by shop domain and product ID.
      *
-     * @param string $shop_id
-     * @param string $product_id
+     * @param string $shopId
+     * @param string $productId
      * @return ProductCollection|null
      */
-    public function getByShopIdAndId(string $shop_id, string $product_id): ?ProductCollection
+    public function getByShopIdAndId(string $shopId, string $productId): ?ProductCollection
     {
         return ProductCollection::query()
-            ->where('shop_id', $shop_id)
-            ->where('id', $product_id)
+            ->where('shop_id', $shopId)
+            ->where('id', $productId)
             ->first();
     }
 
     /**
      * Get a product of a shop by Shopify ID.
      *
-     * @param string $shop_id
+     * @param string $shopId
      * @param string $gid
      * @return ProductCollection|null
      */
-    public function getByShopIdAndGid(string $shop_id, string $gid): ?ProductCollection
+    public function getByShopIdAndGid(string $shopId, string $gid): ?ProductCollection
     {
         return ProductCollection::query()
-            ->where('shop_id', $shop_id)
+            ->where('shop_id', $shopId)
             ->where('gid', $gid)
             ->first();
     }
@@ -248,13 +248,13 @@ class ProductQuery implements IProductQuery
     /**
      * Get list of product GID by IDs.
      *
-     * @param array $product_ids
+     * @param array $productIds
      * @return array
      */
-    public function getListGidByIds(array $product_ids): array
+    public function getListGidByIds(array $productIds): array
     {
         return ProductCollection::query()
-            ->whereIn('id', $product_ids)
+            ->whereIn('id', $productIds)
             ->get()
             ->pluck('gid')
             ->toArray();
@@ -263,13 +263,13 @@ class ProductQuery implements IProductQuery
     /**
      * Get list of product ID by GIDs.
      *
-     * @param array $product_gids
+     * @param array $productGids
      * @return array
      */
-    public function getIdsByGids(array $product_gids): array
+    public function getIdsByGids(array $productGids): array
     {
         return ProductCollection::query()
-            ->whereIn('gid', $product_gids)
+            ->whereIn('gid', $productGids)
             ->get()
             ->pluck('id')
             ->toArray();
@@ -278,13 +278,13 @@ class ProductQuery implements IProductQuery
     /**
      * Get product GID by ID.
      *
-     * @param string $product_id
+     * @param string $productId
      * @return string
      */
-    public function getGidById(string $product_id): string
+    public function getGidById(string $productId): string
     {
         return ProductCollection::query()
-            ->where('id', $product_id)
+            ->where('id', $productId)
             ->first()
             ->getGid();
     }
@@ -292,15 +292,15 @@ class ProductQuery implements IProductQuery
     /**
      * Get all product of a shop not in a list of product ids.
      *
-     * @param string $shop_id
-     * @param array $product_ids
+     * @param string $shopId
+     * @param array $productIds
      * @return array
      */
-    public function getProductsNotIn(string $shop_id, array $product_ids): array
+    public function getProductsNotIn(string $shopId, array $productIds): array
     {
         return ProductCollection::query()
-            ->where('shop_id', $shop_id)
-            ->whereNotIn('id', $product_ids)
+            ->where('shop_id', $shopId)
+            ->whereNotIn('id', $productIds)
             ->get()
             ->pluck('id')
             ->toArray();
@@ -309,15 +309,15 @@ class ProductQuery implements IProductQuery
     /**
      * Get all product of a shop not in a list of product GIDs.
      *
-     * @param string $shop_id
-     * @param array $product_gids
+     * @param string $shopId
+     * @param array $productGids
      * @return array
      */
-    public function getProductGidsNotIn(string $shop_id, array $product_gids): array
+    public function getProductGidsNotIn(string $shopId, array $productGids): array
     {
         return ProductCollection::query()
-            ->where('shop_id', $shop_id)
-            ->whereNotIn('gid', $product_gids)
+            ->where('shop_id', $shopId)
+            ->whereNotIn('gid', $productGids)
             ->get()
             ->pluck('gid')
             ->toArray();
@@ -342,13 +342,13 @@ class ProductQuery implements IProductQuery
     /**
      * Get list of product handle and GID by IDs.
      *
-     * @param array $product_ids
+     * @param array $productIds
      * @return array
      */
-    public function getHandleAndGidByIds(array $product_ids): array
+    public function getHandleAndGidByIds(array $productIds): array
     {
         return ProductCollection::query()
-            ->whereIn('id', $product_ids)
+            ->whereIn('id', $productIds)
             ->get()
             ->map(function ($product) {
                 return [
@@ -362,15 +362,15 @@ class ProductQuery implements IProductQuery
     /**
      * Get existing products by GIDs and shop ID.
      *
-     * @param string $shop_id
-     * @param array $products_gid
+     * @param string $shopId
+     * @param array $productGids
      * @return array
      */
-    public function getExistingProductsGid(string $shop_id, array $products_gid): array
+    public function getExistingProductsGid(string $shopId, array $productGids): array
     {
         return ProductCollection::query()
-            ->where('shop_id', $shop_id)
-            ->whereIn('gid', $products_gid)
+            ->where('shop_id', $shopId)
+            ->whereIn('gid', $productGids)
             ->get()
             ->pluck('gid')
             ->toArray();
@@ -379,13 +379,13 @@ class ProductQuery implements IProductQuery
     /**
      * Get product ID and GID by shop ID.
      *
-     * @param string $shop_id
+     * @param string $shopId
      * @return array
      */
-    public function getIdAndGidByShopId(string $shop_id): array
+    public function getIdAndGidByShopId(string $shopId): array
     {
         return ProductCollection::query()
-            ->where('shop_id', $shop_id)
+            ->where('shop_id', $shopId)
             ->get()
             ->map(function ($product) {
                 return [
@@ -399,13 +399,13 @@ class ProductQuery implements IProductQuery
     /**
      * Get map of product ID with key GID by shop ID.
      *
-     * @param string $shop_id
+     * @param string $shopId
      * @return array
      */
-    public function getMapIdWithKeyGidByShopId(string $shop_id): array
+    public function getMapIdWithKeyGidByShopId(string $shopId): array
     {
         return ProductCollection::query()
-            ->where('shop_id', $shop_id)
+            ->where('shop_id', $shopId)
             ->get()
             ->pluck('id', 'gid')
             ->toArray();

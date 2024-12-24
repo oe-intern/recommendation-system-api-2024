@@ -11,12 +11,12 @@ interface User
     /**
      * Get by ID.
      */
-    public function getById(UserId $user_id, array $with = [], bool $with_trashed = false);
+    public function getById(UserId $userId, array $with = [], bool $withTrashed = false);
 
     /**
      * Get by domain.
      */
-    public function getByDomain(UserDomain $domain, array $with = [], bool $with_trashed = false);
+    public function getByDomain(UserDomain $domain, array $with = [], bool $withTrashed = false);
 
     /**
      * Get all records.

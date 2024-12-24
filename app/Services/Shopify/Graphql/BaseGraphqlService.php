@@ -16,14 +16,14 @@ abstract class BaseGraphqlService
     /**
      * @var UserContext
      */
-    protected UserContext $user_context;
+    protected UserContext $userContext;
 
     /**
      * Create a new BaseGraphqlService instance.
      */
-    public function __construct(UserContext $user_context)
+    public function __construct(UserContext $userContext)
     {
-        $this->user_context = $user_context;
+        $this->userContext = $userContext;
     }
 
     /**
@@ -52,28 +52,28 @@ abstract class BaseGraphqlService
     public function graphql($data, array $query = [], array $extraHeaders = [], ?int $tries = null)
     {
         $client = new Graphql(
-            $this->user_context->getDomain()->toNative(),
-            $this->user_context->getAccessToken()->toNative()
+            $this->userContext->getDomain()->toNative(),
+            $this->userContext->getAccessToken()->toNative()
         );
 
         $response = $client->query($data, $query, $extraHeaders);
         $response = $response->getDecodedBody();
 
         $container = data_get($response, 'data');
-        $first_key = array_key_first((array) $container);
-        $user_errors = data_get($container, $first_key . '.userErrors');
+        $firstKey = array_key_first((array) $container);
+        $userErrors = data_get($container, $firstKey . '.userErrors');
 
-        if ($user_errors) {
-            throw new ShopifyGraphqlUserError($user_errors);
+        if ($userErrors) {
+            throw new ShopifyGraphqlUserError($userErrors);
         }
 
-        $max_tries = config('shopify-app.graphql_max_tries', 3);
+        $maxTries = config('shopify-app.graphql_max_tries', 3);
 
         if ($errors = data_get($response, 'errors')) {
             if (count($errors) === 1) {
-                $error_code = data_get($errors, '0.extensions.code');
+                $errorCode = data_get($errors, '0.extensions.code');
 
-                if ($error_code === 'THROTTLED' && $tries < $max_tries) {
+                if ($errorCode === 'THROTTLED' && $tries < $maxTries) {
                     sleep(1);
 
                     return $this->graphql($data, $query, $extraHeaders, $tries + 1);
@@ -110,13 +110,13 @@ abstract class BaseGraphqlService
             $nodes = data_get($element, 'nodes', []);
             $result = array_merge($result, $nodes);
             $pageInfo = data_get($element, 'pageInfo', []);
-            $has_next_page = data_get($pageInfo, 'hasNextPage', false);
+            $hasNextPage = data_get($pageInfo, 'hasNextPage', false);
 
-            if ($has_next_page) {
-                $next_cursor = Arr::get($pageInfo, 'endCursor');
-                $params['after'] = $next_cursor;
+            if ($hasNextPage) {
+                $nextCursor = Arr::get($pageInfo, 'endCursor');
+                $params['after'] = $nextCursor;
             }
-        } while ($has_next_page);
+        } while ($hasNextPage);
 
         return $result;
     }

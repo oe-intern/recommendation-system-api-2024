@@ -71,9 +71,9 @@ class User implements UserCommand
      * Helpers to get the shop.
      *
      */
-    protected function get(UserId $id, bool $with_trashed = false): ?UserModel
+    protected function get(UserId $id, bool $withTrashed = false): ?UserModel
     {
-        return $this->query->getById($id, [], $with_trashed);
+        return $this->query->getById($id, [], $withTrashed);
     }
 
     /**

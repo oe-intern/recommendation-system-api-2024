@@ -43,12 +43,12 @@ interface IRecommendationApi
     /**
      * Call the external recommend for check state of task recommendation endpoint.
      *
-     * @param string $job_id
+     * @param string $jobId
      * @return GetJobRecommendationResponse
      *
      * @throws Exception
      */
-    public function getJobRecommendation(string $job_id): GetJobRecommendationResponse;
+    public function getJobRecommendation(string $jobId): GetJobRecommendationResponse;
 
     /**
      * Call the external recommend for check state of task recommendation endpoint.

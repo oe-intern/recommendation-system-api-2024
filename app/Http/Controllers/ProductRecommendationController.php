@@ -18,30 +18,30 @@ class ProductRecommendationController extends BaseController
     /**
      * @var IProductRecommendation
      */
-    protected IProductRecommendation $product_recommendation_service;
+    protected IProductRecommendation $productRecommendationService;
 
     /**
      * RecommendationController constructor.
      *
-     * @param UserContext $user_context
-     * @param IProductRecommendation $product_recommendation_service
-     * @param IProductQuery $product_query
-     * @param IShopQuery $shop_query
+     * @param UserContext $userContext
+     * @param IProductRecommendation $productRecommendationService
+     * @param IProductQuery $productQuery
+     * @param IShopQuery $shopQuery
      */
     public function __construct(
-        UserContext $user_context,
-        IProductRecommendation $product_recommendation_service,
-        IProductQuery $product_query,
-        IShopQuery $shop_query,
+        UserContext $userContext,
+        IProductRecommendation $productRecommendationService,
+        IProductQuery $productQuery,
+        IShopQuery $shopQuery,
     ) {
-        parent::__construct($user_context, $product_query, $shop_query);
-        $this->product_recommendation_service = $product_recommendation_service;
+        parent::__construct($userContext, $productQuery, $shopQuery);
+        $this->productRecommendationService = $productRecommendationService;
     }
 
     /**
      * Get list of recommendations for a product.
      *
-     * @param string $product_id
+     * @param string $productId
      * @param Request $request
      * @return Response
      *
@@ -49,14 +49,14 @@ class ProductRecommendationController extends BaseController
      * @throws ProductNotFoundException
      * @throws ShopNotFoundException
      */
-    public function getRecommendation(string $product_id, Request $request): Response
+    public function getRecommendation(string $productId, Request $request): Response
     {
-        $shop_id = $this->getShopId();
-        $product_id = $this->getProductId($shop_id, $product_id);
+        $shopId = $this->getShopId();
+        $productId = $this->getProductId($shopId, $productId);
 
-        $products = $this->product_recommendation_service->getRecommendedProducts(
-            $shop_id,
-            $product_id,
+        $products = $this->productRecommendationService->getRecommendedProducts(
+            $shopId,
+            $productId,
         );
 
         return response()->success('Recommendations retrieved successfully', $products);
@@ -66,7 +66,7 @@ class ProductRecommendationController extends BaseController
     /**
      * Set state of the recommendation for admin.
      *
-     * @param string $product_id
+     * @param string $productId
      * @param Request $request
      * @return Response
      *
@@ -74,25 +74,25 @@ class ProductRecommendationController extends BaseController
      * @throws ProductNotFoundException
      * @throws ShopNotFoundException
      */
-    public function setRecommendationType(string $product_id, Request $request): Response
+    public function setRecommendationType(string $productId, Request $request): Response
     {
-        $shop_id = $this->getShopId();
-        $product_id = $this->getProductId($shop_id, $product_id);
+        $shopId = $this->getShopId();
+        $productId = $this->getProductId($shopId, $productId);
         $type = $request->input('recommendation_type');
 
-        $product = $this->product_recommendation_service->setRecommendationType($shop_id, $product_id, $type);
+        $product = $this->productRecommendationService->setRecommendationType($shopId, $productId, $type);
 
-        $response_data = [
+        $responseData = [
             'id' => $product->getGid(),
             'recommendation_type' => $product->getRecommendationType(),
         ];
-        return response()->success('Recommendation type has been set.', $response_data);
+        return response()->success('Recommendation type has been set.', $responseData);
     }
 
     /**
      * Set list manual recommendation for a product by admin.
      *
-     * @param string $product_id
+     * @param string $productId
      * @param Request $request
      * @return Response
      *
@@ -100,32 +100,32 @@ class ProductRecommendationController extends BaseController
      * @throws ProductNotFoundException
      * @throws ShopNotFoundException
      */
-    public function setManualRecommendation(string $product_id, Request $request): Response
+    public function setManualRecommendation(string $productId, Request $request): Response
     {
-        $shop_id = $this->getShopId();
-        $product_id = $this->getProductId($shop_id, $product_id);
-        $list_recommended_gid = array_map([Utils::class, 'getIdFromGid'], $request->input('recommended_ids'));
-        $recommended_type = $request->input('recommendation_type');
+        $shopId = $this->getShopId();
+        $productId = $this->getProductId($shopId, $productId);
+        $recommendedGids = array_map([Utils::class, 'getIdFromGid'], $request->input('recommended_ids'));
+        $recommendationType = $request->input('recommendation_type');
 
-        $product = $this->product_recommendation_service->setRecommendedProducts(
-            $shop_id,
-            $product_id,
-            $list_recommended_gid,
-            $recommended_type,
+        $product = $this->productRecommendationService->setRecommendedProducts(
+            $shopId,
+            $productId,
+            $recommendedGids,
+            $recommendationType,
         );
 
-        $response_data = [
+        $responseData = [
             'id' => $product->getGid(),
-            'recommended_ids' => $this->product_query->getListGidByIds($product->getManualIds()),
+            'recommended_ids' => $this->productQuery->getListGidByIds($product->getManualIds()),
             'recommendation_type' => $product->getRecommendationType(),
         ];
-        return response()->success('Manual recommendation has been set.', $response_data);
+        return response()->success('Manual recommendation has been set.', $responseData);
     }
 
     /**
      * Get list manual recommendation for a product by admin.
      *
-     * @param string $product_id
+     * @param string $productId
      * @param Request $request
      * @return Response
      *
@@ -133,14 +133,14 @@ class ProductRecommendationController extends BaseController
      * @throws ProductNotFoundException
      * @throws ShopNotFoundException
      */
-    public function getManualRecommendation(string $product_id, Request $request): Response
+    public function getManualRecommendation(string $productId, Request $request): Response
     {
-        $shop_id = $this->getShopId();
-        $product_id = $this->getProductId($shop_id, $product_id);
+        $shopId = $this->getShopId();
+        $productId = $this->getProductId($shopId, $productId);
 
-        $manual_gids = $this->product_recommendation_service->getManualProducts($product_id);
+        $manualGids = $this->productRecommendationService->getManualProducts($productId);
 
-        return response()->success('Manual recommendation has been set.', $manual_gids);
+        return response()->success('Manual recommendation has been set.', $manualGids);
     }
 
     public function getRecommendationTypes()

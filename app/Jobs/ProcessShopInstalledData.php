@@ -44,7 +44,7 @@ class ProcessShopInstalledData implements ShouldQueue
     /**
      * @var array
      */
-    protected array $map_gid_id;
+    protected array $gidToIdMap;
 
     /**
      * @var array
@@ -54,12 +54,12 @@ class ProcessShopInstalledData implements ShouldQueue
     /**
      * @var string
      */
-    protected string $shop_id;
+    protected string $shopId;
 
     /**
      * @var string
      */
-    protected string $shop_domain;
+    protected string $shopDomain;
 
     /**
      * @var ShopProductRecommendationRequestDTO
@@ -69,83 +69,83 @@ class ProcessShopInstalledData implements ShouldQueue
     /**
      * @var IRecommendationApi
      */
-    private IRecommendationApi $recommendation_api_service;
+    private IRecommendationApi $recommendationApiService;
 
     /**
      * @var IProductRecommendation
      */
-    private IProductRecommendation $product_recommendation_service;
+    private IProductRecommendation $productRecommendationService;
 
     /**
      * @var IJobRecommendationCommand
      */
-    private IJobRecommendationCommand $job_recommendation_command;
+    private IJobRecommendationCommand $jobRecommendationCommand;
 
     /**
      * @var IShopRecommendationCommand
      */
-    private IShopRecommendationCommand $shop_recommendation_command;
+    private IShopRecommendationCommand $shopRecommendationCommand;
 
     /**
      * @var IEmailSender
      */
-    private IEmailSender $email_sender_service;
+    private IEmailSender $emailSenderService;
 
     /**
      * Create a new job instance.
      *
-     * @param array $map_gid_id
+     * @param array $gidToIdMap
      * @param array $products
-     * @param string $shop_id
-     * @param string $shop_domain
+     * @param string $shopId
+     * @param string $shopDomain
      * @param ShopProductRecommendationRequestDTO $data
      */
-    public function __construct(array $map_gid_id, array $products, string $shop_id, string $shop_domain, ShopProductRecommendationRequestDTO $data)
+    public function __construct(array $gidToIdMap, array $products, string $shopId, string $shopDomain, ShopProductRecommendationRequestDTO $data)
     {
-        $this->map_gid_id = $map_gid_id;
+        $this->gidToIdMap = $gidToIdMap;
         $this->products = $products;
-        $this->shop_id = $shop_id;
-        $this->shop_domain = $shop_domain;
+        $this->shopId = $shopId;
+        $this->shopDomain = $shopDomain;
         $this->data = $data;
     }
 
     /**
      * Execute the job.
      *
-     * @param IRecommendationApi $recommendation_api_service
-     * @param IProductRecommendation $product_recommendation_service
-     * @param IJobRecommendationCommand $job_recommendation_command
-     * @param IShopRecommendationCommand $shop_recommendation_command
-     * @param IEmailSender $email_sender_service
+     * @param IRecommendationApi $recommendationApiService
+     * @param IProductRecommendation $productRecommendationService
+     * @param IJobRecommendationCommand $jobRecommendationCommand
+     * @param IShopRecommendationCommand $shopRecommendationCommand
+     * @param IEmailSender $emailSenderService
      * @return void
      */
     public function handle(
-        IRecommendationApi $recommendation_api_service,
-        IProductRecommendation $product_recommendation_service,
-        IJobRecommendationCommand $job_recommendation_command,
-        IShopRecommendationCommand $shop_recommendation_command,
-        IEmailSender $email_sender_service,
+        IRecommendationApi $recommendationApiService,
+        IProductRecommendation $productRecommendationService,
+        IJobRecommendationCommand $jobRecommendationCommand,
+        IShopRecommendationCommand $shopRecommendationCommand,
+        IEmailSender $emailSenderService,
     ): void {
         $this->initializeServices(
-            $recommendation_api_service,
-            $product_recommendation_service,
-            $job_recommendation_command,
-            $shop_recommendation_command,
-            $email_sender_service,
+            $recommendationApiService,
+            $productRecommendationService,
+            $jobRecommendationCommand,
+            $shopRecommendationCommand,
+            $emailSenderService,
         );
 
         $job = $this->createPendingJob();
 
         try {
-            $recommendation_data = $this->fetchRecommendationData();
+            $recommendationData = $this->fetchRecommendationData();
 
-            if ($this->isRecommendationFailed($recommendation_data)) {
+            if ($this->isRecommendationFailed($recommendationData)) {
                 $this->updateFailedJob($job->getId(), 'Recommendation failed.');
                 return;
             }
 
-            $this->updateJobStatus($job->getId(), $recommendation_data->status, $recommendation_data->toArray());
-            $this->processJobRecommendation($job->getId(), $recommendation_data->job_id);
+            $this->updateJobStatus($job->getId(), $recommendationData->status, $recommendationData->toArray());
+            $this->processJobRecommendation($job->getId(), $recommendationData->jobId);
         } catch (Exception $e) {
             $this->handleJobException($job->getId(), $e);
         }
@@ -154,25 +154,25 @@ class ProcessShopInstalledData implements ShouldQueue
     /**
      * Initialize services.
      *
-     * @param IRecommendationApi $recommendation_api_service
-     * @param IProductRecommendation $product_recommendation_service
-     * @param IJobRecommendationCommand $job_recommendation_command
-     * @param IShopRecommendationCommand $shop_recommendation_command
-     * @param IEmailSender $email_sender_service
+     * @param IRecommendationApi $recommendationApiService
+     * @param IProductRecommendation $productRecommendationService
+     * @param IJobRecommendationCommand $jobRecommendationCommand
+     * @param IShopRecommendationCommand $shopRecommendationCommand
+     * @param IEmailSender $emailSenderService
      * @return void
      */
     private function initializeServices(
-        IRecommendationApi $recommendation_api_service,
-        IProductRecommendation $product_recommendation_service,
-        IJobRecommendationCommand $job_recommendation_command,
-        IShopRecommendationCommand $shop_recommendation_command,
-        IEmailSender $email_sender_service,
+        IRecommendationApi $recommendationApiService,
+        IProductRecommendation $productRecommendationService,
+        IJobRecommendationCommand $jobRecommendationCommand,
+        IShopRecommendationCommand $shopRecommendationCommand,
+        IEmailSender $emailSenderService,
     ): void {
-        $this->recommendation_api_service = $recommendation_api_service;
-        $this->product_recommendation_service = $product_recommendation_service;
-        $this->job_recommendation_command = $job_recommendation_command;
-        $this->shop_recommendation_command = $shop_recommendation_command;
-        $this->email_sender_service = $email_sender_service;
+        $this->recommendationApiService = $recommendationApiService;
+        $this->productRecommendationService = $productRecommendationService;
+        $this->jobRecommendationCommand = $jobRecommendationCommand;
+        $this->shopRecommendationCommand = $shopRecommendationCommand;
+        $this->emailSenderService = $emailSenderService;
     }
 
     /**
@@ -182,12 +182,12 @@ class ProcessShopInstalledData implements ShouldQueue
      */
     private function createPendingJob(): JobRecommendationCollection
     {
-        $job = $this->job_recommendation_command->create(
-            $this->shop_id,
+        $job = $this->jobRecommendationCommand->create(
+            $this->shopId,
             JobRecommendationStatus::PENDING,
             0,
         );
-        $this->shop_recommendation_command->updateLastJobRecommendation($this->shop_id, $job->getId());
+        $this->shopRecommendationCommand->updateLastJobRecommendation($this->shopId, $job->getId());
 
         return $job;
     }
@@ -200,88 +200,88 @@ class ProcessShopInstalledData implements ShouldQueue
      */
     private function fetchRecommendationData(): JobRecommendationResponse
     {
-        return $this->recommendation_api_service->recommend($this->data);
+        return $this->recommendationApiService->recommend($this->data);
     }
 
     /**
      * Check if request recommendation is failed.
      *
-     * @param $recommendation_data
+     * @param $recommendationData
      * @return bool
      */
-    private function isRecommendationFailed($recommendation_data): bool
+    private function isRecommendationFailed($recommendationData): bool
     {
-        return $recommendation_data->isRevoked() || $recommendation_data->isFailed();
+        return $recommendationData->isRevoked() || $recommendationData->isFailed();
     }
 
     /**
      * Update job failed recommendation status.
      *
-     * @param string $job_id
+     * @param string $jobId
      * @param mixed $data
      * @return void
      */
-    private function updateFailedJob(string $job_id, mixed $data): void
+    private function updateFailedJob(string $jobId, mixed $data): void
     {
-        $this->job_recommendation_command->update($job_id, JobRecommendationStatus::FAILED, ['error' => $data]);
-        $this->sendEmail(JobRecommendationStatus::FAILED, $this->shop_id, $this->shop_domain);
+        $this->jobRecommendationCommand->update($jobId, JobRecommendationStatus::FAILED, ['error' => $data]);
+        $this->sendEmail(JobRecommendationStatus::FAILED, $this->shopId, $this->shopDomain);
     }
 
     /**
      * Update job recommendation status.
      *
-     * @param string $job_id
+     * @param string $jobId
      * @param JobRecommendationStatus $status
      * @param array $data
      * @return void
      */
-    private function updateJobStatus(string $job_id, JobRecommendationStatus $status, array $data): void
+    private function updateJobStatus(string $jobId, JobRecommendationStatus $status, array $data): void
     {
-        $this->job_recommendation_command->update($job_id, $status, $data);
+        $this->jobRecommendationCommand->update($jobId, $status, $data);
     }
 
     /**
      * Process job recommendation.
      *
-     * @param string $job_collection_id
-     * @param string $job_recommendation_id
+     * @param string $jobCollectionId
+     * @param string $recommendationJobId
      * @return void
      */
-    private function processJobRecommendation(string $job_collection_id, string $job_recommendation_id): void
+    private function processJobRecommendation(string $jobCollectionId, string $recommendationJobId): void
     {
-        $retry_recommend_process = 0;
+        $retryRecommendProcess = 0;
 
         do {
-            if ($this->attemptProcessJobRecommendation($job_collection_id, $job_recommendation_id)) {
+            if ($this->attemptProcessJobRecommendation($jobCollectionId, $recommendationJobId)) {
                 return;
             }
 
-            $retry_recommend_process++;
+            $retryRecommendProcess++;
             sleep(self::DELAY_RECOMMEND_PROCESS);
-        } while ($retry_recommend_process < self::MAX_RETRY_PROCESS);
+        } while ($retryRecommendProcess < self::MAX_RETRY_PROCESS);
 
-        $this->updateFailedJob($job_collection_id, 'Job recommendation process timed out after retries.');
+        $this->updateFailedJob($jobCollectionId, 'Job recommendation process timed out after retries.');
     }
 
     /**
      * Attempt to process job recommendation.
      *
-     * @param string $job_collection_id
-     * @param string $job_recommendation_id
+     * @param string $jobCollectionId
+     * @param string $recommendationJobId
      * @return bool
      */
-    private function attemptProcessJobRecommendation(string $job_collection_id, string $job_recommendation_id): bool
+    private function attemptProcessJobRecommendation(string $jobCollectionId, string $recommendationJobId): bool
     {
         try {
-            $job_response = $this->recommendation_api_service->getJobRecommendation($job_recommendation_id);
+            $jobResponse = $this->recommendationApiService->getJobRecommendation($recommendationJobId);
 
-            if ($this->isJobResponseFailed($job_response)) {
-                $this->updateFailedJob($job_collection_id, $job_response->error_message);
+            if ($this->isJobResponseFailed($jobResponse)) {
+                $this->updateFailedJob($jobCollectionId, $jobResponse->errorMessage);
                 return true;
             }
 
-            if ($job_response->isSuccessful()) {
-                $this->handleSuccessfulJob($job_collection_id, $job_response);
+            if ($jobResponse->isSuccessful()) {
+                $this->handleSuccessfulJob($jobCollectionId, $jobResponse);
                 return true;
             }
         } catch (Exception $e) {
@@ -294,73 +294,73 @@ class ProcessShopInstalledData implements ShouldQueue
     /**
      * Check if job response is failed.
      *
-     * @param $job_response
+     * @param $jobResponse
      * @return bool
      */
-    private function isJobResponseFailed($job_response): bool
+    private function isJobResponseFailed($jobResponse): bool
     {
-        return $job_response->isFailed() || $job_response->isRevoked();
+        return $jobResponse->isFailed() || $jobResponse->isRevoked();
     }
 
     /**
      * Handle successful job.
      *
-     * @param string $job_collection_id
-     * @param $job_response
+     * @param string $jobCollectionId
+     * @param $jobResponse
      * @return void
      */
-    private function handleSuccessfulJob(string $job_collection_id, $job_response): void
+    private function handleSuccessfulJob(string $jobCollectionId, $jobResponse): void
     {
         try {
-            $recommendation_data = $this->recommendation_api_service->getJobRecommendationResult($job_response->result_url);
-            $this->updateCompletedJob($recommendation_data, $job_collection_id, $job_response->toArray());
+            $recommendationData = $this->recommendationApiService->getJobRecommendationResult($jobResponse->resultUrl);
+            $this->updateCompletedJob($recommendationData, $jobCollectionId, $jobResponse->toArray());
 
         } catch (Exception $e) {
-            $this->updateFailedJob($job_collection_id, 'Failed to fetch recommendation result after retries.');
+            $this->updateFailedJob($jobCollectionId, 'Failed to fetch recommendation result after retries.');
         }
     }
 
     /**
      * Update job completed recommendation status.
      *
-     * @param array $recommendation_data
-     * @param string $job_id
+     * @param array $recommendationData
+     * @param string $jobId
      * @param mixed $result
      * @return void
      */
-    private function updateCompletedJob(array $recommendation_data, string $job_id, array $result): void
+    private function updateCompletedJob(array $recommendationData, string $jobId, array $result): void
     {
-        $this->product_recommendation_service->updateManyRecommendation(
-            $recommendation_data,
-            $this->map_gid_id,
+        $this->productRecommendationService->updateManyRecommendation(
+            $recommendationData,
+            $this->gidToIdMap,
         );
-        $this->job_recommendation_command->update($job_id, JobRecommendationStatus::SUCCESS, $result);
-        $this->shop_recommendation_command->decreaseRefreshRecommendation($this->shop_id);
-        $this->sendEmail(JobRecommendationStatus::SUCCESS, $this->shop_id, $this->shop_domain);
+        $this->jobRecommendationCommand->update($jobId, JobRecommendationStatus::SUCCESS, $result);
+        $this->shopRecommendationCommand->decreaseRefreshRecommendation($this->shopId);
+        $this->sendEmail(JobRecommendationStatus::SUCCESS, $this->shopId, $this->shopDomain);
     }
 
     /**
      * Handle exceptions during job processing.
      *
-     * @param string $job_id
+     * @param string $jobId
      * @param Exception $e
      * @return void
      */
-    private function handleJobException(string $job_id, Exception $e): void
+    private function handleJobException(string $jobId, Exception $e): void
     {
-        $this->updateJobStatus($job_id, JobRecommendationStatus::FAILED, ['error' => $e->getMessage()]);
+        $this->updateJobStatus($jobId, JobRecommendationStatus::FAILED, ['error' => $e->getMessage()]);
     }
 
     /**
      * Send email notification.
      *
      * @param JobRecommendationStatus $status
-     * @param string $shop_id
-     * @param string $shop_domain
+     * @param string $shopId
+     * @param string $shopDomain
      * @return void
      */
-    private function sendEmail(JobRecommendationStatus $status, string $shop_id, string $shop_domain): void
+    private function sendEmail(JobRecommendationStatus $status, string $shopId, string $shopDomain): void
     {
-        $this->email_sender_service->sendRecommendationEmail($shop_id, $shop_domain, $status);
+        $this->emailSenderService->sendRecommendationEmail($shopId, $shopDomain, $status);
     }
 }

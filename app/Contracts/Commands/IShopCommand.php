@@ -9,8 +9,8 @@ interface IShopCommand
     /**
      * Create a shop.
      *
-     * @param string $shop_domain
+     * @param string $shopDomain
      * @return ShopCollection
      */
-    public function create(string $shop_domain): ShopCollection;
+    public function create(string $shopDomain): ShopCollection;
 }

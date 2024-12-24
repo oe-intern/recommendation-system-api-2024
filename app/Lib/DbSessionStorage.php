@@ -17,34 +17,34 @@ class DbSessionStorage implements SessionStorage
      */
     public function loadSession(string $sessionId): ?Session
     {
-        $db_session = ShopifySession::where('session_id', $sessionId)->first();
+        $dbSession = ShopifySession::where('session_id', $sessionId)->first();
 
-        if ($db_session) {
+        if ($dbSession) {
             $session = new Session(
-                $db_session->session_id,
-                $db_session->shop,
-                $db_session->is_online == 1,
-                $db_session->state
+                $dbSession->session_id,
+                $dbSession->shop,
+                $dbSession->is_online == 1,
+                $dbSession->state
             );
-            if ($db_session->expires_at) {
-                $session->setExpires($db_session->expires_at);
+            if ($dbSession->expires_at) {
+                $session->setExpires($dbSession->expires_at);
             }
-            if ($db_session->access_token) {
-                $session->setAccessToken($db_session->access_token);
+            if ($dbSession->access_token) {
+                $session->setAccessToken($dbSession->access_token);
             }
-            if ($db_session->scope) {
-                $session->setScope($db_session->scope);
+            if ($dbSession->scope) {
+                $session->setScope($dbSession->scope);
             }
-            if ($db_session->user_id) {
+            if ($dbSession->user_id) {
                 $online_accessInfo = new AccessTokenOnlineUserInfo(
-                    (int)$db_session->user_id,
-                    $db_session->user_first_name,
-                    $db_session->user_last_name,
-                    $db_session->user_email,
-                    $db_session->user_email_verified == 1,
-                    $db_session->account_owner == 1,
-                    $db_session->locale,
-                    $db_session->collaborator == 1
+                    (int)$dbSession->user_id,
+                    $dbSession->user_first_name,
+                    $dbSession->user_last_name,
+                    $dbSession->user_email,
+                    $dbSession->user_email_verified == 1,
+                    $dbSession->account_owner == 1,
+                    $dbSession->locale,
+                    $dbSession->collaborator == 1
                 );
                 $session->setOnlineAccessInfo($online_accessInfo);
             }
@@ -58,30 +58,30 @@ class DbSessionStorage implements SessionStorage
      */
     public function storeSession(Session $session): bool
     {
-        $db_session = ShopifySession::where('session_id', $session->getId())->first();
-        if (!$db_session) {
-            $db_session = new ShopifySession;
+        $dbSession = ShopifySession::where('session_id', $session->getId())->first();
+        if (!$dbSession) {
+            $dbSession = new ShopifySession;
         }
-        $db_session->session_id = $session->getId();
-        $db_session->shop = $session->getShop();
-        $db_session->state = $session->getState();
-        $db_session->is_online = $session->isOnline();
-        $db_session->access_token = $session->getAccessToken();
-        $db_session->expires_at = $session->getExpires();
-        $db_session->scope = $session->getScope();
+        $dbSession->session_id = $session->getId();
+        $dbSession->shop = $session->getShop();
+        $dbSession->state = $session->getState();
+        $dbSession->is_online = $session->isOnline();
+        $dbSession->access_token = $session->getAccessToken();
+        $dbSession->expires_at = $session->getExpires();
+        $dbSession->scope = $session->getScope();
         if (!empty($session->getOnlineAccessInfo())) {
-            $db_session->user_id = $session->getOnlineAccessInfo()->getId();
-            $db_session->user_first_name = $session->getOnlineAccessInfo()->getFirstName();
-            $db_session->user_last_name = $session->getOnlineAccessInfo()->getLastName();
-            $db_session->user_email = $session->getOnlineAccessInfo()->getEmail();
-            $db_session->user_email_verified = $session->getOnlineAccessInfo()->isEmailVerified();
-            $db_session->account_owner = $session->getOnlineAccessInfo()->isAccountOwner();
-            $db_session->locale = $session->getOnlineAccessInfo()->getLocale();
-            $db_session->collaborator = $session->getOnlineAccessInfo()->isCollaborator();
+            $dbSession->user_id = $session->getOnlineAccessInfo()->getId();
+            $dbSession->user_first_name = $session->getOnlineAccessInfo()->getFirstName();
+            $dbSession->user_last_name = $session->getOnlineAccessInfo()->getLastName();
+            $dbSession->user_email = $session->getOnlineAccessInfo()->getEmail();
+            $dbSession->user_email_verified = $session->getOnlineAccessInfo()->isEmailVerified();
+            $dbSession->account_owner = $session->getOnlineAccessInfo()->isAccountOwner();
+            $dbSession->locale = $session->getOnlineAccessInfo()->getLocale();
+            $dbSession->collaborator = $session->getOnlineAccessInfo()->isCollaborator();
         }
 
-        return rescue(function () use ($db_session) {
-            return $db_session->save();
+        return rescue(function () use ($dbSession) {
+            return $dbSession->save();
         }, false);
     }
 

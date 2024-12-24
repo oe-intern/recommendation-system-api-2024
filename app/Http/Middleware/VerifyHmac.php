@@ -30,16 +30,16 @@ class VerifyHmac
         unset($input['hmac']);
         $secret = Utils::getShopifyConfig('api_secret');
 
-        $message_segments = [];
+        $messageSegments = [];
 
         foreach ($input as $key => $value) {
-            $message_segments[] = "{$key}={$value}";
+            $messageSegments[] = "{$key}={$value}";
         }
 
-        $message = implode('&', $message_segments);
-        $generated_hmac = hash_hmac('sha256', $message, $secret);
+        $message = implode('&', $messageSegments);
+        $generatedHmac = hash_hmac('sha256', $message, $secret);
 
-        if ($generated_hmac !== $hmac) {
+        if ($generatedHmac !== $hmac) {
             throw new BadRequestHttpException('HMAC is not correct');
         }
 

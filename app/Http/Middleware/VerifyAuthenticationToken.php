@@ -17,8 +17,8 @@ class VerifyAuthenticationToken
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $session_token = $request->query('token') ?? $request->query('id_token');
-        $token = $this->isApiRequest($request) ? $request->bearerToken() : $session_token;
+        $shopSession = $request->query('token') ?? $request->query('id_token');
+        $token = $this->isApiRequest($request) ? $request->bearerToken() : $shopSession;
 
         if (Context::$IS_EMBEDDED_APP) {
             SessionToken::fromNative($token);

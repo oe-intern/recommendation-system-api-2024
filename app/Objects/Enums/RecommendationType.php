@@ -5,9 +5,9 @@ namespace App\Objects\Enums;
 enum RecommendationType: string
 {
     // The default recommendation type.
-    case DEFAULT = 'default';
+    case DEFAULT = 'DEFAULT';
     // Customer recommendation type.
-    case AUTO = 'auto';
+    case AUTO = 'AUTO';
     // System recommendation type.
-    case MANUAL = 'manual';
+    case MANUAL = 'MANUAL';
 }

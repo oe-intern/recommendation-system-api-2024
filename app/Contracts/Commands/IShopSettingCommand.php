@@ -19,9 +19,9 @@ interface IShopSettingCommand
     /**
      * Set the recommendation state for a shop.
      *
-     * @param string $shop_id
+     * @param string $shopId
      * @param RecommendationState $state
      * @return bool
      */
-    public function setRecommendationState(string $shop_id, RecommendationState $state): bool;
+    public function setRecommendationState(string $shopId, RecommendationState $state): bool;
 }

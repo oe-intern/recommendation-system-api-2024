@@ -30,17 +30,17 @@ class EnsureShopifyInstalled
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $myshopify_domain = $request->query('shop');
+        $myshopifyDomain = $request->query('shop');
 
-        if (!$myshopify_domain) {
+        if (!$myshopifyDomain) {
             throw new MissingShopDomainException;
         }
 
-        $myshopify_domain = $myshopify_domain ? Utils::sanitizeShopDomain($myshopify_domain) : null;
-        $shopify_session = ShopifySession::where('shop', $myshopify_domain)->whereNotNull('access_token')->first();
-        $user_existed = User::where('myshopify_domain', $myshopify_domain)->exists();
+        $myshopifyDomain = $myshopifyDomain ? Utils::sanitizeShopDomain($myshopifyDomain) : null;
+        $shopifySession = ShopifySession::where('shop', $myshopifyDomain)->whereNotNull('access_token')->first();
+        $userExisted = User::where('myshopify_domain', $myshopifyDomain)->exists();
 
-        if (!$shopify_session || !$user_existed || !$shopify_session->isValid()) {
+        if (!$shopifySession || !$userExisted || !$shopifySession->isValid()) {
             return AuthRedirection::redirect($request);
         }
 

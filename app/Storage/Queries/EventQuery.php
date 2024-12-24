@@ -15,42 +15,42 @@ class EventQuery implements IEventQuery
     /**
      * @var IShopQuery
      */
-    protected IShopQuery $shop_query;
+    protected IShopQuery $shopQuery;
 
     /**
      * EventQuery constructor.
      *
-     * @param IShopQuery $shop_query
+     * @param IShopQuery $shopQuery
      */
-    public function __construct(IShopQuery $shop_query)
+    public function __construct(IShopQuery $shopQuery)
     {
-        $this->shop_query = $shop_query;
+        $this->shopQuery = $shopQuery;
     }
 
     /**
      * Filter click data for a shop
      *
-     * @param string $shop_id
-     * @param string|null $product_id
-     * @param string $start_date
-     * @param string $end_date
-     * @param AnalyticGroupBy|null $group_by
+     * @param string $shopId
+     * @param string|null $productId
+     * @param string $startDate
+     * @param string $endDate
+     * @param AnalyticGroupBy|null $groupBy
      * @return array
      */
     public function filterClickData(
-        string $shop_id,
-        ?string $product_id,
-        string $start_date,
-        string $end_date,
-        ?AnalyticGroupBy $group_by
+        string $shopId,
+        ?string $productId,
+        string $startDate,
+        string $endDate,
+        ?AnalyticGroupBy $groupBy
     ): array {
         return $this->filterEventData(
             EventType::CLICK,
-            $shop_id,
-            $product_id,
-            $start_date,
-            $end_date,
-            $group_by
+            $shopId,
+            $productId,
+            $startDate,
+            $endDate,
+            $groupBy
         );
     }
 
@@ -58,41 +58,41 @@ class EventQuery implements IEventQuery
      * Get query for event data
      *
      * @param EventType $type
-     * @param string $shop_id
-     * @param string|null $product_id
-     * @param string $start_date
-     * @param string $end_date
-     * @param AnalyticGroupBy|null $group_by
+     * @param string $shopId
+     * @param string|null $productId
+     * @param string $startDate
+     * @param string $endDate
+     * @param AnalyticGroupBy|null $groupBy
      * @return array
      */
     private function filterEventData(
         EventType $type,
-        string $shop_id,
-        ?string $product_id,
-        string $start_date,
-        string $end_date,
-        ?AnalyticGroupBy $group_by
+        string $shopId,
+        ?string $productId,
+        string $startDate,
+        string $endDate,
+        ?AnalyticGroupBy $groupBy
     ): array {
-        $start_date = $this->getFirstDay($start_date);
-        $end_date = $this->getEndDay($end_date);
+        $startDate = $this->getFirstDay($startDate);
+        $endDate = $this->getEndDay($endDate);
 
         $result = EventCollection::query()
             ->raw(function ($collection) use (
-                $group_by,
-                $shop_id,
-                $product_id,
+                $groupBy,
+                $shopId,
+                $productId,
                 $type,
-                $start_date,
-                $end_date
+                $startDate,
+                $endDate
             ) {
                 return $collection->aggregate([
                     [
                         '$match' => [
-                            'shop_id' => $shop_id,
-                            'product_id' => $product_id ?? ['$exists' => true],
+                            'shop_id' => $shopId,
+                            'product_id' => $productId ?? ['$exists' => true],
                             'created_at' => [
-                                '$gte' => $start_date,
-                                '$lte' => $end_date,
+                                '$gte' => $startDate,
+                                '$lte' => $endDate,
                             ],
                             'type' => $type->value,
                         ],
@@ -101,7 +101,7 @@ class EventQuery implements IEventQuery
                         '$project' => [
                             'group_key' => [
                                 '$dateToString' => [
-                                    'format' => $this->getGroupBy($group_by),
+                                    'format' => $this->getGroupBy($groupBy),
                                     'date' => '$created_at',
                                 ],
                             ],
@@ -152,8 +152,8 @@ class EventQuery implements IEventQuery
      */
     private function getFirstDay(string $date): UTCDateTime
     {
-        $start_day = Carbon::parse($date)->startOfDay();
-        return new UTCDateTime($start_day);
+        $startDay = Carbon::parse($date)->startOfDay();
+        return new UTCDateTime($startDay);
     }
 
     /**
@@ -162,8 +162,8 @@ class EventQuery implements IEventQuery
      */
     private function getEndDay(string $date): UTCDateTime
     {
-        $end_day = Carbon::parse($date)->endOfDay();
-        return new UTCDateTime($end_day);
+        $endDay = Carbon::parse($date)->endOfDay();
+        return new UTCDateTime($endDay);
     }
 
     /**
@@ -185,61 +185,61 @@ class EventQuery implements IEventQuery
     /**
      * Filter add to cart data for a shop
      *
-     * @param string $shop_id
-     * @param string|null $product_id
-     * @param string $start_date
-     * @param string $end_date
-     * @param AnalyticGroupBy|null $group_by
+     * @param string $shopId
+     * @param string|null $productId
+     * @param string $startDate
+     * @param string $endDate
+     * @param AnalyticGroupBy|null $groupBy
      * @return array
      */
     public function filterAddToCartData(
-        string $shop_id,
-        ?string $product_id,
-        string $start_date,
-        string $end_date,
-        ?AnalyticGroupBy $group_by
+        string $shopId,
+        ?string $productId,
+        string $startDate,
+        string $endDate,
+        ?AnalyticGroupBy $groupBy
     ): array {
         return $this->filterEventData(
             EventType::ADD_TO_CART,
-            $shop_id,
-            $product_id,
-            $start_date,
-            $end_date,
-            $group_by
+            $shopId,
+            $productId,
+            $startDate,
+            $endDate,
+            $groupBy
         );
     }
 
     /**
      * Get event data for a shop.
      *
-     * @param string $shop_id
-     * @param string $start_date
-     * @param string $end_date
+     * @param string $shopId
+     * @param string $startDate
+     * @param string $endDate
      * @return array
      */
     public function getEventData(
-        string $shop_id,
-        string $start_date,
-        string $end_date
+        string $shopId,
+        string $startDate,
+        string $endDate
     ): array {
-        $start_date = $this->getFirstDay($start_date);
-        $end_date = $this->getEndDay($end_date);
+        $startDate = $this->getFirstDay($startDate);
+        $endDate = $this->getEndDay($endDate);
 
         $result = EventCollection::query()
-            ->raw(function ($collection) use ($shop_id, $start_date, $end_date) {
+            ->raw(function ($collection) use ($shopId, $startDate, $endDate) {
                 return $collection->aggregate([
                     [
                         '$match' => [
-                            'shop_id' => $shop_id,
+                            'shop_id' => $shopId,
                             'created_at' => [
-                                '$gte' => $start_date,
-                                '$lte' => $end_date,
+                                '$gte' => $startDate,
+                                '$lte' => $endDate,
                             ],
                         ],
                     ],
                     [
                         '$group' => [
-                            '_id' => '$product_id',
+                            '_id' => '$productId',
                             'quantity' => ['$sum' => '$quantity'],
                         ],
                     ],

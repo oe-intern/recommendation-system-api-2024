@@ -9,14 +9,14 @@ interface IEmailSender
     /**
      * Handle send email to admin after complete recommendation process.
      *
-     * @param string $shop_id
-     * @param string $shop_domain
+     * @param string $shopId
+     * @param string $shopDomain
      * @param JobRecommendationStatus $status
      * @return void
      */
     public function sendRecommendationEmail(
-        string $shop_id,
-        string $shop_domain,
+        string $shopId,
+        string $shopDomain,
         JobRecommendationStatus $status,
     ): void;
 }

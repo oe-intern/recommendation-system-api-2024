@@ -4,6 +4,6 @@ namespace App\Objects\Enums;
 
 enum RecommendationState: string
 {
-    case ACTIVE = 'active';
-    case INACTIVE = 'inactive';
+    case ACTIVE = 'ACTIVE';
+    case INACTIVE = 'INACTIVE';
 }

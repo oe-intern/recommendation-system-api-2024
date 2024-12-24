@@ -18,10 +18,10 @@ class AuthEventBridgeWebhook
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $incoming_api_key = $request->header('X-Api-Key');
-        $expected_api_key = Utils::getShopifyConfig('webhook_event_bridge_secret');
+        $incomingApiKey = $request->header('X-Api-Key');
+        $expectedApiKey = Utils::getShopifyConfig('webhook_event_bridge_secret');
 
-        if ($incoming_api_key !== $expected_api_key) {
+        if ($incomingApiKey !== $expectedApiKey) {
             return response()->json(['error' => 'Unauthorized'], 401);
         }
 

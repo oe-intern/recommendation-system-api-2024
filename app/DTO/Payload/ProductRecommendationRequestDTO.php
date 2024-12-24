@@ -9,7 +9,7 @@ class ProductRecommendationRequestDTO
      *
      * @var int
      */
-    public int $number_of_items;
+    public int $numberOfItems;
 
     /**
      * List of products to recommend of a shop.
@@ -23,20 +23,20 @@ class ProductRecommendationRequestDTO
      *
      * @var string
      */
-    public string $product_id;
+    public string $productId;
 
     /**
      * ProductRecommendationRequestDTO constructor.
      *
-     * @param int $number_of_items
+     * @param int $numberOfItems
      * @param array $products
-     * @param string $product_id
+     * @param string $productId
      */
-    public function __construct(int $number_of_items, array $products, string $product_id)
+    public function __construct(int $numberOfItems, array $products, string $productId)
     {
-        $this->number_of_items = $number_of_items;
+        $this->numberOfItems = $numberOfItems;
         $this->products = $products;
-        $this->product_id = $product_id;
+        $this->productId = $productId;
     }
 
     /**
@@ -45,9 +45,9 @@ class ProductRecommendationRequestDTO
     public function toArray(): array
     {
         return [
-            'number_of_items' => $this->number_of_items,
+            'number_of_items' => $this->numberOfItems,
             'products' => $this->products,
-            'product_id' => $this->product_id,
+            'product_id' => $this->productId,
         ];
     }
 }

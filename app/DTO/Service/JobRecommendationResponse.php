@@ -11,7 +11,7 @@ class JobRecommendationResponse
      *
      * @var string
      */
-    public string $job_id;
+    public string $jobId;
 
     /**
      * Job status.
@@ -23,12 +23,12 @@ class JobRecommendationResponse
     /**
      * JobRecommendationResponseDTO constructor.
      *
-     * @param string $job_id
+     * @param string $jobId
      * @param string $status
      */
-    public function __construct(string $job_id, string $status)
+    public function __construct(string $jobId, string $status)
     {
-        $this->job_id = $job_id;
+        $this->jobId = $jobId;
         $this->status = JobRecommendationStatus::from($status);
     }
 
@@ -38,7 +38,7 @@ class JobRecommendationResponse
     public function toArray(): array
     {
         return [
-            'job_id' => $this->job_id,
+            'job_id' => $this->jobId,
             'status' => $this->status,
         ];
     }

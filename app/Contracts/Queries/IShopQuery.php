@@ -10,10 +10,10 @@ interface IShopQuery
     /**
      * Get a shop by domain.
      *
-     * @param string $shop_domain
+     * @param string $shopDomain
      * @return ShopCollection|null
      */
-    public function getByDomain(string $shop_domain): ?ShopCollection;
+    public function getByDomain(string $shopDomain): ?ShopCollection;
 
     /**
      * Get the auto recommendation settings for a shop.
@@ -26,18 +26,18 @@ interface IShopQuery
     /**
      * Get a shop by ID.
      *
-     * @param string $shop_id
+     * @param string $shopId
      * @return ShopCollection|null
      */
-    public function getById(string $shop_id): ?ShopCollection;
+    public function getById(string $shopId): ?ShopCollection;
 
     /**
      * Get a shop ID by domain.
      *
-     * @param string $shop_domain
+     * @param string $shopDomain
      * @return string
      *
      * @throws ShopNotFoundException
      */
-    public function getShopIdByDomain(string $shop_domain): string;
+    public function getShopIdByDomain(string $shopDomain): string;
 }

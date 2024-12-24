@@ -25,92 +25,92 @@ class ShopRecommendationService implements IShopRecommendation
     /**
      * @var IShopCommand
      */
-    protected IShopCommand $shop_command;
+    protected IShopCommand $shopCommand;
 
     /**
      * @var IShopQuery
      */
-    protected IShopQuery $shop_query;
+    protected IShopQuery $shopQuery;
 
     /**
      * @var IShopRecommendationQuery
      */
-    protected IShopRecommendationQuery $shop_recommendation_query;
+    protected IShopRecommendationQuery $shopRecommendationQuery;
 
     /**
      * @var IShopRecommendationCommand
      */
-    protected IShopRecommendationCommand $shop_recommendation_command;
+    protected IShopRecommendationCommand $shopRecommendationCommand;
 
     /**
      * @var IProductQueryShopify
      */
-    protected IProductQueryShopify $product_query_shopify;
+    protected IProductQueryShopify $productQueryShopify;
 
     /**
      * @var IJobRecommendationQuery
      */
-    protected IJobRecommendationQuery $job_recommendation_query;
+    protected IJobRecommendationQuery $jobRecommendationQuery;
 
     /**
      * @var ProductTransform
      */
-    protected ProductTransform $product_transform;
+    protected ProductTransform $productTransform;
 
     /**
      * @var IRecommendationProcess
      */
-    protected IRecommendationProcess $recommendation_process;
+    protected IRecommendationProcess $recommendationProcess;
 
     /**
      * ShopRecommendationService constructor.
      *
-     * @param IShopCommand $shop_command
-     * @param IShopQuery $shop_query
-     * @param IShopRecommendationQuery $shop_recommendation_query
-     * @param IShopRecommendationCommand $shop_recommendation_command
-     * @param IProductQueryShopify $product_query_shopify
-     * @param IJobRecommendationQuery $job_recommendation_query
-     * @param ShopifyTransform $product_transform
-     * @param IRecommendationProcess $recommendation_process
+     * @param IShopCommand $shopCommand
+     * @param IShopQuery $shopQuery
+     * @param IShopRecommendationQuery $shopRecommendationQuery
+     * @param IShopRecommendationCommand $shopRecommendationCommand
+     * @param IProductQueryShopify $productQueryShopify
+     * @param IJobRecommendationQuery $jobRecommendationQuery
+     * @param ShopifyTransform $productTransform
+     * @param IRecommendationProcess $recommendationProcess
      */
     public function __construct(
-        IShopCommand $shop_command,
-        IShopQuery $shop_query,
-        IShopRecommendationQuery $shop_recommendation_query,
-        IShopRecommendationCommand $shop_recommendation_command,
-        IProductQueryShopify $product_query_shopify,
-        IJobRecommendationQuery $job_recommendation_query,
-        ShopifyTransform $product_transform,
-        IRecommendationProcess $recommendation_process,
+        IShopCommand $shopCommand,
+        IShopQuery $shopQuery,
+        IShopRecommendationQuery $shopRecommendationQuery,
+        IShopRecommendationCommand $shopRecommendationCommand,
+        IProductQueryShopify $productQueryShopify,
+        IJobRecommendationQuery $jobRecommendationQuery,
+        ShopifyTransform $productTransform,
+        IRecommendationProcess $recommendationProcess,
     ) {
-        $this->shop_command = $shop_command;
-        $this->shop_query = $shop_query;
-        $this->shop_recommendation_query = $shop_recommendation_query;
-        $this->shop_recommendation_command = $shop_recommendation_command;
-        $this->product_query_shopify = $product_query_shopify;
-        $this->job_recommendation_query = $job_recommendation_query;
-        $this->product_transform = $product_transform;
-        $this->recommendation_process = $recommendation_process;
+        $this->shopCommand = $shopCommand;
+        $this->shopQuery = $shopQuery;
+        $this->shopRecommendationQuery = $shopRecommendationQuery;
+        $this->shopRecommendationCommand = $shopRecommendationCommand;
+        $this->productQueryShopify = $productQueryShopify;
+        $this->jobRecommendationQuery = $jobRecommendationQuery;
+        $this->productTransform = $productTransform;
+        $this->recommendationProcess = $recommendationProcess;
     }
 
     /**
      * Refresh the recommendations products for a shop.
      *
-     * @param string $shop_id
-     * @param string $shop_domain
+     * @param string $shopId
+     * @param string $shopDomain
      * @return void
      *
      * @throws RecommendationRefreshLimitException
      * @throws JobRecommendationRunningException
      */
-    public function refreshRecommendations(string $shop_id, string $shop_domain): void
+    public function refreshRecommendations(string $shopId, string $shopDomain): void
     {
-        $this->checkAfterRefresh($shop_id);
+        $this->checkAfterRefresh($shopId);
         $products = $this->getProductsData();
-        $orders = $this->getOrdersData($shop_domain);
+        $orders = $this->getOrdersData($shopDomain);
 
-        ExecuteRecommendationPipelineJob::dispatch($shop_domain, $products, $orders);
+        ExecuteRecommendationPipelineJob::dispatch($shopDomain, $products, $orders);
     }
 
     /**
@@ -120,8 +120,8 @@ class ShopRecommendationService implements IShopRecommendation
      */
     private function getProductsData(): array
     {
-        $products_data = $this->product_query_shopify->fetchAll();
-        return $this->product_transform->shopifyDataListToModelApiListData($products_data);
+        $productsData = $this->productQueryShopify->fetchAll();
+        return $this->productTransform->shopifyDataListToModelApiListData($productsData);
     }
 
     /**
@@ -132,40 +132,40 @@ class ShopRecommendationService implements IShopRecommendation
      */
     private function getOrdersData(string $domain): array
     {
-        return $this->recommendation_process->processOrderData($domain);
+        return $this->recommendationProcess->processOrderData($domain);
     }
 
     /**
      * Check the shop recommendation after refresh.
      *
-     * @param string $shop_id
+     * @param string $shopId
      * @return void
      * @throws RecommendationRefreshLimitException
      * @throws JobRecommendationRunningException
      */
-    private function checkAfterRefresh(string $shop_id): void
+    private function checkAfterRefresh(string $shopId): void
     {
-        $this->checkAndReset($shop_id);
-        $this->checkJobRunning($shop_id);
+        $this->checkAndReset($shopId);
+        $this->checkJobRunning($shopId);
     }
 
     /**
      * Check and reset the recommendation count for a shop.
      *
-     * @param string $shop_id
+     * @param string $shopId
      * @return void
      *
      * @throws RecommendationRefreshLimitException
      */
-    private function checkAndReset(string $shop_id): void
+    private function checkAndReset(string $shopId): void
     {
-        $shop_recommendation = $this->getShopRecommendation($shop_id);
+        $shopRecommendation = $this->getShopRecommendation($shopId);
 
-        if ($this->isExpired($shop_recommendation)) {
-            $this->shop_recommendation_command->resetRefreshRecommendation($shop_id);
+        if ($this->isExpired($shopRecommendation)) {
+            $this->shopRecommendationCommand->resetRefreshRecommendation($shopId);
         }
 
-        if ($this->isLimitRefresh($shop_recommendation)) {
+        if ($this->isLimitRefresh($shopRecommendation)) {
             throw new RecommendationRefreshLimitException();
         }
     }
@@ -175,11 +175,11 @@ class ShopRecommendationService implements IShopRecommendation
      *
      * @throws JobRecommendationRunningException
      */
-    private function checkJobRunning(string $shop_id): void
+    private function checkJobRunning(string $shopId): void
     {
-        $job_recommendation = $this->getLatestJobRecommendation($shop_id);
+        $jobRecommendation = $this->getLatestJobRecommendation($shopId);
 
-        if ($job_recommendation->getStatus()->equals(JobRecommendationStatus::PENDING)) {
+        if ($jobRecommendation->getStatus()->equals(JobRecommendationStatus::PENDING)) {
             throw new JobRecommendationRunningException();
         }
     }
@@ -187,46 +187,46 @@ class ShopRecommendationService implements IShopRecommendation
     /**
      * Get the shop recommendation instance.
      *
-     * @param string $shop_id
+     * @param string $shopId
      * @return ShopRecommendationSchema
      */
-    private function getShopRecommendation(string $shop_id): ShopRecommendationSchema
+    private function getShopRecommendation(string $shopId): ShopRecommendationSchema
     {
-        return $this->shop_recommendation_query->getByShopId($shop_id);
+        return $this->shopRecommendationQuery->getByShopId($shopId);
     }
 
     /**
      * Check if the shop recommendation info is expired.
      *
-     * @param ShopRecommendationSchema $shop_recommendation
+     * @param ShopRecommendationSchema $shopRecommendation
      * @return bool
      */
-    private function isExpired(ShopRecommendationSchema $shop_recommendation): bool
+    private function isExpired(ShopRecommendationSchema $shopRecommendation): bool
     {
-        $current_time = Utils::getNow();
-        $expires_at = $shop_recommendation->getExpiresAt();
+        $currentTime = Utils::getNow();
+        $expiresAt = $shopRecommendation->getExpiresAt();
 
-        return $expires_at->lessThan($current_time);
+        return $expiresAt->lessThan($currentTime);
     }
 
     /**
      * Check if the shop recommendation has reached the limit of refresh.
      *
-     * @param ShopRecommendationSchema $shop_recommendation
+     * @param ShopRecommendationSchema $shopRecommendation
      * @return bool
      */
-    private function isLimitRefresh(ShopRecommendationSchema $shop_recommendation): bool
+    private function isLimitRefresh(ShopRecommendationSchema $shopRecommendation): bool
     {
-        return $shop_recommendation->getRefreshCount() <= 0;
+        return $shopRecommendation->getRefreshCount() <= 0;
     }
 
     /**
      * Cancel the recommendations for a shop.
      *
-     * @param string $shop_id
+     * @param string $shopId
      * @return void
      */
-    public function cancelRecommendations(string $shop_id): void
+    public function cancelRecommendations(string $shopId): void
     {
         // TODO: Implement cancelRecommendations() method.
     }
@@ -234,68 +234,68 @@ class ShopRecommendationService implements IShopRecommendation
     /**
      * Get the processing status of the recommendations for a shop.
      *
-     * @param string $shop_id
+     * @param string $shopId
      * @return array
      */
-    public function getProcessingStatus(string $shop_id): array
+    public function getProcessingStatus(string $shopId): array
     {
-        $job_recommendation = $this->getLatestJobRecommendation($shop_id);
+        $jobRecommendation = $this->getLatestJobRecommendation($shopId);
 
         return [
-            'status' => $job_recommendation->getStatus(),
+            'status' => $jobRecommendation->getStatus(),
         ];
     }
 
     /**
      * Get the latest job recommendation for a shop.
      *
-     * @param string $shop_id
+     * @param string $shopId
      * @return JobRecommendationCollection
      */
-    private function getLatestJobRecommendation(string $shop_id): JobRecommendationCollection
+    private function getLatestJobRecommendation(string $shopId): JobRecommendationCollection
     {
-        $shop_recommendation = $this->getShopRecommendation($shop_id);
-        $last_job_id = $shop_recommendation->getLastJobRecommendationId();
+        $shopRecommendation = $this->getShopRecommendation($shopId);
+        $lastJobId = $shopRecommendation->getLastJobRecommendationId();
 
-        return $this->job_recommendation_query->getById($last_job_id);
+        return $this->jobRecommendationQuery->getById($lastJobId);
     }
 
     /**
      * Get the shop recommendations information.
      *
-     * @param string $shop_id
+     * @param string $shopId
      * @return array
      */
-    public function getShopRecommendations(string $shop_id): array
+    public function getShopRecommendations(string $shopId): array
     {
-        $shop_recommendation = $this->getShopRecommendation($shop_id);
+        $shopRecommendation = $this->getShopRecommendation($shopId);
 
         return [
-            'refresh_count' => $shop_recommendation->getRefreshCount(),
-            'expires_at' => $shop_recommendation->getExpiresAt(),
-            'email' => $shop_recommendation->getEmail(),
-            'email_notification' => $shop_recommendation->getEmailNotification(),
+            'refresh_count' => $shopRecommendation->getRefreshCount(),
+            'expires_at' => $shopRecommendation->getExpiresAt(),
+            'email' => $shopRecommendation->getEmail(),
+            'email_notification' => $shopRecommendation->getEmailNotification(),
         ];
     }
 
     /**
      * Update the shop enable recommendation notification & email for shop recommendation.
      *
-     * @param string $shop_id
-     * @param array $notification_data
+     * @param string $shopId
+     * @param array $notificationData
      * @return array
      */
-    public function updateShopRecommendationNotification(string $shop_id, array $notification_data): array
+    public function updateShopRecommendationNotification(string $shopId, array $notificationData): array
     {
-        $email = data_get($notification_data, 'email');
-        $email_notification = data_get($notification_data, 'email_notification');
+        $email = data_get($notificationData, 'email');
+        $emailNotification = data_get($notificationData, 'email_notification');
 
-        $this->shop_recommendation_command->updateNotification($shop_id, $email_notification, $email);
-        $shop_recommendation = $this->getShopRecommendation($shop_id);
+        $this->shopRecommendationCommand->updateNotification($shopId, $emailNotification, $email);
+        $shopRecommendation = $this->getShopRecommendation($shopId);
 
         return [
-            'email' => $shop_recommendation->getEmail(),
-            'email_notification' => $shop_recommendation->getEmailNotification(),
+            'email' => $shopRecommendation->getEmail(),
+            'email_notification' => $shopRecommendation->getEmailNotification(),
         ];
     }
 }

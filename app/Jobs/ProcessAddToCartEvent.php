@@ -18,12 +18,12 @@ class ProcessAddToCartEvent implements ShouldQueue
     /**
      * @var string
      */
-    protected string $shop_id;
+    protected string $shopId;
 
     /**
      * @var string
      */
-    protected string $product_id;
+    protected string $productId;
 
     /**
      * @var mixed
@@ -33,38 +33,38 @@ class ProcessAddToCartEvent implements ShouldQueue
     /*
      * @var int
      */
-    protected int $number_of_items;
+    protected int $numberOfItems;
 
     /**
-     * @param string $shop_id
-     * @param string $product_id
+     * @param string $shopId
+     * @param string $productId
      * @param mixed $data
-     * @param int|null $number_of_items
+     * @param int|null $numberOfItems
      */
-    public function __construct(string $shop_id, string $product_id, mixed $data, ?int $number_of_items)
+    public function __construct(string $shopId, string $productId, mixed $data, ?int $numberOfItems)
     {
-        $this->shop_id = $shop_id;
-        $this->product_id = $product_id;
+        $this->shopId = $shopId;
+        $this->productId = $productId;
         $this->data = $data;
-        $this->number_of_items = $number_of_items;
+        $this->numberOfItems = $numberOfItems;
     }
 
     /**
      * Execute the job
      *
-     * @param IProductEvent $product_event_service
-     * @param IProductQuery $product_query
+     * @param IProductEvent $productEventService
+     * @param IProductQuery $productQuery
      * @return void
      *
      * @throws ProductNotFoundException
      */
-    public function handle(IProductEvent $product_event_service, IProductQuery $product_query): void
+    public function handle(IProductEvent $productEventService, IProductQuery $productQuery): void
     {
-        $product_event_service->addToCart(
-            $this->shop_id,
-            $this->product_id,
+        $productEventService->addToCart(
+            $this->shopId,
+            $this->productId,
             $this->data,
-            $this->number_of_items,
+            $this->numberOfItems,
         );
     }
 }

@@ -19,21 +19,21 @@ class UserContext
     /**
      * @var Session
      */
-    private $shopify_session;
+    private $shopifySession;
 
     /**
      * @var UserQuery
      */
-    protected UserQuery $user_query;
+    protected UserQuery $userQuery;
 
     /**
      * UserContext constructor.
      *
-     * @param UserQuery $user_query
+     * @param UserQuery $userQuery
      */
-    public function __construct(UserQuery $user_query)
+    public function __construct(UserQuery $userQuery)
     {
-        $this->user_query = $user_query;
+        $this->userQuery = $userQuery;
     }
 
     /**
@@ -57,11 +57,11 @@ class UserContext
     /**
      * Set the Shopify session
      *
-     * @param Session $shopify_session
+     * @param Session $shopifySession
      */
-    public function setShopifySession(Session $shopify_session): void
+    public function setShopifySession(Session $shopifySession): void
     {
-        $this->shopify_session = $shopify_session;
+        $this->shopifySession = $shopifySession;
     }
 
     /**
@@ -69,7 +69,7 @@ class UserContext
      */
     public function getShopifySession(): ?Session
     {
-        return $this->shopify_session;
+        return $this->shopifySession;
     }
 
     /**
@@ -79,8 +79,8 @@ class UserContext
      */
     public function getAccessToken(): IAccessToken
     {
-        if ($shopify_session = $this->getShopifySession()) {
-            return AccessToken::fromNative($shopify_session->getAccessToken());
+        if ($shopifySession = $this->getShopifySession()) {
+            return AccessToken::fromNative($shopifySession->getAccessToken());
         }
 
         if ($user = $this->getUser()) {
@@ -104,9 +104,9 @@ class UserContext
         }
 
         if ($this->getShopifySession()) {
-            $domain = $this->shopify_session->getShop();
+            $domain = $this->shopifySession->getShop();
             $domain = UserDomain::fromNative($domain);
-            $user = $this->user_query->getByDomain($domain);
+            $user = $this->userQuery->getByDomain($domain);
 
             $domain = $user->name;
         }

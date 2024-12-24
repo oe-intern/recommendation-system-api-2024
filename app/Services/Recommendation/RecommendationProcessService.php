@@ -11,68 +11,68 @@ class RecommendationProcessService implements IRecommendationProcess
     /**
      * @var IOrderQueryShopify
      */
-    protected IOrderQueryShopify $order_query_shopify;
+    protected IOrderQueryShopify $orderQueryShopify;
 
     /**
-     * @var IRecommendationApi $recommendation_api_service;
+     * @var IRecommendationApi $recommendationApiService;
      */
-    protected IRecommendationApi $recommendation_api_service;
+    protected IRecommendationApi $recommendationApiService;
 
     /**
-     * @param IOrderQueryShopify $order_query_shopify
+     * @param IOrderQueryShopify $orderQueryShopify
      */
-    public function __construct(IOrderQueryShopify $order_query_shopify)
+    public function __construct(IOrderQueryShopify $orderQueryShopify)
     {
-        $this->order_query_shopify = $order_query_shopify;
+        $this->orderQueryShopify = $orderQueryShopify;
     }
 
     /**
      * Process order data.
      *
-     * @param string $shop_id
+     * @param string $shopId
      * @return array
      */
-    public function processOrderData(string $shop_id): array
+    public function processOrderData(string $shopId): array
     {
-        $order_data = $this->order_query_shopify->fetchAll();
+        $orderData = $this->orderQueryShopify->fetchAll();
 
-        $total_orders = count($order_data);
-        $type_type_order_count = [];
-        $product_product_order_count = [];
-        $product_order_count = [];
-        $type_order_count = [];
+        $totalOrders = count($orderData);
+        $typeTypeOrderCount = [];
+        $productProductOrderCount = [];
+        $productOrderCount = [];
+        $typeOrderCount = [];
 
-        foreach ($order_data as $order) {
-            $line_items = $order['lineItems'] ?? [];
-            $product_ids = [];
-            $product_types = [];
+        foreach ($orderData as $order) {
+            $lineItems = $order['lineItems'] ?? [];
+            $productIds = [];
+            $productTypes = [];
 
-            foreach ($line_items as $lineItem) {
-                $product_id = $lineItem['product']['id'] ?? null;
-                $product_type = $lineItem['product']['productType'] ?? null;
+            foreach ($lineItems as $lineItem) {
+                $productId = $lineItem['product']['id'] ?? null;
+                $productType = $lineItem['product']['productType'] ?? null;
 
-                if ($product_id) {
-                    $product_ids[] = $product_id;
-                    $product_order_count[$product_id] = ($product_order_count[$product_id] ?? 0) + 1;
+                if ($productId) {
+                    $productIds[] = $productId;
+                    $productOrderCount[$productId] = ($productOrderCount[$productId] ?? 0) + 1;
                 }
 
-                if ($product_type) {
-                    $product_types[] = $product_type;
-                    $type_order_count[$product_type] = ($type_order_count[$product_type] ?? 0) + 1;
+                if ($productType) {
+                    $productTypes[] = $productType;
+                    $typeOrderCount[$productType] = ($typeOrderCount[$productType] ?? 0) + 1;
                 }
             }
 
-            $this->calculateCombinations($product_types, $type_type_order_count);
-            $this->calculateCombinations($product_ids, $product_product_order_count);
+            $this->calculateCombinations($productTypes, $typeTypeOrderCount);
+            $this->calculateCombinations($productIds, $productProductOrderCount);
         }
 
-        $this->calculateRatios($type_type_order_count, $type_order_count);
-        $this->calculateRatios($product_product_order_count, $product_order_count);
+        $this->calculateRatios($typeTypeOrderCount, $typeOrderCount);
+        $this->calculateRatios($productProductOrderCount, $productOrderCount);
 
         return [
-            'total' => $total_orders,
-            'type_scores' => $type_type_order_count,
-            'product_scores' => $product_product_order_count,
+            'total' => $totalOrders,
+            'type_scores' => $typeTypeOrderCount,
+            'product_scores' => $productProductOrderCount,
         ];
     }
 
@@ -106,9 +106,9 @@ class RecommendationProcessService implements IRecommendationProcess
     private function calculateRatios(array &$combinations, array $counts): void
     {
         foreach ($combinations as $item1 => &$itemCounts) {
-            $count_item1 = $counts[$item1];
+            $countItem1 = $counts[$item1];
             foreach ($itemCounts as $item2 => &$count) {
-                $count = $count / $count_item1;
+                $count = $count / $countItem1;
             }
         }
     }
@@ -116,10 +116,10 @@ class RecommendationProcessService implements IRecommendationProcess
     /**
      * Process pre-recommendation data.
      *
-     * @param string $shop_id
+     * @param string $shopId
      * @return array
      */
-    public function processPreRecommendationData(string $shop_id): array
+    public function processPreRecommendationData(string $shopId): array
     {
     }
 }

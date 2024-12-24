@@ -19,159 +19,159 @@ class ProductRecommendationService implements IProductRecommendation
     /**
      * @var IProductQuery
      */
-    protected IProductQuery $product_query;
+    protected IProductQuery $productQuery;
 
     /**
      * @var IShopQuery
      */
-    protected IShopQuery $shop_query;
+    protected IShopQuery $shopQuery;
 
     /**
      * @var IProductCommand
      */
-    protected IProductCommand $product_command;
+    protected IProductCommand $productCommand;
 
     /**
      * @var IProductQueryShopify
      */
-    protected IProductQueryShopify $product_service;
+    protected IProductQueryShopify $productService;
 
     /**
      * @var IShopSettingCommand
      */
-    protected IShopSettingCommand $shop_setting_command;
+    protected IShopSettingCommand $shopSettingCommand;
 
     /**
      * ProductRecommendationService constructor.
      *
-     * @param IProductQuery $product_query
-     * @param IShopQuery $shop_query
-     * @param IProductCommand $product_command
-     * @param IProductQueryShopify $product_service
-     * @param IShopSettingCommand $shop_setting_command
+     * @param IProductQuery $productQuery
+     * @param IShopQuery $shopQuery
+     * @param IProductCommand $productCommand
+     * @param IProductQueryShopify $productService
+     * @param IShopSettingCommand $shopSettingCommand
      */
     public function __construct(
-        IProductQuery $product_query,
-        IShopQuery $shop_query,
-        IProductCommand $product_command,
-        IProductQueryShopify $product_service,
-        IShopSettingCommand $shop_setting_command,
+        IProductQuery $productQuery,
+        IShopQuery $shopQuery,
+        IProductCommand $productCommand,
+        IProductQueryShopify $productService,
+        IShopSettingCommand $shopSettingCommand,
     ) {
-        $this->product_query = $product_query;
-        $this->shop_query = $shop_query;
-        $this->product_command = $product_command;
-        $this->product_service = $product_service;
-        $this->shop_setting_command = $shop_setting_command;
+        $this->productQuery = $productQuery;
+        $this->shopQuery = $shopQuery;
+        $this->productCommand = $productCommand;
+        $this->productService = $productService;
+        $this->shopSettingCommand = $shopSettingCommand;
     }
 
     /**
      * Get list of recommended products for a product.
      *
-     * @param string $shop_id
-     * @param string $product_id
+     * @param string $shopId
+     * @param string $productId
      * @return array
      */
-    public function getRecommendedProducts(string $shop_id, string $product_id): array
+    public function getRecommendedProducts(string $shopId, string $productId): array
     {
-        $product = $this->product_query->getByShopIdAndId($shop_id, $product_id);
-        $recommendation_type = $product->getRecommendationType();
+        $product = $this->productQuery->getByShopIdAndId($shopId, $productId);
+        $recommendationType = $product->getRecommendationType();
 
-        $product_ids = match ($recommendation_type) {
-            RecommendationType::AUTO => $this->getAutoRecommendation($shop_id, $product_id),
-            RecommendationType::MANUAL => $this->getManualRecommendation($shop_id, $product_id),
-            default => $this->getDefaultRecommendation($shop_id, $product_id),
+        $productIds = match ($recommendationType) {
+            RecommendationType::AUTO => $this->getAutoRecommendation($shopId, $productId),
+            RecommendationType::MANUAL => $this->getManualRecommendation($shopId, $productId),
+            default => $this->getDefaultRecommendation($shopId, $productId),
         };
 
-        return $this->product_query->getHandleAndGidByIds($product_ids);
+        return $this->productQuery->getHandleAndGidByIds($productIds);
     }
 
     /**
      * Get list of also viewed products for a product from system recommendation.
      *
-     * @param string $shop_id
-     * @param string $product_id
+     * @param string $shopId
+     * @param string $productId
      * @return array
      */
-    private function getAutoRecommendation(string $shop_id, string $product_id): array
+    private function getAutoRecommendation(string $shopId, string $productId): array
     {
-        $list_product_ids = $this->product_query->getAutoRecommendationProducts($product_id);
+        $productIds = $this->productQuery->getAutoRecommendationProducts($productId);
 
-        $active_products = $this->product_query->getActiveProducts($list_product_ids);
-        $number_of_items = $this->shop_query->getById($shop_id)->settings()->get()->getNumberOfItems();
+        $activeProducts = $this->productQuery->getActiveProducts($productIds);
+        $numberOfItems = $this->shopQuery->getById($shopId)->settings()->get()->getNumberOfItems();
 
-        return array_slice($active_products, 0, $number_of_items);
+        return array_slice($activeProducts, 0, $numberOfItems);
     }
 
     /**
      * Get list of also viewed products for a product from manual recommendation.
      *
-     * @param string $shop_id
-     * @param string $product_id
+     * @param string $shopId
+     * @param string $productId
      * @return array
      */
-    private function getManualRecommendation(string $shop_id, string $product_id): array
+    private function getManualRecommendation(string $shopId, string $productId): array
     {
-        $list_product_ids = $this->product_query->getManualProducts($product_id);
-        return $this->product_query->getActiveProducts($list_product_ids);
+        $productIds = $this->productQuery->getManualProducts($productId);
+        return $this->productQuery->getActiveProducts($productIds);
     }
 
     /**
      * Get list of manual product gid for a product.
      *
-     * @param string $product_id
+     * @param string $productId
      * @return array
      */
-    public function getManualProducts(string $product_id): array
+    public function getManualProducts(string $productId): array
     {
-        $product_ids = $this->product_query->getManualProducts($product_id);
-        return $this->product_query->getListGidByIds($product_ids);
+        $productIds = $this->productQuery->getManualProducts($productId);
+        return $this->productQuery->getListGidByIds($productIds);
     }
 
     /**
      * Get list of also viewed products for a product from relationship product.
      *
-     * @param string $shop_id
-     * @param string $product_id
+     * @param string $shopId
+     * @param string $productId
      * @return array
      */
-    private function getDefaultRecommendation(string $shop_id, string $product_id): array
+    private function getDefaultRecommendation(string $shopId, string $productId): array
     {
-        $product = $this->product_query->getById($product_id);
-        $default_ids = $product->getDefaultRecommendationIds();
+        $product = $this->productQuery->getById($productId);
+        $defaultIds = $product->getDefaultRecommendationIds();
 
-        $active_products = $this->product_query->getActiveProducts($default_ids);
-        $number_of_items = $this->shop_query->getById($shop_id)->settings()->get()->getNumberOfItems();
+        $activeProducts = $this->productQuery->getActiveProducts($defaultIds);
+        $numberOfItems = $this->shopQuery->getById($shopId)->settings()->get()->getNumberOfItems();
 
-        return collect($active_products)->random(min(count($active_products), $number_of_items))->toArray();
+        return collect($activeProducts)->random(min(count($activeProducts), $numberOfItems))->toArray();
     }
 
     /**
      * Set list of recommended products for a product.
      *
-     * @param string $shop_id
-     * @param string $product_id
-     * @param array $list_recommended_gid
-     * @param string|null $recommendation_type
+     * @param string $shopId
+     * @param string $productId
+     * @param array $recommendedGids
+     * @param string|null $recommendationType
      * @return ProductCollection
      *
      * @throws ProductNotFoundException
      */
     public function setRecommendedProducts(
-        string $shop_id,
-        string $product_id,
-        array $list_recommended_gid,
-        ?string $recommendation_type,
+        string $shopId,
+        string $productId,
+        array $recommendedGids,
+        ?string $recommendationType,
     ): ProductCollection {
-        $recommendation_type = RecommendationType::tryFrom($recommendation_type);
-        $recommended_ids = $this->product_query->validateListProductGid($shop_id, $list_recommended_gid);
-        $product = $this->product_query->getById($product_id);
-        $recommended_ids = array_unique(array_filter($recommended_ids, fn($id) => (string)$id !== $product_id));
+        $recommendationType = RecommendationType::tryFrom($recommendationType);
+        $recommendedIds = $this->productQuery->validateListProductGid($shopId, $recommendedGids);
+        $product = $this->productQuery->getById($productId);
+        $recommendedIds = array_unique(array_filter($recommendedIds, fn($id) => (string)$id !== $productId));
 
-        $this->product_command->setManualProduct(
+        $this->productCommand->setManualProduct(
             $product,
-            $shop_id,
-            $recommended_ids,
-            $recommendation_type ?? $product->getRecommendationType(),
+            $shopId,
+            $recommendedIds,
+            $recommendationType ?? $product->getRecommendationType(),
         );
 
         return $product;
@@ -180,100 +180,75 @@ class ProductRecommendationService implements IProductRecommendation
     /**
      * Set the recommendation type for a product.
      *
-     * @param string $shop_id
-     * @param string $product_id
-     * @param string $recommendation_type
+     * @param string $shopId
+     * @param string $productId
+     * @param string $recommendationType
      * @return ProductCollection
      *
      * @throws ProductNotFoundException
      */
     public function setRecommendationType(
-        string $shop_id,
-        string $product_id,
-        string $recommendation_type,
+        string $shopId,
+        string $productId,
+        string $recommendationType,
     ): ProductCollection {
-        $this->product_query->validateProductId($shop_id, $product_id);
+        $this->productQuery->validateProductId($shopId, $productId);
 
-        $recommendation_type = RecommendationType::tryFrom($recommendation_type);
-        $product = $this->product_query->getById($product_id);
+        $recommendationType = RecommendationType::tryFrom($recommendationType);
+        $product = $this->productQuery->getById($productId);
 
-        $this->product_command->setRecommendationType($product, $recommendation_type);
+        $this->productCommand->setRecommendationType($product, $recommendationType);
 
         return $product;
     }
 
     /**
-     * Get full information of a product (including recommendations).
-     *
-     * @param string $shop_id
-     * @param string $product_id
-     * @return array
-     *
-     * @throws ProductNotFoundException
-     */
-    public function getFullInfo(string $shop_id, string $product_id): array
-    {
-        $this->product_query->validateProductId($shop_id, $product_id);
-
-        $product = $this->product_query->getById($product_id);
-        $recommended_products = $this->product_query->getManualProducts($product_id);
-        // relative products, ....
-
-        $product->setAttribute(
-            'recommended_products',
-            $this->product_service->fetchByIds($this->product_query->getListGidByIds($recommended_products)),
-        );
-
-        return $product->toArray();
-    }
-
-    /**
      * Get settings for auto recommendation.
      *
-     * @param string $shop_id
+     * @param string $shopId
      * @return array
      */
-    public function getShopSettings(string $shop_id): array
+    public function getShopSettings(string $shopId): array
     {
-        $shop = $this->shop_query->getById($shop_id);
-        return $this->shop_query->getShopSettings($shop);
+        $shop = $this->shopQuery->getById($shopId);
+        return $this->shopQuery->getShopSettings($shop);
     }
 
     /**
      * Set auto recommendation for a shop.
      *
-     * @param string $shop_id
+     * @param string $shopId
      * @param array $settings
      *
      * @return array
      */
     public function setShopSettings(
-        string $shop_id,
+        string $shopId,
         array $settings,
     ): array {
-        $shop = $this->shop_query->getById($shop_id);
-        return $this->shop_setting_command->setShopSettings($shop, $settings);
+        $shop = $this->shopQuery->getById($shopId);
+        return $this->shopSettingCommand->setShopSettings($shop, $settings);
     }
 
     /**
      * Activate recommendation for all product of a shop.
      *
-     * @param string $shop_id
+     * @param string $shopId
      * @param string $status
      * @return bool
      */
     public function activateRecommendation(
-        string $shop_id,
+        string $shopId,
         string $status,
     ): bool {
         $status = RecommendationState::from($status);
-        if ($status === $this->getShopRecommendationState($shop_id)) {
+        if ($status === $this->getShopRecommendationState($shopId)) {
             return true;
         }
 
         match ($status) {
-            RecommendationState::ACTIVE => $this->activate($shop_id),
-            RecommendationState::INACTIVE => $this->deactivate($shop_id),
+            RecommendationState::ACTIVE => $this->activate($shopId),
+            RecommendationState::INACTIVE => $this->deactivate($shopId),
         };
 
         return true;
@@ -282,76 +257,76 @@ class ProductRecommendationService implements IProductRecommendation
     /**
      * Activate recommendation for all product of a shop.
      *
-     * @param string $shop_id
+     * @param string $shopId
      * @return void
      */
-    private function activate(string $shop_id): void
+    private function activate(string $shopId): void
     {
-        $this->settingShop($shop_id, RecommendationState::ACTIVE);
-        $this->product_command->activateRecommendation($shop_id);
+        $this->settingShop($shopId, RecommendationState::ACTIVE);
+        $this->productCommand->activateRecommendation($shopId);
     }
 
     /**
      * Deactivate recommendation for all product of a shop.
      *
-     * @param string $shop_id
+     * @param string $shopId
      * @return void
      */
-    private function deactivate(string $shop_id): void
+    private function deactivate(string $shopId): void
     {
-        $this->settingShop($shop_id, RecommendationState::INACTIVE);
-        $this->product_command->deactivateRecommendation($shop_id);
+        $this->settingShop($shopId, RecommendationState::INACTIVE);
+        $this->productCommand->deactivateRecommendation($shopId);
     }
 
     /**
      * Set recommendation state for a shop.
      *
-     * @param string $shop_id
+     * @param string $shopId
      * @param RecommendationState $status
      * @return void
      */
-    private function settingShop(string $shop_id, RecommendationState $status): void
+    private function settingShop(string $shopId, RecommendationState $status): void
     {
-        $this->shop_setting_command->setRecommendationState($shop_id, $status);
+        $this->shopSettingCommand->setRecommendationState($shopId, $status);
     }
 
     /**
      * Get shop recommendation state.
      *
-     * @param string $shop_id
+     * @param string $shopId
      * @return RecommendationState
      */
-    private function getShopRecommendationState(string $shop_id): RecommendationState
+    private function getShopRecommendationState(string $shopId): RecommendationState
     {
-        return $this->shop_query->getById($shop_id)
+        return $this->shopQuery->getById($shopId)
             ->settings()->get()->getAutoRecommendation();
     }
 
     /**
      * Update product default recommendation for a shop.
      *
-     * @param array $recommendation_data
-     * @param array $map_gid_id
+     * @param array $recommendationData
+     * @param array $gidToIdMap
      * @return bool
      */
-    public function updateManyDefaultRecommendation(array $recommendation_data, array $map_gid_id): bool
+    public function updateManyDefaultRecommendation(array $recommendationData, array $gidToIdMap): bool
     {
-        return $this->product_command->updateManyDefaultRecommendation(
-            $this->matchData($recommendation_data, $map_gid_id, 'default_recommendation_ids'),
+        return $this->productCommand->updateManyDefaultRecommendation(
+            $this->matchData($recommendationData, $gidToIdMap, 'default_recommendation_ids'),
         );
     }
 
     /**
      * Update product recommendation for a shop.
      *
-     * @param array $recommendation_data
-     * @param array $map_gid_id
+     * @param array $recommendationData
+     * @param array $gidToIdMap
      * @return bool
      */
-    public function updateManyRecommendation(array $recommendation_data, array $map_gid_id): bool
+    public function updateManyRecommendation(array $recommendationData, array $gidToIdMap): bool
     {
-        return $this->product_command->updateManyRecommendation(
-            $this->matchData($recommendation_data, $map_gid_id, 'recommendation_ids'),
+        return $this->productCommand->updateManyRecommendation(
+            $this->matchData($recommendationData, $gidToIdMap, 'recommendation_ids'),
         );
     }
 
@@ -372,22 +347,22 @@ class ProductRecommendationService implements IProductRecommendation
     /**
      * Match recommendation data with product data.
      *
-     * @param array $recommendation_data
-     * @param array $product_data
+     * @param array $recommendationData
+     * @param array $productData
      * @param string $attribute
      * @return array
      */
-    private function matchData(array $recommendation_data, array $product_data, string $attribute): array
+    private function matchData(array $recommendationData, array $productData, string $attribute): array
     {
         $result = [];
-        foreach ($product_data as $gid => $id) {
-            $formatted_gid = $this->formatShopifyId($gid);
-            if (!isset($recommendation_data[$formatted_gid])) {
+        foreach ($productData as $gid => $id) {
+            $formattedGid = $this->formatShopifyId($gid);
+            if (!isset($recommendationData[$formattedGid])) {
                 continue;
             }
 
-            $recommendations_gis = $recommendation_data[$formatted_gid];
-            $recommendations = array_map(fn($item) => $product_data[Utils::getIdFromGid($item)], $recommendations_gis);
+            $recommendationGids = $recommendationData[$formattedGid];
+            $recommendations = array_map(fn($item) => $productData[Utils::getIdFromGid($item)], $recommendationGids);
 
             $result[$id] = $recommendations;
         }

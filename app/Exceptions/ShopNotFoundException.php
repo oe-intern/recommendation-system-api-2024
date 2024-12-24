@@ -11,18 +11,18 @@ class ShopNotFoundException extends Exception
     /**
      * @var string
      */
-    protected string $shop_domain;
+    protected string $shopDomain;
 
     /**
      * ShopNotFoundException constructor.
      *
-     * @param string $shop_domain
+     * @param string $shopDomain
      * @param Throwable|null $previous
      */
-    public function __construct(string $shop_domain, ?Throwable $previous = null)
+    public function __construct(string $shopDomain, ?Throwable $previous = null)
     {
-        $this->shop_domain = $shop_domain;
-        $this->message = 'Shop domain: ' . $shop_domain . ' not found';
+        $this->shopDomain = $shopDomain;
+        $this->message = 'Shop domain: ' . $shopDomain . ' not found';
 
         parent::__construct($this->message);
     }
