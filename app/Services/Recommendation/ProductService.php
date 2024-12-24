@@ -43,10 +43,10 @@ class ProductService implements IProduct
     public function createOrUpdateMany(ShopCollection $shop, array $product_data): void
     {
         $product_gids = $this->getProductGidsFormated($product_data);
-        Log::info('length of product data: ' . count($product_data));
         $exist_product_gids = $this->product_query->getExistingProductsGid($shop->getId(), $product_gids);
-        Log::info('length of exist product gids: ' . count($exist_product_gids));
-        $this->handleUpdatesAndDeletes($exist_product_gids, $product_gids, $product_data, $shop);
+        $products_to_delete = $this->getDeletedProducts($shop->getId(), $product_gids);
+
+        $this->handleUpdatesAndDeletes($exist_product_gids, $products_to_delete, $product_data, $shop);
     }
 
     /**
@@ -66,22 +66,21 @@ class ProductService implements IProduct
      * Handle update product if exist, create if not and delete if not exist
      *
      * @param array $existing_gids
-     * @param array $product_gids
+     * @param array $deleted_gids
      * @param array $product_data
      * @param ShopCollection $shop
      * @return void
      */
     private function handleUpdatesAndDeletes(
         array $existing_gids,
-        array $product_gids,
+        array $deleted_gids,
         array $product_data,
         ShopCollection $shop,
     ): void {
         $existing_products = $this->filterProducts($product_data, $existing_gids, true);
         $new_products = $this->filterProducts($product_data, $existing_gids, false);
-        $products_to_delete = array_diff($existing_gids, $product_gids);
 
-        $this->processProducts($new_products, $existing_products, $products_to_delete, $shop);
+        $this->processProducts($new_products, $existing_products, $deleted_gids, $shop);
     }
 
     /**
@@ -97,6 +96,18 @@ class ProductService implements IProduct
         return array_filter($product_data, function ($product) use ($existing_gids, $match) {
             return $match === in_array($product['gid'], $existing_gids);
         });
+    }
+
+    /**
+     * Get deleted products not in the list of product gids
+     *
+     * @param string $shop_id
+     * @param array $product_gids
+     * @return array
+     */
+    private function getDeletedProducts(string $shop_id, array $product_gids): array
+    {
+        return $this->product_query->getProductGidsNotIn($shop_id, $product_gids);
     }
 
     /**
