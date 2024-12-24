@@ -116,6 +116,14 @@ interface IProductCommand
     public function delete(ProductCollection $product): bool;
 
     /**
+     * Delete a list of products by gid.
+     *
+     * @param array $product_gids
+     * @return bool
+     */
+    public function deleteManyByGid(array $product_gids): bool;
+
+    /**
      * Add a product recommended for this product.
      *
      * @param string $product_id

@@ -307,6 +307,23 @@ class ProductQuery implements IProductQuery
     }
 
     /**
+     * Get all product of a shop not in a list of product GIDs.
+     *
+     * @param string $shop_id
+     * @param array $product_gids
+     * @return array
+     */
+    public function getProductGidsNotIn(string $shop_id, array $product_gids): array
+    {
+        return ProductCollection::query()
+            ->where('shop_id', $shop_id)
+            ->whereNotIn('gid', $product_gids)
+            ->get()
+            ->pluck('gid')
+            ->toArray();
+    }
+
+    /**
      * Get list of product active by IDs.
      *
      * @param array $ids
@@ -336,7 +353,7 @@ class ProductQuery implements IProductQuery
             ->map(function ($product) {
                 return [
                     'handle' => $product->handle,
-                    'id' => $product->gid
+                    'id' => $product->gid,
                 ];
             })
             ->toArray();
@@ -373,7 +390,7 @@ class ProductQuery implements IProductQuery
             ->map(function ($product) {
                 return [
                     'id' => $product->id,
-                    'gid' => $product->gid
+                    'gid' => $product->gid,
                 ];
             })
             ->toArray();

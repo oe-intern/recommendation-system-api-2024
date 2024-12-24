@@ -95,8 +95,7 @@ class ProductEventService implements IProductEvent
     public function getProductPerformance(string $shop_id, string $start_date, string $end_date): array
     {
         $events = $this->event_query->getEventData($shop_id, $start_date, $end_date);
-
-        $product_event_ids = array_column($events, 'product_id');
+        $product_event_ids = array_column($events, 'id');
         $products_without_events = $this->product_query->getProductsNotIn($shop_id, $product_event_ids);
 
         $top_products = array_slice($events, 0, $this->PERFORMANCE_LIMIT);
@@ -106,7 +105,7 @@ class ProductEventService implements IProductEvent
             $products_without_events,
         );
 
-        $top_products = $this->convertDataIdToGid($top_products);
+        $top_products = $this->formatData($top_products);
         $low_products = $this->convertDataIdToGid($low_products);
 
         return [
@@ -143,6 +142,17 @@ class ProductEventService implements IProductEvent
     private function convertToEmptyEvent(array $product_ids): array
     {
         return array_map(fn($id) => ['quantity' => 0, 'id' => $id], $product_ids);
+    }
+
+    /**
+     * Format data response.
+     *
+     * @param array $data
+     * @return array
+     */
+    private function formatData(array $data): array
+    {
+        return array_map(fn($product) => ['id' => data_get($product, 'gid'), 'quantity' => data_get($product, 'quantity')], $data);
     }
 
     /**

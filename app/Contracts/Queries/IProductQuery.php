@@ -170,6 +170,15 @@ interface IProductQuery
     public function getProductsNotIn(string $shop_id, array $product_ids): array;
 
     /**
+     * Get all product of a shop not in a list of product GIDs.
+     *
+     * @param string $shop_id
+     * @param array $product_gids
+     * @return array
+     */
+    public function getProductGidsNotIn(string $shop_id, array $product_gids): array;
+
+    /**
      * Get list of product active by IDs.
      *
      * @param array $ids
