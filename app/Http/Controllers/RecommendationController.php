@@ -18,32 +18,32 @@ class RecommendationController extends BaseController
     /**
      * @var IProductRecommendation
      */
-    protected IProductRecommendation $product_recommendation_service;
+    protected IProductRecommendation $productRecommendationService;
 
     /**
      * @var IShopRecommendation
      */
-    protected IShopRecommendation $shop_recommendation_service;
+    protected IShopRecommendation $shopRecommendationService;
 
     /**
      * RecommendationController constructor.
      *
-     * @param UserContext $user_context
-     * @param IProductRecommendation $product_recommendation_service
-     * @param IShopRecommendation $shop_recommendation_service
-     * @param IProductQuery $product_query
-     * @param IShopQuery $shop_query
+     * @param UserContext $userContext
+     * @param IProductRecommendation $productRecommendationService
+     * @param IShopRecommendation $shopRecommendationService
+     * @param IProductQuery $productQuery
+     * @param IShopQuery $shopQuery
      */
     public function __construct(
-        UserContext $user_context,
-        IProductRecommendation $product_recommendation_service,
-        IShopRecommendation $shop_recommendation_service,
-        IProductQuery $product_query,
-        IShopQuery $shop_query,
+        UserContext $userContext,
+        IProductRecommendation $productRecommendationService,
+        IShopRecommendation $shopRecommendationService,
+        IProductQuery $productQuery,
+        IShopQuery $shopQuery,
     ) {
-        parent::__construct($user_context, $product_query, $shop_query);
-        $this->product_recommendation_service = $product_recommendation_service;
-        $this->shop_recommendation_service = $shop_recommendation_service;
+        parent::__construct($userContext, $productQuery, $shopQuery);
+        $this->productRecommendationService = $productRecommendationService;
+        $this->shopRecommendationService = $shopRecommendationService;
     }
 
     /**
@@ -53,11 +53,11 @@ class RecommendationController extends BaseController
      */
     public function getShopRecommendations(Request $request): Response
     {
-        $shop_id = $this->getShopId();
+        $shopId = $this->getShopId();
 
-        $shop_recommendations = $this->shop_recommendation_service->getShopRecommendations($shop_id);
+        $shopRecommendations = $this->shopRecommendationService->getShopRecommendations($shopId);
 
-        return response()->success('Shop recommendations retrieved successfully', $shop_recommendations);
+        return response()->success('Shop recommendations retrieved successfully', $shopRecommendations);
     }
 
     /**
@@ -69,13 +69,13 @@ class RecommendationController extends BaseController
      */
     public function setShopRecommendations(Request $request): Response
     {
-        $shop_id = $this->getShopId();
+        $shopId = $this->getShopId();
         $settings = [
             'email' => $request->input('email'),
             'email_notification' => $request->input('email_notification'),
         ];
 
-        $settings = $this->shop_recommendation_service->updateShopRecommendationNotification($shop_id, $settings);
+        $settings = $this->shopRecommendationService->updateShopRecommendationNotification($shopId, $settings);
 
         return response()->success('Shop recommendations has been set.', $settings);
     }
@@ -87,11 +87,11 @@ class RecommendationController extends BaseController
      */
     public function getProcessRecommendation(Request $request): Response
     {
-        $shop_id = $this->getShopId();
+        $shopId = $this->getShopId();
 
-        $processing_data = $this->shop_recommendation_service->getProcessingStatus($shop_id);
+        $processingData = $this->shopRecommendationService->getProcessingStatus($shopId);
 
-        return response()->success('Processing recommendation retrieved successfully', $processing_data);
+        return response()->success('Processing recommendation retrieved successfully', $processingData);
     }
 
     /**
@@ -102,10 +102,10 @@ class RecommendationController extends BaseController
      */
     public function refreshRecommendation(Request $request): Response
     {
-        $shop_id = $this->getShopId();
-        $shop_domain = $this->user_context->getDomain()->toNative();
+        $shopId = $this->getShopId();
+        $shopDomain = $this->userContext->getDomain()->toNative();
 
-        $this->shop_recommendation_service->refreshRecommendations($shop_id, $shop_domain);
+        $this->shopRecommendationService->refreshRecommendations($shopId, $shopDomain);
 
         return response()->success('Processing recommendation has been started.');
     }
@@ -117,7 +117,7 @@ class RecommendationController extends BaseController
      */
     public function cancelRecommendation(Request $request): Response
     {
-        $shop_id = $this->getShopId();
+        $shopId = $this->getShopId();
     }
 
 }

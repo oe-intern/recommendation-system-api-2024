@@ -46,111 +46,111 @@ class ExecuteRecommendationPipelineJob implements ShouldQueue
     /**
      * @var array
      */
-    protected array $products_data;
+    protected array $productsData;
 
     /**
      * @var array
      */
-    protected array $orders_data;
+    protected array $ordersData;
 
     /**
      * @var IProductQuery
      */
-    protected IProductQuery $product_query;
+    protected IProductQuery $productQuery;
 
     /**
      * @var IShopQuery
      */
-    protected IShopQuery $shop_query;
+    protected IShopQuery $shopQuery;
 
     /**
      * @var IShopRecommendationCommand
      */
-    protected IShopRecommendationCommand $shop_recommendation_command;
+    protected IShopRecommendationCommand $shopRecommendationCommand;
 
     /**
      * @var IProductRecommendation
      */
-    protected IProductRecommendation $product_recommendation_service;
+    protected IProductRecommendation $productRecommendationService;
 
     /**
      * @var IRecommendationApi
      */
-    protected IRecommendationApi $recommendation_api_service;
+    protected IRecommendationApi $recommendationApiService;
 
     /**
      * @var IJobRecommendationCommand
      */
-    protected IJobRecommendationCommand $job_recommendation_command;
+    protected IJobRecommendationCommand $jobRecommendationCommand;
 
     /**
      * @var IEmailSender
      */
-    protected IEmailSender $email_sender_service;
+    protected IEmailSender $emailSenderService;
 
     /**
      * Create a new job instance.
      *
      * @param string $domain
-     * @param array $products_data
-     * @param array $orders_data
+     * @param array $productsData
+     * @param array $ordersData
      */
-    public function __construct(string $domain, array $products_data, array $orders_data)
+    public function __construct(string $domain, array $productsData, array $ordersData)
     {
         $this->domain = $domain;
-        $this->products_data = $products_data;
-        $this->orders_data = $orders_data;
+        $this->productsData = $productsData;
+        $this->ordersData = $ordersData;
     }
 
     /**
      * Execute the job.
      *
-     * @param IProductQuery $product_query
-     * @param IShopQuery $shop_query
-     * @param IShopRecommendationCommand $shop_recommendation_command
-     * @param IProductRecommendation $product_recommendation_service
-     * @param IRecommendationApi $recommendation_api_service
-     * @param IJobRecommendationCommand $job_recommendation_command
-     * @param IEmailSender $email_sender_service
+     * @param IProductQuery $productQuery
+     * @param IShopQuery $shopQuery
+     * @param IShopRecommendationCommand $shopRecommendationCommand
+     * @param IProductRecommendation $productRecommendationService
+     * @param IRecommendationApi $recommendationApiService
+     * @param IJobRecommendationCommand $jobRecommendationCommand
+     * @param IEmailSender $emailSenderService
      */
     public function handle(
-        IProductQuery $product_query,
-        IShopQuery $shop_query,
-        IShopRecommendationCommand $shop_recommendation_command,
-        IProductRecommendation $product_recommendation_service,
-        IRecommendationApi $recommendation_api_service,
-        IJobRecommendationCommand $job_recommendation_command,
-        IEmailSender $email_sender_service,
+        IProductQuery $productQuery,
+        IShopQuery $shopQuery,
+        IShopRecommendationCommand $shopRecommendationCommand,
+        IProductRecommendation $productRecommendationService,
+        IRecommendationApi $recommendationApiService,
+        IJobRecommendationCommand $jobRecommendationCommand,
+        IEmailSender $emailSenderService,
     ): void {
         $this->initializeServices(
-            $product_query,
-            $shop_query,
-            $shop_recommendation_command,
-            $product_recommendation_service,
-            $recommendation_api_service,
-            $job_recommendation_command,
-            $email_sender_service,
+            $productQuery,
+            $shopQuery,
+            $shopRecommendationCommand,
+            $productRecommendationService,
+            $recommendationApiService,
+            $jobRecommendationCommand,
+            $emailSenderService,
         );
 
-        $shop = $shop_query->getByDomain($this->domain);
-        $shop_id = $shop->getId();
-        $data_request = $this->getRequestData($this->domain);
-        $map_gid_id = $this->getMapIdWithKeyGid($shop_id);
+        $shop = $shopQuery->getByDomain($this->domain);
+        $shopId = $shop->getId();
+        $dataRequest = $this->getRequestData($this->domain);
+        $gidToIdMap = $this->getMapIdWithKeyGid($shopId);
         $retry = 0;
 
-        $job = $this->createPendingJob($shop_id);
+        $job = $this->createPendingJob($shopId);
 
         do {
             try {
-                $this->updateDefaultRecommendation($data_request, $map_gid_id);
+                $this->updateDefaultRecommendation($dataRequest, $gidToIdMap);
                 $this->updateJobStatus($job->getId(), JobRecommendationStatus::SUCCESS, []);
 
                 ProcessShopInstalledData::dispatch(
-                    $map_gid_id,
-                    $this->products_data,
-                    $shop_id,
+                    $gidToIdMap,
+                    $this->productsData,
+                    $shopId,
                     $this->domain,
-                    $data_request
+                    $dataRequest
                 );
                 return;
             } catch (Exception $e) {
@@ -159,37 +159,37 @@ class ExecuteRecommendationPipelineJob implements ShouldQueue
             }
         } while ($retry < self::MAX_RETRY_PROCESS);
 
-        $this->handleJobException($job->getId(), $shop_id, $this->domain);
+        $this->handleJobException($job->getId(), $shopId, $this->domain);
     }
 
     /**
      * Initialize services.
      *
-     * @param IProductQuery $product_query
-     * @param IShopQuery $shop_query
-     * @param IShopRecommendationCommand $shop_recommendation_command
-     * @param IProductRecommendation $product_recommendation_service
-     * @param IRecommendationApi $recommendation_api_service
-     * @param IJobRecommendationCommand $job_recommendation_command
-     * @param IEmailSender $email_sender_service
+     * @param IProductQuery $productQuery
+     * @param IShopQuery $shopQuery
+     * @param IShopRecommendationCommand $shopRecommendationCommand
+     * @param IProductRecommendation $productRecommendationService
+     * @param IRecommendationApi $recommendationApiService
+     * @param IJobRecommendationCommand $jobRecommendationCommand
+     * @param IEmailSender $emailSenderService
      * @return void
      */
     private function initializeServices(
-        IProductQuery $product_query,
-        IShopQuery $shop_query,
-        IShopRecommendationCommand $shop_recommendation_command,
-        IProductRecommendation $product_recommendation_service,
-        IRecommendationApi $recommendation_api_service,
-        IJobRecommendationCommand $job_recommendation_command,
-        IEmailSender $email_sender_service,
+        IProductQuery $productQuery,
+        IShopQuery $shopQuery,
+        IShopRecommendationCommand $shopRecommendationCommand,
+        IProductRecommendation $productRecommendationService,
+        IRecommendationApi $recommendationApiService,
+        IJobRecommendationCommand $jobRecommendationCommand,
+        IEmailSender $emailSenderService,
     ): void {
-        $this->product_query = $product_query;
-        $this->shop_query = $shop_query;
-        $this->shop_recommendation_command = $shop_recommendation_command;
-        $this->product_recommendation_service = $product_recommendation_service;
-        $this->recommendation_api_service = $recommendation_api_service;
-        $this->job_recommendation_command = $job_recommendation_command;
-        $this->email_sender_service = $email_sender_service;
+        $this->productQuery = $productQuery;
+        $this->shopQuery = $shopQuery;
+        $this->shopRecommendationCommand = $shopRecommendationCommand;
+        $this->productRecommendationService = $productRecommendationService;
+        $this->recommendationApiService = $recommendationApiService;
+        $this->jobRecommendationCommand = $jobRecommendationCommand;
+        $this->emailSenderService = $emailSenderService;
     }
 
     /**
@@ -210,44 +210,44 @@ class ExecuteRecommendationPipelineJob implements ShouldQueue
      */
     private function mergeData(): ShopProductRecommendationRequestDTO
     {
-        $total = data_get($this->orders_data, 'total');
-        $type_scores = data_get($this->orders_data, 'type_scores');
-        $product_scores = data_get($this->orders_data, 'product_scores');
+        $total = data_get($this->ordersData, 'total');
+        $typeScores = data_get($this->ordersData, 'type_scores');
+        $productScores = data_get($this->ordersData, 'product_scores');
 
         return new ShopProductRecommendationRequestDTO(
             self::MAX_RECOMMENDATION_PRODUCTS,
-            $this->products_data,
-            $type_scores,
+            $this->productsData,
+            $typeScores,
             $total,
-            $product_scores,
+            $productScores,
         );
     }
 
     /**
      * Get map id with key gid
      *
-     * @param string $shop_id
+     * @param string $shopId
      * @return array
      */
-    private function getMapIdWithKeyGid(string $shop_id): array
+    private function getMapIdWithKeyGid(string $shopId): array
     {
-        return $this->product_query->getMapIdWithKeyGidByShopId($shop_id);
+        return $this->productQuery->getMapIdWithKeyGidByShopId($shopId);
     }
 
     /**
      * Create pending job.
      *
-     * @param string $shop_id
+     * @param string $shopId
      * @return JobRecommendationCollection
      */
-    private function createPendingJob(string $shop_id): JobRecommendationCollection
+    private function createPendingJob(string $shopId): JobRecommendationCollection
     {
-        $job = $this->job_recommendation_command->create(
-            $shop_id,
+        $job = $this->jobRecommendationCommand->create(
+            $shopId,
             JobRecommendationStatus::PENDING,
             0,
         );
-        $this->shop_recommendation_command->updateLastJobRecommendation($shop_id, $job->getId());
+        $this->shopRecommendationCommand->updateLastJobRecommendation($shopId, $job->getId());
 
         return $job;
     }
@@ -255,18 +255,18 @@ class ExecuteRecommendationPipelineJob implements ShouldQueue
     /**
      * Update default recommendation
      *
-     * @param ShopProductRecommendationRequestDTO $data_request
-     * @param array $map_gid_id
+     * @param ShopProductRecommendationRequestDTO $dataRequest
+     * @param array $gidToIdMap
      * @return void
      * @throws Exception
      */
     private function updateDefaultRecommendation(
-        ShopProductRecommendationRequestDTO $data_request,
-        array $map_gid_id,
+        ShopProductRecommendationRequestDTO $dataRequest,
+        array $gidToIdMap,
     ): void {
         try {
-            $recommendation_data = $this->recommendation_api_service->preRecommend($data_request);
-            $this->product_recommendation_service->updateManyDefaultRecommendation($recommendation_data, $map_gid_id);
+            $recommendationData = $this->recommendationApiService->preRecommend($dataRequest);
+            $this->productRecommendationService->updateManyDefaultRecommendation($recommendationData, $gidToIdMap);
         } catch (Exception $e) {
             Log::error('Error updating default recommendation.', ['error' => $e->getMessage()]);
             throw $e;
@@ -276,40 +276,40 @@ class ExecuteRecommendationPipelineJob implements ShouldQueue
     /**
      * Update job recommendation status.
      *
-     * @param string $job_id
+     * @param string $jobId
      * @param JobRecommendationStatus $status
      * @param array $data
      * @return void
      */
-    private function updateJobStatus(string $job_id, JobRecommendationStatus $status, array $data): void
+    private function updateJobStatus(string $jobId, JobRecommendationStatus $status, array $data): void
     {
-        $this->job_recommendation_command->update($job_id, $status, $data);
+        $this->jobRecommendationCommand->update($jobId, $status, $data);
     }
 
     /**
      * Handle exceptions during job processing.
      *
-     * @param string $job_id
-     * @param string $shop_id
-     * @param string $shop_domain
+     * @param string $jobId
+     * @param string $shopId
+     * @param string $shopDomain
      * @return void
      */
-    private function handleJobException(string $job_id, string $shop_id, string $shop_domain): void
+    private function handleJobException(string $jobId, string $shopId, string $shopDomain): void
     {
-        $this->updateJobStatus($job_id, JobRecommendationStatus::FAILED, ['error' => 'Error processing job.']);
-        $this->sendEmail(JobRecommendationStatus::FAILED, $shop_id, $shop_domain);
+        $this->updateJobStatus($jobId, JobRecommendationStatus::FAILED, ['error' => 'Error processing job.']);
+        $this->sendEmail(JobRecommendationStatus::FAILED, $shopId, $shopDomain);
     }
 
     /**
      * Send email notification.
      *
      * @param JobRecommendationStatus $status
-     * @param string $shop_id
-     * @param string $shop_domain
+     * @param string $shopId
+     * @param string $shopDomain
      * @return void
      */
-    private function sendEmail(JobRecommendationStatus $status, string $shop_id, string $shop_domain): void
+    private function sendEmail(JobRecommendationStatus $status, string $shopId, string $shopDomain): void
     {
-        $this->email_sender_service->sendRecommendationEmail($shop_id, $shop_domain, $status);
+        $this->emailSenderService->sendRecommendationEmail($shopId, $shopDomain, $status);
     }
 }

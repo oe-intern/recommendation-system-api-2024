@@ -14,156 +14,156 @@ class ProductService implements IProduct
     /**
      * @var IProductQuery
      */
-    protected IProductQuery $product_query;
+    protected IProductQuery $productQuery;
 
     /**
      * @var IProductCommand
      */
-    protected IProductCommand $product_command;
+    protected IProductCommand $productCommand;
 
     /**
      * ProductService constructor.
      *
-     * @param IProductQuery $product_query
-     * @param IProductCommand $product_command
+     * @param IProductQuery $productQuery
+     * @param IProductCommand $productCommand
      */
-    public function __construct(IProductQuery $product_query, IProductCommand $product_command)
+    public function __construct(IProductQuery $productQuery, IProductCommand $productCommand)
     {
-        $this->product_query = $product_query;
-        $this->product_command = $product_command;
+        $this->productQuery = $productQuery;
+        $this->productCommand = $productCommand;
     }
 
     /**
      * Handle update product if exist and create if not
      *
      * @param ShopCollection $shop
-     * @param array $product_data
+     * @param array $productData
      * @return void
      */
-    public function createOrUpdateMany(ShopCollection $shop, array $product_data): void
+    public function createOrUpdateMany(ShopCollection $shop, array $productData): void
     {
-        $product_gids = $this->getProductGidsFormated($product_data);
-        $exist_product_gids = $this->product_query->getExistingProductsGid($shop->getId(), $product_gids);
-        $products_to_delete = $this->getDeletedProducts($shop->getId(), $product_gids);
+        $productGids = $this->getProductGidsFormated($productData);
+        $existProductGids = $this->productQuery->getExistingProductsGid($shop->getId(), $productGids);
+        $productsToDelete = $this->getDeletedProducts($shop->getId(), $productGids);
 
-        $this->handleUpdatesAndDeletes($exist_product_gids, $products_to_delete, $product_data, $shop);
+        $this->handleUpdatesAndDeletes($existProductGids, $productsToDelete, $productData, $shop);
     }
 
     /**
      * Get product gids formated
      *
-     * @param array $product_data
+     * @param array $productData
      * @return array
      */
-    public function getProductGidsFormated(array $product_data): array
+    public function getProductGidsFormated(array $productData): array
     {
         return array_map(function ($product) {
             return Utils::getIdFromGid($product['gid']);
-        }, $product_data);
+        }, $productData);
     }
 
     /**
-     * Handle update product if exist, create if not and delete if not exist
+     * Handle update product if existed, create if not and delete if not exist
      *
-     * @param array $existing_gids
-     * @param array $deleted_gids
-     * @param array $product_data
+     * @param array $existingGids
+     * @param array $deletedGids
+     * @param array $productData
      * @param ShopCollection $shop
      * @return void
      */
     private function handleUpdatesAndDeletes(
-        array $existing_gids,
-        array $deleted_gids,
-        array $product_data,
+        array $existingGids,
+        array $deletedGids,
+        array $productData,
         ShopCollection $shop,
     ): void {
-        $existing_products = $this->filterProducts($product_data, $existing_gids, true);
-        $new_products = $this->filterProducts($product_data, $existing_gids, false);
+        $existingProducts = $this->filterProducts($productData, $existingGids, true);
+        $newProducts = $this->filterProducts($productData, $existingGids, false);
 
-        $this->processProducts($new_products, $existing_products, $deleted_gids, $shop);
+        $this->processProducts($newProducts, $existingProducts, $deletedGids, $shop);
     }
 
     /**
      * Filter products
      *
-     * @param array $product_data
-     * @param array $existing_gids
+     * @param array $productData
+     * @param array $existingGids
      * @param bool $match
      * @return array
      */
-    private function filterProducts(array $product_data, array $existing_gids, bool $match): array
+    private function filterProducts(array $productData, array $existingGids, bool $match): array
     {
-        return array_filter($product_data, function ($product) use ($existing_gids, $match) {
-            return $match === in_array($product['gid'], $existing_gids);
+        return array_filter($productData, function ($product) use ($existingGids, $match) {
+            return $match === in_array($product['gid'], $existingGids);
         });
     }
 
     /**
      * Get deleted products not in the list of product gids
      *
-     * @param string $shop_id
-     * @param array $product_gids
+     * @param string $shopId
+     * @param array $productGids
      * @return array
      */
-    private function getDeletedProducts(string $shop_id, array $product_gids): array
+    private function getDeletedProducts(string $shopId, array $productGids): array
     {
-        return $this->product_query->getProductGidsNotIn($shop_id, $product_gids);
+        return $this->productQuery->getProductGidsNotIn($shopId, $productGids);
     }
 
     /**
      * Process products in database
      *
-     * @param array $new_products
-     * @param array $existing_products
-     * @param array $products_to_delete
+     * @param array $newProducts
+     * @param array $existingProducts
+     * @param array $productsToDelete
      * @param ShopCollection $shop
      * @return void
      */
     private function processProducts(
-        array $new_products,
-        array $existing_products,
-        array $products_to_delete,
+        array $newProducts,
+        array $existingProducts,
+        array $productsToDelete,
         ShopCollection $shop,
     ): void {
-        Log::info('length of new products: ' . count($new_products));
-        $this->deleteProducts($products_to_delete);
-        Log::info('length of existing products: ' . count($existing_products));
-        $this->updateProducts($existing_products);
-        Log::info('length of products to delete: ' . count($products_to_delete));
-        $this->createProducts($shop, $new_products);
+        Log::info('length of new products: ' . count($newProducts));
+        $this->deleteProducts($productsToDelete);
+        Log::info('length of existing products: ' . count($existingProducts));
+        $this->updateProducts($existingProducts);
+        Log::info('length of products to delete: ' . count($productsToDelete));
+        $this->createProducts($shop, $newProducts);
     }
 
     /**
      * Delete products
      *
-     * @param array $products_to_delete
+     * @param array $productsToDelete
      * @return void
      */
-    private function deleteProducts(array $products_to_delete): void
+    private function deleteProducts(array $productsToDelete): void
     {
-        $this->product_command->deleteManyByGid($products_to_delete);
+        $this->productCommand->deleteManyByGid($productsToDelete);
     }
 
     /**
      * Update products
      *
-     * @param array $existing_products
+     * @param array $existingProducts
      * @return void
      */
-    private function updateProducts(array $existing_products): void
+    private function updateProducts(array $existingProducts): void
     {
-        $this->product_command->updateManyByGid($existing_products);
+        $this->productCommand->updateManyByGid($existingProducts);
     }
 
     /**
      * Create products
      *
      * @param ShopCollection $shop
-     * @param array $new_products
+     * @param array $newProducts
      * @return void
      */
-    private function createProducts(ShopCollection $shop, array $new_products): void
+    private function createProducts(ShopCollection $shop, array $newProducts): void
     {
-        $this->product_command->createMany($shop, $new_products);
+        $this->productCommand->createMany($shop, $newProducts);
     }
 }

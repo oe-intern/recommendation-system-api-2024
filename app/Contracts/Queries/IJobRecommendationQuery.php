@@ -10,18 +10,18 @@ interface  IJobRecommendationQuery
     /**
      * Get the job recommendation by job id.
      *
-     * @param string $job_id
+     * @param string $jobId
      * @return JobRecommendationCollection
      */
-    public function getById(string $job_id): JobRecommendationCollection;
+    public function getById(string $jobId): JobRecommendationCollection;
 
     /**
      * Get last job recommendation by shop id.
      *
-     * @param string $shop_id
+     * @param string $shopId
      * @return JobRecommendationCollection
      */
-    public function getLastByShopId(string $shop_id): JobRecommendationCollection;
+    public function getLastByShopId(string $shopId): JobRecommendationCollection;
 
 
     /**

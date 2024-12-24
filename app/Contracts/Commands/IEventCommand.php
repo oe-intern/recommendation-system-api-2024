@@ -9,17 +9,17 @@ interface IEventCommand
     /**
      * Trigger any event of a product from a shop.
      *
-     * @param string $shop_id
-     * @param string $product_id
-     * @param EventType $event_type
+     * @param string $shopId
+     * @param string $productId
+     * @param EventType $eventType
      * @param mixed $data
      * @param int|null $quantity
      * @return void
      */
     public function trigger(
-        string $shop_id,
-        string $product_id,
-        EventType $event_type,
+        string $shopId,
+        string $productId,
+        EventType $eventType,
         mixed $data,
         ?int $quantity,
     ): void;
@@ -27,21 +27,21 @@ interface IEventCommand
     /**
      * Increment the clicks of a product from a shop.
      *
-     * @param string $shop_id
-     * @param string $product_id
+     * @param string $shopId
+     * @param string $productId
      * @param mixed $data
      * @return void
      */
-    public function incrementClicks(string $shop_id, string $product_id, mixed $data): void;
+    public function incrementClicks(string $shopId, string $productId, mixed $data): void;
 
     /**
      * Increment the views of a product from a shop.
      *
-     * @param string $shop_id
-     * @param string $product_id
+     * @param string $shopId
+     * @param string $productId
      * @param mixed $data
      * @param int|null $quantity
      * @return void
      */
-    public function incrementAddToCart(string $shop_id, string $product_id, mixed $data, ?int $quantity = 1): void;
+    public function incrementAddToCart(string $shopId, string $productId, mixed $data, ?int $quantity = 1): void;
 }

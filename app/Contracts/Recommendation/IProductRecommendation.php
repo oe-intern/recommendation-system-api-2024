@@ -10,117 +10,106 @@ interface IProductRecommendation
     /**
      * Get list of recommended products for a product.
      *
-     * @param string $shop_id
-     * @param string $product_id
+     * @param string $shopId
+     * @param string $productId
      * @return array
      *
      * @throws ProductNotFoundException
      */
-    public function getRecommendedProducts(string $shop_id, string $product_id): array;
+    public function getRecommendedProducts(string $shopId, string $productId): array;
 
     /**
      * Get list of manual products gid for a product.
      *
-     * @param string $product_id
+     * @param string $productId
      * @return array
      *
      * @throws ProductNotFoundException
      */
-    public function getManualProducts(string $product_id): array;
+    public function getManualProducts(string $productId): array;
 
     /**
      * Set list of recommended products for a product.
      *
-     * @param string $shop_id
-     * @param string $product_id
-     * @param array $list_recommended_gid
-     * @param string|null $recommendation_type
+     * @param string $shopId
+     * @param string $productId
+     * @param array $recommendedGids
+     * @param string|null $recommendationType
      * @return ProductCollection
      *
      * @throws ProductNotFoundException
      */
     public function setRecommendedProducts(
-        string $shop_id,
-        string $product_id,
-        array $list_recommended_gid,
-        ?string $recommendation_type,
+        string $shopId,
+        string $productId,
+        array $recommendedGids,
+        ?string $recommendationType,
     ): ProductCollection;
 
     /**
      * Set the recommendation type for a product.
      *
-     * @param string $shop_id
-     * @param string $product_id
-     * @param string $recommendation_type
+     * @param string $shopId
+     * @param string $productId
+     * @param string $recommendationType
      * @return ProductCollection
      *
      * @throws ProductNotFoundException
      */
     public function setRecommendationType(
-        string $shop_id,
-        string $product_id,
-        string $recommendation_type
+        string $shopId,
+        string $productId,
+        string $recommendationType
     ): ProductCollection;
-
-    /**
-     * Get full information of a product (including recommendations).
-     *
-     * @param string $shop_id
-     * @param string $product_id
-     * @return array
-     *
-     * @throws ProductNotFoundException
-     */
-    public function getFullInfo(string $shop_id, string $product_id): array;
 
     /**
      * Get settings for auto recommendation.
      *
-     * @param string $shop_id
+     * @param string $shopId
      * @return array
      */
-    public function getShopSettings(string $shop_id): array;
+    public function getShopSettings(string $shopId): array;
 
     /**
      * Set auto recommendation for a shop.
      *
-     * @param string $shop_id
+     * @param string $shopId
      * @param array $settings
      *
      * @return array
      */
     public function setShopSettings(
-        string $shop_id,
+        string $shopId,
         array $settings
     ): array;
 
     /**
      * Activate recommendation for all product of a shop.
      *
-     * @param string $shop_id
+     * @param string $shopId
      * @param string $status
      * @return bool
      */
     public function activateRecommendation(
-        string $shop_id,
+        string $shopId,
         string $status,
     ): bool;
 
     /**
      * Update product default recommendation for a shop.
      *
-     * @param array $recommendation_data
-     * @param array $map_gid_id
+     * @param array $recommendationData
+     * @param array $gidToIdMap
      * @return bool
      */
-    public function updateManyDefaultRecommendation(array $recommendation_data, array $map_gid_id): bool;
+    public function updateManyDefaultRecommendation(array $recommendationData, array $gidToIdMap): bool;
 
     /**
      * Update product recommendation for a shop.
      *
-     * @param array $recommendation_data
-     * @param array $map_gid_id
+     * @param array $recommendationData
+     * @param array $gidToIdMap
      * @return bool
      */
-    public function updateManyRecommendation(array $recommendation_data, array $map_gid_id): bool;
+    public function updateManyRecommendation(array $recommendationData, array $gidToIdMap): bool;
 }

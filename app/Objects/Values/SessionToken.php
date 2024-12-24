@@ -127,7 +127,7 @@ final class SessionToken implements ValueObject
      *
      * @var UserDomain
      */
-    protected $user_domain;
+    protected $userDomain;
 
     /**
      * Constructor.
@@ -193,7 +193,7 @@ final class SessionToken implements ValueObject
 
         // Parse the shop domain from the destination
         $host = $this->findHost($body['dest']);
-        $this->user_domain = UserDomain::fromNative($host);
+        $this->userDomain = UserDomain::fromNative($host);
     }
 
     /**
@@ -203,7 +203,7 @@ final class SessionToken implements ValueObject
      */
     public function getShopDomain(): UserDomain
     {
-        return $this->user_domain;
+        return $this->userDomain;
     }
 
     /**

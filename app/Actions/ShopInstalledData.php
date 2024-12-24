@@ -14,65 +14,65 @@ class ShopInstalledData
     /**
      * @var IProductQueryShopify
      */
-    protected IProductQueryShopify $product_query_shopify;
+    protected IProductQueryShopify $productQueryShopify;
 
     /**
      * @var ProductTransform
      */
-    protected ProductTransform $product_transform;
+    protected ProductTransform $productTransform;
 
     /**
      * @var IRecommendationProcess
      */
-    protected IRecommendationProcess $recommendation_process;
+    protected IRecommendationProcess $recommendationProcess;
 
     /**
      * @var PreProcessShopInstalledData
      */
-    protected PreProcessShopInstalledData $pre_process_shop_installed_data;
+    protected PreProcessShopInstalledData $preProcessShopInstalledData;
 
     /**
      * InstallShop constructor.
      *
-     * @param IProductQueryShopify $product_query_shopify
-     * @param ShopifyTransform $product_transform
-     * @param IRecommendationProcess $recommendation_process
-     * @param PreProcessShopInstalledData $pre_process_shop_installed_data
+     * @param IProductQueryShopify $productQueryShopify
+     * @param ShopifyTransform $productTransform
+     * @param IRecommendationProcess $recommendationProcess
+     * @param PreProcessShopInstalledData $preProcessShopInstalledData
      */
     public function __construct(
-        IProductQueryShopify $product_query_shopify,
-        ShopifyTransform $product_transform,
-        IRecommendationProcess $recommendation_process,
-        PreProcessShopInstalledData $pre_process_shop_installed_data,
+        IProductQueryShopify $productQueryShopify,
+        ShopifyTransform $productTransform,
+        IRecommendationProcess $recommendationProcess,
+        PreProcessShopInstalledData $preProcessShopInstalledData,
     ) {
-        $this->product_query_shopify = $product_query_shopify;
-        $this->product_transform = $product_transform;
-        $this->recommendation_process = $recommendation_process;
-        $this->pre_process_shop_installed_data = $pre_process_shop_installed_data;
+        $this->productQueryShopify = $productQueryShopify;
+        $this->productTransform = $productTransform;
+        $this->recommendationProcess = $recommendationProcess;
+        $this->preProcessShopInstalledData = $preProcessShopInstalledData;
     }
 
     /**
      * Process shop installed data
      *
      * @param string $domain
-     * @param bool $is_trashed
+     * @param bool $isTrashed
      * @return void
      */
-    public function __invoke(string $domain, bool $is_trashed): void
+    public function __invoke(string $domain, bool $isTrashed): void
     {
-        $products_data = $this->product_query_shopify->fetchAll();
-        $orders_data = $this->getOrdersData($domain);
+        $productsData = $this->productQueryShopify->fetchAll();
+        $ordersData = $this->getOrdersData($domain);
         // Install shop & product to MongoDB
         call_user_func(
-            $this->pre_process_shop_installed_data,
+            $this->preProcessShopInstalledData,
             $domain,
-            $is_trashed,
-            $this->productCollectionData($products_data),
+            $isTrashed,
+            $this->productCollectionData($productsData),
         );
         // Install recommendation data for shop including default recommendation & auto recommendation
         ExecuteRecommendationPipelineJob::dispatchSync(
-            $domain, $this->getProductsData($products_data),
-            $orders_data,
+            $domain, $this->getProductsData($productsData),
+            $ordersData,
         );
     }
 
@@ -84,28 +84,28 @@ class ShopInstalledData
      */
     public function getOrdersData(string $domain): array
     {
-        return $this->recommendation_process->processOrderData($domain);
+        return $this->recommendationProcess->processOrderData($domain);
     }
 
     /**
      * Product collection data
      *
-     * @param array $products_data
+     * @param array $productsData
      * @return array
      */
-    public function productCollectionData(array $products_data): array
+    public function productCollectionData(array $productsData): array
     {
-        return $this->product_transform->shopifyDataListToCollectionDataList($products_data);
+        return $this->productTransform->shopifyDataListToCollectionDataList($productsData);
     }
 
     /**
      * Get product data to install
      *
-     * @param array $products_data
+     * @param array $productsData
      * @return array
      */
-    public function getProductsData(array $products_data): array
+    public function getProductsData(array $productsData): array
     {
-        return $this->product_transform->shopifyDataListToModelApiListData($products_data);
+        return $this->productTransform->shopifyDataListToModelApiListData($productsData);
     }
 }

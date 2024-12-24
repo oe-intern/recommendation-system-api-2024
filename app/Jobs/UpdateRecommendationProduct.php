@@ -17,6 +17,7 @@ use Exception;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Support\Facades\Log;
 
 class UpdateRecommendationProduct implements ShouldQueue
 {
@@ -35,116 +36,116 @@ class UpdateRecommendationProduct implements ShouldQueue
     /**
      * @var int
      */
-    private const DELAY_RECOMMEND_PROCESS = 60;
+    private const DELAY_RECOMMEND_PROCESS = 10;
 
     /**
      * @var string
      */
-    protected string $product_id; // 1 minute
+    protected string $productId; // 1 minute
 
     /**
      * @var string
      */
-    protected string $shop_domain;
+    protected string $shopDomain;
 
     /**
      * @var IProductQueryShopify
      */
-    private IProductQueryShopify $product_query_shopify;
+    private IProductQueryShopify $productQueryShopify;
 
     /**
      * @var IRecommendationApi
      */
-    private IRecommendationApi $recommendation_api_service;
+    private IRecommendationApi $recommendationApiService;
 
     /**
      * @var IProductCommand
      */
-    private IProductCommand $product_command;
+    private IProductCommand $productCommand;
 
     /**
      * @var IProductQuery
      */
-    private IProductQuery $product_query;
+    private IProductQuery $productQuery;
 
     /**
      * @var IShopQuery
      */
-    private IShopQuery $shop_query;
+    private IShopQuery $shopQuery;
 
     /**
      * @var ShopifyTransform
      */
-    private ShopifyTransform $product_transform;
+    private ShopifyTransform $productTransform;
 
     /**
      * UpdateRecommendationProduct constructor.
      */
-    public function __construct(string $product_id, string $shop_domain)
+    public function __construct(string $productId, string $shopDomain)
     {
-        $this->product_id = $product_id;
-        $this->shop_domain = $shop_domain;
+        $this->productId = $productId;
+        $this->shopDomain = $shopDomain;
     }
 
     /**
      * Handle the job
      *
-     * @param IProductQueryShopify $product_query_shopify
-     * @param IRecommendationApi $recommendation_api_service
-     * @param IProductCommand $product_command
-     * @param IProductQuery $product_query
-     * @param IShopQuery $shop_query
-     * @param ProductTransform $product_transform
+     * @param IProductQueryShopify $productQueryShopify
+     * @param IRecommendationApi $recommendationApiService
+     * @param IProductCommand $productCommand
+     * @param IProductQuery $productQuery
+     * @param IShopQuery $shopQuery
+     * @param ProductTransform $productTransform
      * @return void
      */
     public function handle(
-        IProductQueryShopify $product_query_shopify,
-        IRecommendationApi $recommendation_api_service,
-        IProductCommand $product_command,
-        IProductQuery $product_query,
-        IShopQuery $shop_query,
-        ProductTransform $product_transform,
+        IProductQueryShopify $productQueryShopify,
+        IRecommendationApi $recommendationApiService,
+        IProductCommand $productCommand,
+        IProductQuery $productQuery,
+        IShopQuery $shopQuery,
+        ProductTransform $productTransform,
     ): void {
         $this->initializeServices(
-            $product_query_shopify,
-            $recommendation_api_service,
-            $product_command,
-            $product_query,
-            $shop_query,
-            $product_transform,
+            $productQueryShopify,
+            $recommendationApiService,
+            $productCommand,
+            $productQuery,
+            $shopQuery,
+            $productTransform,
         );
-
-        $request_data = $this->getRequestData();
-        $recommendations = $this->getRecommendations($request_data);
-
-        $this->updateRecommendationProduct($this->product_id, $recommendations);
+        Log::info('Update recommendation for product ' . $this->productId);
+        $requestData = $this->getRequestData();
+        $recommendations = $this->getRecommendations($requestData);
+        Log::info('Recommendations for product ' . $this->productId . ' ' . json_encode($recommendations));
+        $this->updateRecommendationProduct($this->productId, $recommendations);
     }
 
     /**
      * Initialize services
      *
-     * @param IProductQueryShopify $product_query_shopify
-     * @param IRecommendationApi $recommendation_api_service
-     * @param IProductCommand $product_command
-     * @param IProductQuery $product_query
-     * @param IShopQuery $shop_query
-     * @param ProductTransform $product_transform
+     * @param IProductQueryShopify $productQueryShopify
+     * @param IRecommendationApi $recommendationApiService
+     * @param IProductCommand $productCommand
+     * @param IProductQuery $productQuery
+     * @param IShopQuery $shopQuery
+     * @param ProductTransform $productTransform
      * @return void
      */
     private function initializeServices(
-        IProductQueryShopify $product_query_shopify,
-        IRecommendationApi $recommendation_api_service,
-        IProductCommand $product_command,
-        IProductQuery $product_query,
-        IShopQuery $shop_query,
-        ProductTransform $product_transform,
+        IProductQueryShopify $productQueryShopify,
+        IRecommendationApi $recommendationApiService,
+        IProductCommand $productCommand,
+        IProductQuery $productQuery,
+        IShopQuery $shopQuery,
+        ProductTransform $productTransform,
     ): void {
-        $this->product_query_shopify = $product_query_shopify;
-        $this->recommendation_api_service = $recommendation_api_service;
-        $this->product_command = $product_command;
-        $this->product_query = $product_query;
-        $this->shop_query = $shop_query;
-        $this->product_transform = $product_transform;
+        $this->productQueryShopify = $productQueryShopify;
+        $this->recommendationApiService = $recommendationApiService;
+        $this->productCommand = $productCommand;
+        $this->productQuery = $productQuery;
+        $this->shopQuery = $shopQuery;
+        $this->productTransform = $productTransform;
 
         $this->setContext();
     }
@@ -154,9 +155,9 @@ class UpdateRecommendationProduct implements ShouldQueue
      */
     private function setContext(): void
     {
-        $user_context = app(UserContext::class);
-        $shop_session = User::query()->where('name', $this->shop_domain)->first();
-        $user_context->setUser($shop_session);
+        $userContext = app(UserContext::class);
+        $shopSession = User::query()->where('name', $this->shopDomain)->first();
+        $userContext->setUser($shopSession);
     }
 
     /**
@@ -166,41 +167,41 @@ class UpdateRecommendationProduct implements ShouldQueue
      */
     private function getRequestData(): ProductRecommendationRequestDTO
     {
-        $products = $this->product_query_shopify->fetchAll();
-        $products_data = $this->product_transform->shopifyDataListToModelApiListData($products);
+        $products = $this->productQueryShopify->fetchAll();
+        $productsData = $this->productTransform->shopifyDataListToModelApiListData($products);
 
         return new ProductRecommendationRequestDTO(
             self::MAX_RECOMMENDATION_PRODUCTS,
-            $products_data,
-            $this->product_id,
+            $productsData,
+            $this->productId,
         );
     }
 
     /**
      * Get recommendations for a product
      *
-     * @param ProductRecommendationRequestDTO $request_data
+     * @param ProductRecommendationRequestDTO $requestData
      * @return array
      */
-    private function getRecommendations(ProductRecommendationRequestDTO $request_data): array
+    private function getRecommendations(ProductRecommendationRequestDTO $requestData): array
     {
-        $recommendations_response = $this->retryFetchingRecommendations($request_data);
-        return $this->product_query->getIdsByGids($recommendations_response);
+        $recommendationsResponse = $this->retryFetchingRecommendations($requestData);
+        return $this->productQuery->getIdsByGids($recommendationsResponse);
     }
 
     /**
      * Retry fetching recommendations
      *
-     * @param ProductRecommendationRequestDTO $request_data
+     * @param ProductRecommendationRequestDTO $requestData
      * @return array
      */
     private function retryFetchingRecommendations(
-        ProductRecommendationRequestDTO $request_data,
+        ProductRecommendationRequestDTO $requestData,
     ): array {
         $retry = 0;
         do {
             try {
-                return $this->recommendation_api_service->recommendProduct($request_data);
+                return $this->recommendationApiService->recommendProduct($requestData);
             } catch (Exception $e) {
                 sleep(self::DELAY_RECOMMEND_PROCESS);
             }
@@ -213,14 +214,14 @@ class UpdateRecommendationProduct implements ShouldQueue
     /**
      * Update recommendation for a product
      *
-     * @param string $product_id
+     * @param string $productId
      * @param array $recommendations
      * @return void
      */
-    private function updateRecommendationProduct(string $product_id, array $recommendations): void
+    private function updateRecommendationProduct(string $productId, array $recommendations): void
     {
-        $recommendation_type = $this->getRecommendationType();
-        $this->product_command->updateNewProductRecommendation($product_id, $recommendations, $recommendation_type);
+        $recommendationType = $this->getRecommendationType();
+        $this->productCommand->updateNewProductRecommendation($productId, $recommendations, $recommendationType);
     }
 
     /**
@@ -230,7 +231,7 @@ class UpdateRecommendationProduct implements ShouldQueue
      */
     private function getRecommendationType(): RecommendationType
     {
-        $shop = $this->shop_query->getByDomain($this->shop_domain);
+        $shop = $this->shopQuery->getByDomain($this->shopDomain);
         return $shop->settings()->get()
             ->isAutoRecommendationActive() ? RecommendationType::AUTO : RecommendationType::DEFAULT;
     }

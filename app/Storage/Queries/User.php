@@ -28,27 +28,27 @@ class User implements UserQuery
     /**
      * @inheritdoc
      */
-    public function getById(UserId $user_id, array $with = [], bool $with_trashed = false)
+    public function getById(UserId $userId, array $with = [], bool $withTrashed = false)
     {
         $result = $this->model::with($with);
 
-        if ($with_trashed) {
+        if ($withTrashed) {
             $result = $result->withTrashed();
         }
 
         return $result
-            ->where('id', $user_id->toNative())
+            ->where('id', $userId->toNative())
             ->first();
     }
 
     /**
      * @inheritdoc
      */
-    public function getByDomain(UserDomain $domain, array $with = [], bool $with_trashed = false)
+    public function getByDomain(UserDomain $domain, array $with = [], bool $withTrashed = false)
     {
         $result = $this->model::with($with);
 
-        if ($with_trashed) {
+        if ($withTrashed) {
             $result = $result->withTrashed();
         }
 

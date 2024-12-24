@@ -9,7 +9,7 @@ class ShopProductRecommendationRequestDTO
      *
      * @var int
      */
-    public int $number_of_items;
+    public int $numberOfItems;
 
     /**
      * List of products to recommend of a shop.
@@ -23,7 +23,7 @@ class ShopProductRecommendationRequestDTO
      *
      * @var array
      */
-    public array $type_scores;
+    public array $typeScores;
 
     /**
      * Total number of orders.
@@ -37,29 +37,29 @@ class ShopProductRecommendationRequestDTO
      *
      * @var array
      */
-    public array $product_scores;
+    public array $productScores;
 
     /**
      * ProductRecommendationRequestDTO constructor.
      *
-     * @param int $number_of_items
+     * @param int $numberOfItems
      * @param array $products
-     * @param array $type_scores
+     * @param array $typeScores
      * @param int $total
-     * @param array $product_scores
+     * @param array $productScores
      */
     public function __construct(
-        int $number_of_items,
+        int $numberOfItems,
         array $products,
-        array $type_scores,
+        array $typeScores,
         int $total,
-        array $product_scores,
+        array $productScores,
     ) {
-        $this->number_of_items = $number_of_items;
+        $this->numberOfItems = $numberOfItems;
         $this->products = $products;
-        $this->type_scores = $type_scores;
+        $this->typeScores = $typeScores;
         $this->total = $total;
-        $this->product_scores = $product_scores;
+        $this->productScores = $productScores;
     }
 
     /**
@@ -68,11 +68,11 @@ class ShopProductRecommendationRequestDTO
     public function toArray(): array
     {
         return [
-            'number_of_items' => $this->number_of_items,
+            'number_of_items' => $this->numberOfItems,
             'products' => $this->products,
-            'type_scores' => $this->type_scores,
+            'type_scores' => $this->typeScores,
             'total' => $this->total,
-            'product_scores' => $this->product_scores,
+            'product_scores' => $this->productScores,
         ];
     }
 }

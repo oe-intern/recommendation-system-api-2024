@@ -9,50 +9,50 @@ interface IEventQuery
     /**
      * Filter click data for a shop
      *
-     * @param string $shop_id
-     * @param string|null $product_id
-     * @param string $start_date
-     * @param string $end_date
-     * @param AnalyticGroupBy|null $group_by
+     * @param string $shopId
+     * @param string|null $productId
+     * @param string $startDate
+     * @param string $endDate
+     * @param AnalyticGroupBy|null $groupBy
      * @return array
      */
     public function filterClickData(
-        string $shop_id,
-        ?string $product_id,
-        string $start_date,
-        string $end_date,
-        ?AnalyticGroupBy $group_by
+        string $shopId,
+        ?string $productId,
+        string $startDate,
+        string $endDate,
+        ?AnalyticGroupBy $groupBy
     ): array;
 
     /**
      * Filter add to cart data for a shop
      *
-     * @param string $shop_id
-     * @param string|null $product_id
-     * @param string $start_date
-     * @param string $end_date
-     * @param AnalyticGroupBy|null $group_by
+     * @param string $shopId
+     * @param string|null $productId
+     * @param string $startDate
+     * @param string $endDate
+     * @param AnalyticGroupBy|null $groupBy
      * @return array
      */
     public function filterAddToCartData(
-        string $shop_id,
-        ?string $product_id,
-        string $start_date,
-        string $end_date,
-        ?AnalyticGroupBy $group_by
+        string $shopId,
+        ?string $productId,
+        string $startDate,
+        string $endDate,
+        ?AnalyticGroupBy $groupBy
     ): array;
 
     /**
      * Get event data for a shop.
      *
-     * @param string $shop_id
-     * @param string $start_date
-     * @param string $end_date
+     * @param string $shopId
+     * @param string $startDate
+     * @param string $endDate
      * @return array
      */
     public function getEventData(
-        string $shop_id,
-        string $start_date,
-        string $end_date
+        string $shopId,
+        string $startDate,
+        string $endDate
     ): array;
 }

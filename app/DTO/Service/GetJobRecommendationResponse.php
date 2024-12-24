@@ -11,7 +11,7 @@ class GetJobRecommendationResponse
      *
      * @var string
      */
-    public string $job_id;
+    public string $jobId;
 
     /**
      * Job status.
@@ -25,29 +25,29 @@ class GetJobRecommendationResponse
      *
      * @var string
      */
-    public string $result_url;
+    public string $resultUrl;
 
     /**
      * Error message.
      *
      * @var mixed
      */
-    public mixed $error_message;
+    public mixed $errorMessage;
 
     /**
      * JobRecommendationResponseDTO constructor.
      *
-     * @param string $job_id
+     * @param string $jobId
      * @param string $status
-     * @param string|null $result_url
-     * @param mixed $error_message
+     * @param string|null $resultUrl
+     * @param mixed $errorMessage
      */
-    public function __construct(string $job_id, string $status, ?string $result_url, mixed $error_message)
+    public function __construct(string $jobId, string $status, ?string $resultUrl, mixed $errorMessage)
     {
-        $this->job_id = $job_id;
+        $this->jobId = $jobId;
         $this->status = JobRecommendationStatus::from($status);
-        $this->result_url = $result_url;
-        $this->error_message = $error_message;
+        $this->resultUrl = $resultUrl;
+        $this->errorMessage = $errorMessage;
     }
 
     /**
@@ -56,10 +56,10 @@ class GetJobRecommendationResponse
     public function toArray(): array
     {
         return [
-            'job_id' => $this->job_id,
+            'job_id' => $this->jobId,
             'status' => $this->status,
-            'result_url' => $this->result_url,
-            'error_message' => $this->error_message,
+            'result_url' => $this->resultUrl,
+            'error_message' => $this->errorMessage,
         ];
     }
 

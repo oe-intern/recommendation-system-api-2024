@@ -18,25 +18,25 @@ abstract class BaseShopHandler implements Handler
      *
      * @var UserQuery
      */
-    protected UserQuery $user_query;
+    protected UserQuery $userQuery;
 
     /**
      * The shop query.
      *
      * @var IShopQuery
      */
-    protected IShopQuery $shop_query;
+    protected IShopQuery $shopQuery;
 
     /**
      * BaseShopHandler constructor.
      *
-     * @param UserQuery $user_query
-     * @param IShopQuery $shop_query
+     * @param UserQuery $userQuery
+     * @param IShopQuery $shopQuery
      */
-    public function __construct(UserQuery $user_query, IShopQuery $shop_query)
+    public function __construct(UserQuery $userQuery, IShopQuery $shopQuery)
     {
-        $this->user_query = $user_query;
-        $this->shop_query = $shop_query;
+        $this->userQuery = $userQuery;
+        $this->shopQuery = $shopQuery;
     }
 
     /**
@@ -57,8 +57,8 @@ abstract class BaseShopHandler implements Handler
             return;
         }
 
-        $shop_id = $this->getShopId($shop);
-        $this->processData($shop_id, $body);
+        $shopId = $this->getShopId($shop);
+        $this->processData($shopId, $body);
     }
 
     /**
@@ -69,8 +69,8 @@ abstract class BaseShopHandler implements Handler
      */
     public function getUserFromShop(string $shop): ?UserModel
     {
-        $user_domain = UserDomain::fromNative($shop);
-        return $this->user_query->getByDomain($user_domain);
+        $userDomain = UserDomain::fromNative($shop);
+        return $this->userQuery->getByDomain($userDomain);
     }
 
     /**
@@ -78,17 +78,17 @@ abstract class BaseShopHandler implements Handler
      *
      * @throws ShopNotFoundException
      */
-    private function getShopId(string $shop_domain): string
+    private function getShopId(string $shopDomain): string
     {
-        return $this->shop_query->getShopIdByDomain($shop_domain);
+        return $this->shopQuery->getShopIdByDomain($shopDomain);
     }
 
     /**
      * Process the data after checking the user.
      *
-     * @param string $shop_id
+     * @param string $shopId
      * @param array $body
      * @return void
      */
-    abstract protected function processData(string $shop_id, array $body): void;
+    abstract protected function processData(string $shopId, array $body): void;
 }

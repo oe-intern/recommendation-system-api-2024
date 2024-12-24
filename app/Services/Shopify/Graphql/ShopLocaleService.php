@@ -29,10 +29,10 @@ GRAPHQL;
             ],
         ]);
 
-        $primary_locale = collect(data_get($response, 'data.shopLocales'))
+        $primaryLocale = collect(data_get($response, 'data.shopLocales'))
             ->where('primary', true)
             ->first();
 
-        return data_get($primary_locale, 'locale');
+        return data_get($primaryLocale, 'locale');
     }
 }

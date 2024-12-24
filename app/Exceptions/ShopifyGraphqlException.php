@@ -35,14 +35,14 @@ class ShopifyGraphqlException extends Exception
      */
     protected static function summarize($errors)
     {
-        $first_error = Arr::first($errors);
-        $message = Arr::get($first_error, 'message', 'Unknown error');
-        $total_errors = count($errors);
+        $firstError = Arr::first($errors);
+        $message = Arr::get($firstError, 'message', 'Unknown error');
+        $totalErrors = count($errors);
 
-        if ($total_errors > 1) {
-            $total_errors_left = $total_errors - 1;
-            $pluralized = $total_errors_left === 1 ? 'error' : 'errors';
-            $message .= " (and $total_errors_left more $pluralized)";
+        if ($totalErrors > 1) {
+            $totalErrorsLeft = $totalErrors - 1;
+            $pluralized = $totalErrorsLeft === 1 ? 'error' : 'errors';
+            $message .= " (and $totalErrorsLeft more $pluralized)";
         }
 
         return "Shopify GraphQL Error: {$message}";

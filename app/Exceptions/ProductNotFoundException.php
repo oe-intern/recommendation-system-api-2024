@@ -11,18 +11,18 @@ class ProductNotFoundException extends Exception
     /**
      * @var mixed
      */
-    protected mixed $product_id;
+    protected mixed $productId;
 
     /**
      * ProductNotFoundException constructor.
      *
-     * @param mixed $product_id
+     * @param mixed $productId
      * @param Throwable|null $previous
      */
-    public function __construct(mixed $product_id, ?Throwable $previous = null)
+    public function __construct(mixed $productId, ?Throwable $previous = null)
     {
-        $this->product_id = $product_id;
-        $this->message = 'Product ID: ' . (is_array($product_id) ? implode(', ', $product_id) : $product_id)
+        $this->productId = $productId;
+        $this->message = 'Product ID: ' . (is_array($productId) ? implode(', ', $productId) : $productId)
             . ' not found.';
 
         parent::__construct($this->message);

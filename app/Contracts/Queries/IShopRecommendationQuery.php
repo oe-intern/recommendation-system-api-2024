@@ -9,8 +9,8 @@ interface IShopRecommendationQuery
     /**
      * Get the shop recommendations by shop ID.
      *
-     * @param string $shop_id
+     * @param string $shopId
      * @return ShopRecommendationSchema
      */
-    public function getByShopId(string $shop_id): ShopRecommendationSchema;
+    public function getByShopId(string $shopId): ShopRecommendationSchema;
 }

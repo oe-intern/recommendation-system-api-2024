@@ -23,21 +23,21 @@ class AuthRedirection
      * Redirects to the Shopify OAuth page.
      *
      * @param Request $request
-     * @param bool $is_online
+     * @param bool $isOnline
      * @return ResponseFactory|Application|RedirectResponse|Response|Redirector
      * @throws CookieSetException
      * @throws PrivateAppException
      * @throws SessionStorageException
      * @throws UninitializedContextException
      */
-    public static function redirect(Request $request, bool $is_online = false)
+    public static function redirect(Request $request, bool $isOnline = false)
     {
         $shop = Utils::sanitizeShopDomain($request->query("shop"));
 
         if (Context::$IS_EMBEDDED_APP && $request->query("embedded", false) === "1") {
             return self::clientSideRedirectUrl($shop);
         } else {
-            $redirect_url = self::serverSideRedirectUrl($shop, $is_online);
+            $redirect_url = self::serverSideRedirectUrl($shop, $isOnline);
         }
 
         return redirect($redirect_url);
@@ -47,19 +47,19 @@ class AuthRedirection
      * Server-side redirect URL.
      *
      * @param string $shop
-     * @param bool $is_online
+     * @param bool $isOnline
      * @return string
      * @throws CookieSetException
      * @throws PrivateAppException
      * @throws SessionStorageException
      * @throws UninitializedContextException
      */
-    private static function serverSideRedirectUrl(string $shop, bool $is_online): string
+    private static function serverSideRedirectUrl(string $shop, bool $isOnline): string
     {
         return OAuth::begin(
             $shop,
             '/authenticate',
-            $is_online,
+            $isOnline,
             ['App\Lib\CookieHandler', 'saveShopifyCookie'],
         );
     }
@@ -72,11 +72,11 @@ class AuthRedirection
      */
     private static function clientSideRedirectUrl($shop)
     {
-        $redirect_uri = "auth?shop=$shop";
-        $redirect_to = Redirect::to($redirect_uri);
+        $redirectUri = "auth?shop=$shop";
+        $redirectTo = Redirect::to($redirectUri);
 
         return response(view('exit_iframe', [
-            'redirect_url' => $redirect_to->getTargetUrl(),
+            'redirect_url' => $redirectTo->getTargetUrl(),
         ]));
     }
 }

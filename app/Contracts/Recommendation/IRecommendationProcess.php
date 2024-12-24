@@ -7,16 +7,16 @@ interface IRecommendationProcess
     /**
      * Process order data.
      *
-     * @param string $shop_id
+     * @param string $shopId
      * @return array
      */
-    public function processOrderData(string $shop_id): array;
+    public function processOrderData(string $shopId): array;
 
     /**
      * Process pre-recommendation data.
      *
-     * @param string $shop_id
+     * @param string $shopId
      * @return array
      */
-    public function processPreRecommendationData(string $shop_id): array;
+    public function processPreRecommendationData(string $shopId): array;
 }

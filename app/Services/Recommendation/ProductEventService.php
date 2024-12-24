@@ -15,17 +15,17 @@ class ProductEventService implements IProductEvent
     /**
      * @var IProductQuery
      */
-    protected IProductQuery $product_query;
+    protected IProductQuery $productQuery;
 
     /**
      * @var IEventCommand
      */
-    protected IEventCommand $event_command;
+    protected IEventCommand $eventCommand;
 
     /**
      * @var IEventQuery
      */
-    protected IEventQuery $event_query;
+    protected IEventQuery $eventQuery;
 
     /**
      * @var int
@@ -35,113 +35,113 @@ class ProductEventService implements IProductEvent
     /**
      * ProductEventService constructor.
      *
-     * @param IProductQuery $product_query
-     * @param IEventCommand $event_command
-     * @param IEventQuery $event_query
+     * @param IProductQuery $productQuery
+     * @param IEventCommand $eventCommand
+     * @param IEventQuery $eventQuery
      */
     public function __construct(
-        IProductQuery $product_query,
-        IEventCommand $event_command,
-        IEventQuery $event_query
+        IProductQuery $productQuery,
+        IEventCommand $eventCommand,
+        IEventQuery $eventQuery
     ) {
-        $this->product_query = $product_query;
-        $this->event_command = $event_command;
-        $this->event_query = $event_query;
+        $this->productQuery = $productQuery;
+        $this->eventCommand = $eventCommand;
+        $this->eventQuery = $eventQuery;
     }
 
     /**
      * Handle click event.
      *
-     * @param string $shop_id
-     * @param string $product_id
+     * @param string $shopId
+     * @param string $productId
      * @param mixed $data
      * @return void
      *
      * @throws ProductNotFoundException
      */
-    public function click(string $shop_id, string $product_id, mixed $data): void
+    public function click(string $shopId, string $productId, mixed $data): void
     {
-        $this->product_query->validateProductId($shop_id, $product_id);
+        $this->productQuery->validateProductId($shopId, $productId);
 
-        $this->event_command->trigger($shop_id, $product_id, EventType::CLICK, $data, null);
+        $this->eventCommand->trigger($shopId, $productId, EventType::CLICK, $data, null);
     }
 
     /**
      * Handle add to cart event.
      *
-     * @param string $shop_id
-     * @param string $product_id
+     * @param string $shopId
+     * @param string $productId
      * @param mixed $data
      * @param int|null $quantity
      * @return void
      *
      * @throws ProductNotFoundException
      */
-    public function addToCart(string $shop_id, string $product_id, mixed $data, ?int $quantity): void
+    public function addToCart(string $shopId, string $productId, mixed $data, ?int $quantity): void
     {
-        $this->product_query->validateProductId($shop_id, $product_id);
+        $this->productQuery->validateProductId($shopId, $productId);
 
-        $this->event_command->trigger($shop_id, $product_id, EventType::ADD_TO_CART, $data, $quantity);
+        $this->eventCommand->trigger($shopId, $productId, EventType::ADD_TO_CART, $data, $quantity);
     }
 
     /**
      * Get event analytic.
      *
-     * @param string $shop_id
-     * @param string $start_date
-     * @param string $end_date
+     * @param string $shopId
+     * @param string $startDate
+     * @param string $endDate
      * @return array
      */
-    public function getProductPerformance(string $shop_id, string $start_date, string $end_date): array
+    public function getProductPerformance(string $shopId, string $startDate, string $endDate): array
     {
-        $events = $this->event_query->getEventData($shop_id, $start_date, $end_date);
-        $product_event_ids = array_column($events, 'id');
-        $products_without_events = $this->product_query->getProductsNotIn($shop_id, $product_event_ids);
+        $productEventData = $this->eventQuery->getEventData($shopId, $startDate, $endDate);
+        $productIdsWithEvents = array_column($productEventData, 'id');
+        $productIdsWithoutEvents = $this->productQuery->getProductsNotIn($shopId, $productIdsWithEvents);
 
-        $top_products = array_slice($events, 0, $this->PERFORMANCE_LIMIT);
+        $topProducts = array_slice($productEventData, 0, $this->PERFORMANCE_LIMIT);
 
-        $low_products = $this->selectLowPerformingProducts(
-            $product_event_ids,
-            $products_without_events,
+        $lowProducts    = $this->selectLowPerformingProducts(
+            $productIdsWithEvents,
+            $productIdsWithoutEvents,
         );
 
-        $top_products = $this->formatData($top_products);
-        $low_products = $this->convertDataIdToGid($low_products);
+        $topProducts = $this->formatData($topProducts);
+        $lowProducts = $this->convertDataIdToGid($lowProducts);
 
         return [
-            'top' => $top_products,
-            'low' => $low_products,
+            'top' => $topProducts,
+            'low' => $lowProducts,
         ];
     }
 
     /**
      * Selects low performing products from products without events.
      *
-     * @param array $products_event_ids
-     * @param array $products_without_events
+     * @param array $productIdsWithEvents
+     * @param array $productIdsWithoutEvents
      * @return array
      */
-    private function selectLowPerformingProducts(array $products_event_ids, array $products_without_events): array
+    private function selectLowPerformingProducts(array $productIdsWithEvents, array $productIdsWithoutEvents): array
     {
-        if (count($products_without_events) > $this->PERFORMANCE_LIMIT) {
-            shuffle($products_without_events);
+        if (count($productIdsWithoutEvents) > $this->PERFORMANCE_LIMIT) {
+            shuffle($productIdsWithoutEvents);
 
-            return $this->convertToEmptyEvent(array_slice($products_without_events, 0, $this->PERFORMANCE_LIMIT));
+            return $this->convertToEmptyEvent(array_slice($productIdsWithoutEvents, 0, $this->PERFORMANCE_LIMIT));
         }
 
-        return array_merge($this->convertToEmptyEvent($products_without_events),
-            array_slice($products_event_ids, 0, count($products_without_events) - $this->PERFORMANCE_LIMIT));
+        return array_merge($this->convertToEmptyEvent($productIdsWithoutEvents),
+            array_slice($productIdsWithEvents, 0, count($productIdsWithoutEvents) - $this->PERFORMANCE_LIMIT));
     }
 
     /**
      * Get list of optional products for recommendation.
      *
-     * @param array $product_ids
+     * @param array $productIds
      * @return array
      */
-    private function convertToEmptyEvent(array $product_ids): array
+    private function convertToEmptyEvent(array $productIds): array
     {
-        return array_map(fn($id) => ['quantity' => 0, 'id' => $id], $product_ids);
+        return array_map(fn($id) => ['quantity' => 0, 'id' => $id], $productIds);
     }
 
     /**
@@ -163,50 +163,50 @@ class ProductEventService implements IProductEvent
      */
     private function convertDataIdToGid(array $data): array
     {
-        return array_map(fn($product) => ['id' => $this->product_query->getGidById($product['id']), 'quantity' => $product['quantity']], $data);
+        return array_map(fn($product) => ['id' => $this->productQuery->getGidById($product['id']), 'quantity' => $product['quantity']], $data);
     }
 
     /**
      * Get click data.
      *
-     * @param string $shop_id
-     * @param string|null $product_id
-     * @param string $start_date
-     * @param string $end_date
-     * @param string|null $group_by
+     * @param string $shopId
+     * @param string|null $productId
+     * @param string $startDate
+     * @param string $endDate
+     * @param string|null $groupBy
      * @return array
      */
     public function getClickData(
-        string $shop_id,
-        ?string $product_id,
-        string $start_date,
-        string $end_date,
-        ?string $group_by
+        string $shopId,
+        ?string $productId,
+        string $startDate,
+        string $endDate,
+        ?string $groupBy
     ): array {
-        $group_by = $group_by ? AnalyticGroupBy::from($group_by) : null;
+        $groupBy = $groupBy ? AnalyticGroupBy::from($groupBy) : null;
 
-        return $this->event_query->filterClickData($shop_id, $product_id, $start_date, $end_date, $group_by);
+        return $this->eventQuery->filterClickData($shopId, $productId, $startDate, $endDate, $groupBy);
     }
 
     /**
      * Get add to cart data.
      *
-     * @param string $shop_id
-     * @param string|null $product_id
-     * @param string $start_date
-     * @param string $end_date
-     * @param string|null $group_by
+     * @param string $shopId
+     * @param string|null $productId
+     * @param string $startDate
+     * @param string $endDate
+     * @param string|null $groupBy
      * @return array
      */
     public function getAddToCartData(
-        string $shop_id,
-        ?string $product_id,
-        string $start_date,
-        string $end_date,
-        ?string $group_by
+        string $shopId,
+        ?string $productId,
+        string $startDate,
+        string $endDate,
+        ?string $groupBy
     ): array {
-        $group_by = $group_by ? AnalyticGroupBy::from($group_by) : null;
+        $groupBy = $groupBy ? AnalyticGroupBy::from($groupBy) : null;
 
-        return $this->event_query->filterAddToCartData($shop_id, $product_id, $start_date, $end_date, $group_by);
+        return $this->eventQuery->filterAddToCartData($shopId, $productId, $startDate, $endDate, $groupBy);
     }
 }

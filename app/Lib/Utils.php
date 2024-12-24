@@ -20,13 +20,13 @@ final class Utils
      */
     public static function getIdFromGid(string $gid)
     {
-        $last_slash_pos = strrpos($gid, '/');
+        $lastSlashPos = strrpos($gid, '/');
 
-        if ($last_slash_pos === false) {
+        if ($lastSlashPos === false) {
             return $gid;
         }
 
-        return substr($gid, $last_slash_pos + 1);
+        return substr($gid, $lastSlashPos + 1);
     }
 
     /**
@@ -136,10 +136,10 @@ final class Utils
      */
     public static function getUserByContext()
     {
-        $user_context = app(UserContext::class);
-        $user_query = app(User::class);
+        $userContext = app(UserContext::class);
+        $userQuery = app(User::class);
 
-        return $user_query->getByDomain($user_context->getDomain());
+        return $userQuery->getByDomain($userContext->getDomain());
     }
 
     /**
@@ -168,7 +168,7 @@ final class Utils
      */
     public static function refreshDay(): Carbon
     {
-        $refresh_interval_days = config('services.recommendation.refresh_interval_days');
-        return Carbon::today()->addDay($refresh_interval_days);
+        $refreshIntervalDays = config('services.recommendation.refresh_interval_days');
+        return Carbon::today()->addDay($refreshIntervalDays);
     }
 }

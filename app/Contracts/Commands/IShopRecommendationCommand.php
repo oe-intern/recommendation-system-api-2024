@@ -7,37 +7,37 @@ interface IShopRecommendationCommand
     /**
      * Decrease the refresh recommendation count.
      *
-     * @param string $shop_id
+     * @param string $shopId
      * @return void
      */
-    public function decreaseRefreshRecommendation(string $shop_id): void;
+    public function decreaseRefreshRecommendation(string $shopId): void;
 
     /**
      * Reset the refresh recommendation count.
      *
-     * @param string $shop_id
+     * @param string $shopId
      * @return void
      */
-    public function resetRefreshRecommendation(string $shop_id): void;
+    public function resetRefreshRecommendation(string $shopId): void;
 
     /**
      * Update the last job recommendation by shop id.
      *
-     * @param string $shop_id
-     * @param string $job_recommendation_id
+     * @param string $shopId
+     * @param string $recommendationJobId
      *
      * @return bool
      */
-    public function updateLastJobRecommendation(string $shop_id, string $job_recommendation_id): bool;
+    public function updateLastJobRecommendation(string $shopId, string $recommendationJobId): bool;
 
     /**
      * Update the email notification status & email address for the recommendation.
      *
-     * @param string $shop_id
-     * @param bool $email_notification
+     * @param string $shopId
+     * @param bool $emailNotification
      * @param string|null $email
      *
      * @return bool
      */
-    public function updateNotification(string $shop_id, bool $email_notification, ?string $email): bool;
+    public function updateNotification(string $shopId, bool $emailNotification, ?string $email): bool;
 }

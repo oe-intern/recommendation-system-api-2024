@@ -14,14 +14,14 @@ class IdentifyShopDomain
     /**
      * @var UserContext
      */
-    protected UserContext $user_context;
+    protected UserContext $userContext;
 
     /**
-     * @param UserContext $user_context
+     * @param UserContext $userContext
      */
-    public function __construct(UserContext $user_context)
+    public function __construct(UserContext $userContext)
     {
-        $this->user_context = $user_context;
+        $this->userContext = $userContext;
     }
 
     /**
@@ -33,17 +33,17 @@ class IdentifyShopDomain
      */
     public function handle(Request $request, Closure $next): mixed
     {
-        $shop_domain = Utils::sanitizeShopDomain($request->header('origin'));
-        $shop_session = User::query()->where('name', $shop_domain)->first();
+        $shopDomain = Utils::sanitizeShopDomain($request->header('origin'));
+        $shopSession = User::query()->where('name', $shopDomain)->first();
 
-        if (!$shop_session) {
+        if (!$shopSession) {
             return response()->json([
                 'error' => 'Unauthorized',
                 'message' => 'Shop not found'
             ], 401);
         }
 
-        $this->user_context->setUser($shop_session);
+        $this->userContext->setUser($shopSession);
 
         return $next($request);
     }

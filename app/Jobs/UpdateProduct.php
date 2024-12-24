@@ -18,7 +18,7 @@ class UpdateProduct implements ShouldQueue
     /**
      * @var string
      */
-    protected string $shop_id;
+    protected string $shopId;
 
     /**
      * @var array
@@ -28,12 +28,12 @@ class UpdateProduct implements ShouldQueue
     /**
      * Create a new job instance.
      *
-     * @param string $shop_id
+     * @param string $shopId
      * @param array $product
      */
-    public function __construct(string $shop_id, array $product)
+    public function __construct(string $shopId, array $product)
     {
-        $this->shop_id = $shop_id;
+        $this->shopId = $shopId;
         $this->product = $product;
     }
 
@@ -41,18 +41,18 @@ class UpdateProduct implements ShouldQueue
     /**
      * Execute the job.
      *
-     * @param IProductCommand $product_command
-     * @param IShopQuery $shop_query
-     * @param ProductTransform $product_transform
-     * @param IProductQuery $product_query
+     * @param IProductCommand $productCommand
+     * @param IShopQuery $shopQuery
+     * @param ProductTransform $productTransform
+     * @param IProductQuery $productQuery
      * @return void
      */
-    public function handle(IProductCommand $product_command, IShopQuery $shop_query, ProductTransform $product_transform, IProductQuery $product_query): void
+    public function handle(IProductCommand $productCommand, IShopQuery $shopQuery, ProductTransform $productTransform, IProductQuery $productQuery): void
     {
-        $product = $product_query->getByShopIdAndGid($this->shop_id, $this->product['id']);
+        $product = $productQuery->getByShopIdAndGid($this->shopId, $this->product['id']);
         if ($product) {
-            $product_data = $product_transform->webhookDataToCollectionData($this->product);
-            $product_command->update($product, $product_data);
+            $productData = $productTransform->webhookDataToCollectionData($this->product);
+            $productCommand->update($product, $productData);
         }
     }
 }

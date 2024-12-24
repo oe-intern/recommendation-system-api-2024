@@ -30,81 +30,81 @@ interface IProductCommand
     /**
      * Update a product of a shop with data from Shopify.
      *
-     * @param array $product_data
+     * @param array $productData
      * @param ProductCollection $product
      * @return bool
      */
-    public function update(ProductCollection $product, array $product_data): bool;
+    public function update(ProductCollection $product, array $productData): bool;
 
     /**
      * Update a list products of a shop with data from Shopify.
      *
-     * @param array $product_data
+     * @param array $productData
      * @return bool
      */
-    public function updateManyByGid(array $product_data): bool;
+    public function updateManyByGid(array $productData): bool;
 
     /**
      * Update recommendation for a product.
      *
-     * @param string $product_id
+     * @param string $productId
      * @param array $recommendations
      * @return bool
      */
-    public function updateProductRecommendation(string $product_id, array $recommendations): bool;
+    public function updateProductRecommendation(string $productId, array $recommendations): bool;
 
     /**
      * Update recommendation for a new product.
      *
-     * @param string $product_id
+     * @param string $productId
      * @param array $recommendations
-     * @param RecommendationType $recommendation_type
+     * @param RecommendationType $recommendationType
      * @return bool
      */
-    public function updateNewProductRecommendation(string $product_id, array $recommendations, RecommendationType $recommendation_type): bool;
+    public function updateNewProductRecommendation(string $productId, array $recommendations, RecommendationType $recommendationType): bool;
 
     /**
      * Update list recommendation for products.
      *
-     * @param array $recommendation_data
+     * @param array $recommendationData
      * @return bool
      */
-    public function updateManyRecommendation(array $recommendation_data): bool;
+    public function updateManyRecommendation(array $recommendationData): bool;
 
     /**
      * Update list recommendation for products.
      *
-     * @param array $recommendation_data
+     * @param array $recommendationData
      * @return bool
      */
-    public function updateManyDefaultRecommendation(array $recommendation_data): bool;
+    public function updateManyDefaultRecommendation(array $recommendationData): bool;
 
     /**
      * Update the recommendation type a product.
      *
      * @param ProductCollection $product
-     * @param RecommendationType $recommendation_type
+     * @param RecommendationType $recommendationType
      * @return bool
      */
     public function setRecommendationType(
         ProductCollection $product,
-        RecommendationType $recommendation_type
+        RecommendationType $recommendationType
     ): bool;
 
     /**
      * Customize the recommendation products for each product.
      *
      * @param ProductCollection $product
-     * @param string $shop_id
+     * @param string $shopId
      * @param array $recommendations
-     * @param RecommendationType $recommendation_type
+     * @param RecommendationType $recommendationType
      * @return bool
      */
     public function setManualProduct(
         ProductCollection $product,
-        string $shop_id,
+        string $shopId,
         array $recommendations,
-        RecommendationType $recommendation_type,
+        RecommendationType $recommendationType,
     ): bool;
 
     /**
@@ -118,45 +118,45 @@ interface IProductCommand
     /**
      * Delete a list of products by gid.
      *
-     * @param array $product_gids
+     * @param array $productGids
      * @return bool
      */
-    public function deleteManyByGid(array $product_gids): bool;
+    public function deleteManyByGid(array $productGids): bool;
 
     /**
      * Add a product recommended for this product.
      *
-     * @param string $product_id
-     * @param string $recommended_product_id
+     * @param string $productId
+     * @param string $recommendedProductId
      * @return void
      */
-    public function addRecommendation(string $product_id, string $recommended_product_id): void;
+    public function addRecommendation(string $productId, string $recommendedProductId): void;
 
     /**
      * Remove a product recommended for this product.
      *
-     * @param string $product_id
-     * @param string $recommended_product_id
+     * @param string $productId
+     * @param string $recommendedProductId
      * @return void
      */
     public function removeProductRecommendation(
-        string $product_id,
-        string $recommended_product_id
+        string $productId,
+        string $recommendedProductId
     ): void;
 
     /**
      * Active the recommendation for all products of a shop.
      *
-     * @param string $shop_id
+     * @param string $shopId
      * @return bool
      */
-    public function activateRecommendation(string $shop_id): bool;
+    public function activateRecommendation(string $shopId): bool;
 
     /**
      * Deactivate the recommendation for all products of a shop.
      *
-     * @param string $shop_id
+     * @param string $shopId
      * @return bool
      */
-    public function deactivateRecommendation(string $shop_id): bool;
+    public function deactivateRecommendation(string $shopId): bool;
 }

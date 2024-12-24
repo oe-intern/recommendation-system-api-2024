@@ -18,59 +18,59 @@ class EmailSenderService implements IEmailSender
     /**
      * @var IShopRecommendationQuery
      */
-    protected IShopRecommendationQuery $shop_recommendation_query;
+    protected IShopRecommendationQuery $shopRecommendationQuery;
 
     /**
      * @var IShopRecommendationCommand
      */
-    protected IShopRecommendationCommand $shop_recommendation_command;
+    protected IShopRecommendationCommand $shopRecommendationCommand;
 
     /**
      * @var IUserQuery
      */
-    protected IUserQuery $user_query;
+    protected IUserQuery $userQuery;
 
     /**
      * EmailSenderService constructor.
      *
-     * @param IShopRecommendationQuery $shop_recommendation_query
-     * @param IShopRecommendationCommand $shop_recommendation_command
-     * @param IUserQuery $user_query
+     * @param IShopRecommendationQuery $shopRecommendationQuery
+     * @param IShopRecommendationCommand $shopRecommendationCommand
+     * @param IUserQuery $userQuery
      */
     public function __construct(
-        IShopRecommendationQuery $shop_recommendation_query,
-        IShopRecommendationCommand $shop_recommendation_command,
-        IUserQuery $user_query,
+        IShopRecommendationQuery $shopRecommendationQuery,
+        IShopRecommendationCommand $shopRecommendationCommand,
+        IUserQuery $userQuery,
     ) {
-        $this->shop_recommendation_query = $shop_recommendation_query;
-        $this->shop_recommendation_command = $shop_recommendation_command;
-        $this->user_query = $user_query;
+        $this->shopRecommendationQuery = $shopRecommendationQuery;
+        $this->shopRecommendationCommand = $shopRecommendationCommand;
+        $this->userQuery = $userQuery;
     }
 
     /**
      * Handle send email to admin after complete recommendation process.
      *
-     * @param string $shop_id
-     * @param string $shop_domain
+     * @param string $shopId
+     * @param string $shopDomain
      * @param JobRecommendationStatus $status
      * @return void
      */
     public function sendRecommendationEmail(
-        string $shop_id,
-        string $shop_domain,
+        string $shopId,
+        string $shopDomain,
         JobRecommendationStatus $status,
     ): void {
-        $shop_recommendation = $this->shop_recommendation_query->getByShopId($shop_id);
-        if (!$shop_recommendation->getEmailNotification()) {
+        $shopRecommendation = $this->shopRecommendationQuery->getByShopId($shopId);
+        if (!$shopRecommendation->getEmailNotification()) {
             return;
         }
 
-        $email = $this->getShopEmail($shop_recommendation, $shop_id, $shop_domain);
+        $email = $this->getShopEmail($shopRecommendation, $shopId, $shopDomain);
 
-        Log::info('Sending email to ' . $email);
+        Log::info('Sending email to ' . $email. ' for shop ' . $shopDomain);
         Mail::to($email)->queue(
             new ProductRecommendationRefreshed(
-                $this->getShopName($shop_domain),
+                $this->getShopName($shopDomain),
                 $status,
                 $email,
             ),
@@ -80,20 +80,20 @@ class EmailSenderService implements IEmailSender
     /**
      * Get shop email & update if not exist.
      *
-     * @param ShopRecommendationSchema $shop_recommendation
-     * @param string $shop_id
+     * @param ShopRecommendationSchema $shopRecommendation
+     * @param string $shopId
      * @param string $domain
      * @return string
      */
     private function getShopEmail(
-        ShopRecommendationSchema $shop_recommendation,
-        string $shop_id,
+        ShopRecommendationSchema $shopRecommendation,
+        string $shopId,
         string $domain,
     ): string {
-        $email = $shop_recommendation->getEmail();
+        $email = $shopRecommendation->getEmail();
 
         if (!$email) {
-            $email = $this->updateEmail($shop_id, $domain);
+            $email = $this->updateEmail($shopId, $domain);
         }
 
         return $email;
@@ -102,16 +102,16 @@ class EmailSenderService implements IEmailSender
     /**
      * Update email for shop recommendation.
      *
-     * @param string $shop_id
+     * @param string $shopId
      * @param string $domain
      * @return string
      */
-    private function updateEmail(string $shop_id, string $domain): string
+    private function updateEmail(string $shopId, string $domain): string
     {
-        $user = $this->user_query->getByDomain(UserDomain::fromNative($domain));
+        $user = $this->userQuery->getByDomain(UserDomain::fromNative($domain));
         $email = $user->getShopEmail();
-        $this->shop_recommendation_command->updateNotification(
-            $shop_id,
+        $this->shopRecommendationCommand->updateNotification(
+            $shopId,
             true,
             $email,
         );
@@ -122,11 +122,11 @@ class EmailSenderService implements IEmailSender
     /**
      * Get shop name from shop domain.
      *
-     * @param string $shop_domain
+     * @param string $shopDomain
      * @return string
      */
-    private function getShopName(string $shop_domain): string
+    private function getShopName(string $shopDomain): string
     {
-        return explode('.', $shop_domain)[0];
+        return explode('.', $shopDomain)[0];
     }
 }

@@ -17,7 +17,7 @@ class ProductRecommendationRefreshed extends Mailable
     /**
      * @var string
      */
-    protected string $shop_domain;
+    protected string $shopDomain;
 
     /**
      * @var JobRecommendationStatus
@@ -32,9 +32,9 @@ class ProductRecommendationRefreshed extends Mailable
     /**
      * Create a new message instance.
      */
-    public function __construct(string $shop_domain, JobRecommendationStatus $status, string $email)
+    public function __construct(string $shopDomain, JobRecommendationStatus $status, string $email)
     {
-        $this->shop_domain = $shop_domain;
+        $this->shopDomain = $shopDomain;
         $this->status = $status;
         $this->email = $email;
     }
@@ -57,7 +57,7 @@ class ProductRecommendationRefreshed extends Mailable
         return new Content(
             view: 'mails.product_recommendation_refreshed',
             with: [
-                'shop_domain' => $this->shop_domain,
+                'shop_domain' => $this->shopDomain,
                 'status' => $this->status,
                 'email' => $this->email,
             ],

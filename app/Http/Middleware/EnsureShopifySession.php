@@ -64,8 +64,8 @@ class EnsureShopifySession
             $proceed = $response->getStatusCode() === 200;
 
             if ($proceed) {
-                $user_context = app(UserContext::class);
-                $user_context->setShopifySession($session);
+                $userContext = app(UserContext::class);
+                $userContext->setShopifySession($session);
                 return $next($request);
             }
         }

@@ -11,27 +11,27 @@ class ShopRecommendationQuery implements IShopRecommendationQuery
     /**
      * @var IShopQuery
      */
-    protected IShopQuery $shop_query;
+    protected IShopQuery $shopQuery;
 
     /**
      * ShopRecommendationQuery constructor.
      *
-     * @param IShopQuery $shop_query
+     * @param IShopQuery $shopQuery
      */
-    public function __construct(IShopQuery $shop_query)
+    public function __construct(IShopQuery $shopQuery)
     {
-        $this->shop_query = $shop_query;
+        $this->shopQuery = $shopQuery;
     }
 
     /**
      * Get the shop recommendations by shop ID.
      *
-     * @param string $shop_id
+     * @param string $shopId
      * @return ShopRecommendationSchema
      */
-    public function getByShopId(string $shop_id): ShopRecommendationSchema
+    public function getByShopId(string $shopId): ShopRecommendationSchema
     {
-        $shop = $this->shop_query->getById($shop_id);
+        $shop = $this->shopQuery->getById($shopId);
         return $shop->shopRecommendation()->get();
     }
 }

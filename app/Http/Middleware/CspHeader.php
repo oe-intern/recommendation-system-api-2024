@@ -23,40 +23,40 @@ class CspHeader
         $shop = Utils::sanitizeShopDomain($request->query('shop', ''));
 
         if (Context::$IS_EMBEDDED_APP) {
-            $domain_host = $shop ? "https://$shop" : "*.myshopify.com";
-            $allowed_domains = "$domain_host https://admin.shopify.com";
+            $domainHost = $shop ? "https://$shop" : "*.myshopify.com";
+            $allowedDomains = "$domainHost https://admin.shopify.com";
         } else {
-            $allowed_domains = "'none'";
+            $allowedDomains = "'none'";
         }
 
         /** @var \Illuminate\Http\Response $response */
         $response = $next($request);
 
-        $current_header = $response->headers->get('Content-Security-Policy');
-        if ($current_header) {
-            $values = preg_split("/;\s*/", $current_header);
+        $currentHeader = $response->headers->get('Content-Security-Policy');
+        if ($currentHeader) {
+            $values = preg_split("/;\s*/", $currentHeader);
 
             // Replace or add the URLs the frame-ancestors directive
             $found = false;
             foreach ($values as $index => $value) {
                 if (mb_strpos($value, "frame-ancestors") === 0) {
-                    $values[$index] = preg_replace("/^(frame-ancestors)/", "$1 $allowed_domains", $value);
+                    $values[$index] = preg_replace("/^(frame-ancestors)/", "$1 $allowedDomains", $value);
                     $found = true;
                     break;
                 }
             }
 
             if (!$found) {
-                $values[] = "frame-ancestors $allowed_domains";
+                $values[] = "frame-ancestors $allowedDomains";
             }
 
-            $header_value = implode("; ", $values);
+            $headerValue = implode("; ", $values);
         } else {
-            $header_value = "frame-ancestors $allowed_domains;";
+            $headerValue = "frame-ancestors $allowedDomains;";
         }
 
 
-        $response->headers->set('Content-Security-Policy', $header_value);
+        $response->headers->set('Content-Security-Policy', $headerValue);
 
         return $response;
     }

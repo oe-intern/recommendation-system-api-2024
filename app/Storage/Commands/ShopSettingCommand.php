@@ -12,16 +12,16 @@ class ShopSettingCommand implements IShopSettingCommand
     /**
      * @var IShopQuery
      */
-    protected IShopQuery $shop_query;
+    protected IShopQuery $shopQuery;
 
     /**
      * ShopCommand constructor.
      *
-     * @param IShopQuery $shop_query
+     * @param IShopQuery $shopQuery
      */
-    public function __construct(IShopQuery $shop_query)
+    public function __construct(IShopQuery $shopQuery)
     {
-        $this->shop_query = $shop_query;
+        $this->shopQuery = $shopQuery;
     }
 
     /**
@@ -33,28 +33,28 @@ class ShopSettingCommand implements IShopSettingCommand
      */
     public function setShopSettings(ShopCollection $shop, array $settings): array
     {
-        $shop_settings = $shop->settings()->get();
+        $shopSettings = $shop->settings()->get();
 
-        if (!$shop_settings) {
-            $shop_settings = $shop->settings()->create($settings);
+        if (!$shopSettings) {
+            $shopSettings = $shop->settings()->create($settings);
         } else {
-            $shop_settings->fill($settings);
-            $shop_settings->save();
+            $shopSettings->fill($settings);
+            $shopSettings->save();
         }
 
-        return $shop_settings->toArray();
+        return $shopSettings->toArray();
     }
 
     /**
      * Set the recommendation state for a shop.
      *
-     * @param string $shop_id
+     * @param string $shopId
      * @param RecommendationState $state
      * @return bool
      */
-    public function setRecommendationState(string $shop_id, RecommendationState $state): bool
+    public function setRecommendationState(string $shopId, RecommendationState $state): bool
     {
-        $shop = $this->shop_query->getById($shop_id);
+        $shop = $this->shopQuery->getById($shopId);
 
         return $shop?->settings()->get()->update([
             'auto_recommendation' => $state,

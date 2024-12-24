@@ -15,20 +15,20 @@ class AppUninstalled implements Handler
     /**
      * @var UserQuery
      */
-    protected UserQuery $user_query;
+    protected UserQuery $userQuery;
 
     /**
      * @var UserCommand
      */
-    protected UserCommand $user_command;
+    protected UserCommand $userCommand;
 
     /**
      * Create a new handler instance.
      */
-    public function __construct(UserQuery $user_query, UserCommand $user_command)
+    public function __construct(UserQuery $userQuery, UserCommand $userCommand)
     {
-        $this->user_query = $user_query;
-        $this->user_command = $user_command;
+        $this->userQuery = $userQuery;
+        $this->userCommand = $userCommand;
     }
 
     /**
@@ -43,12 +43,12 @@ class AppUninstalled implements Handler
     {
         ShopifySession::where('shop', $shop)->delete();
 
-        $user = $this->user_query->getByDomain(UserDomain::fromNative($shop));
+        $user = $this->userQuery->getByDomain(UserDomain::fromNative($shop));
 
         if(!$user) {
             return;
         }
 
-        $this->user_command->softDelete($user->getId());
+        $this->userCommand->softDelete($user->getId());
     }
 }

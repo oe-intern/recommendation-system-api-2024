@@ -13,53 +13,53 @@ class ShopRecommendationCommand implements IShopRecommendationCommand
     /**
      * @var IShopQuery
      */
-    protected IShopQuery $shop_query;
+    protected IShopQuery $shopQuery;
 
     /**
      * ShopRecommendationCommand constructor.
      *
-     * @param IShopQuery $shop_query
+     * @param IShopQuery $shopQuery
      */
-    public function __construct(IShopQuery $shop_query)
+    public function __construct(IShopQuery $shopQuery)
     {
-        $this->shop_query = $shop_query;
+        $this->shopQuery = $shopQuery;
     }
 
     /**
      * Decrease the refresh recommendation count.
      *
-     * @param string $shop_id
+     * @param string $shopId
      * @return void
      */
-    public function decreaseRefreshRecommendation(string $shop_id): void
+    public function decreaseRefreshRecommendation(string $shopId): void
     {
-        $shop_recommendation = $this->getShopRecommendation($shop_id);
-        $this->getShopRecommendation($shop_id)->update([
-            'refresh_count' => $shop_recommendation->getRefreshCount() - 1,
+        $shopRecommendation = $this->getShopRecommendation($shopId);
+        $this->getShopRecommendation($shopId)->update([
+            'refresh_count' => $shopRecommendation->getRefreshCount() - 1,
         ]);
     }
 
     /**
      * Get the shop recommendation by shop id.
      *
-     * @param string $shop_id
+     * @param string $shopId
      * @return ShopRecommendationSchema
      */
-    private function getShopRecommendation(string $shop_id): ShopRecommendationSchema
+    private function getShopRecommendation(string $shopId): ShopRecommendationSchema
     {
-        $shop = $this->shop_query->getById($shop_id);
+        $shop = $this->shopQuery->getById($shopId);
         return $shop->shopRecommendation()->get();
     }
 
     /**
      * Reset the refresh recommendation count.
      *
-     * @param string $shop_id
+     * @param string $shopId
      * @return void
      */
-    public function resetRefreshRecommendation(string $shop_id): void
+    public function resetRefreshRecommendation(string $shopId): void
     {
-        $this->getShopRecommendation($shop_id)->update([
+        $this->getShopRecommendation($shopId)->update([
             'refresh_count' => config('services.recommendation.refresh_limit'),
             'expires_at' => Utils::refreshDay(),
         ]);
@@ -68,36 +68,36 @@ class ShopRecommendationCommand implements IShopRecommendationCommand
     /**
      * Update the last job recommendation by shop id.
      *
-     * @param string $shop_id
-     * @param string $job_recommendation_id
+     * @param string $shopId
+     * @param string $recommendationJobId
      *
      * @return bool
      */
-    public function updateLastJobRecommendation(string $shop_id, string $job_recommendation_id): bool
+    public function updateLastJobRecommendation(string $shopId, string $recommendationJobId): bool
     {
-        return $this->getShopRecommendation($shop_id)->update([
-            'last_job_recommendation_id' => $job_recommendation_id,
+        return $this->getShopRecommendation($shopId)->update([
+            'last_recommendation_job_id' => $recommendationJobId,
         ]);
     }
 
     /**
      * Update the email notification status & email address for the recommendation.
      *
-     * @param string $shop_id
-     * @param bool $email_notification
+     * @param string $shopId
+     * @param bool $emailNotification
      * @param string|null $email
      *
      * @return bool
      */
-    public function updateNotification(string $shop_id, bool $email_notification, ?string $email): bool
+    public function updateNotification(string $shopId, bool $emailNotification, ?string $email): bool
     {
         Log::info('updateNotification', [
-            'shop_id' => $shop_id,
-            'email_notification' => $email_notification,
+            'shop_id' => $shopId,
+            'email_notification' => $emailNotification,
             'email' => $email,
         ]);
-        return $this->getShopRecommendation($shop_id)->update([
-            'email_notification' => $email_notification,
+        return $this->getShopRecommendation($shopId)->update([
+            'email_notification' => $emailNotification,
             'email' => $email ?? '',
         ]);
     }

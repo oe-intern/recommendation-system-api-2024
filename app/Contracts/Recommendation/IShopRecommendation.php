@@ -10,45 +10,45 @@ interface IShopRecommendation
     /**
      * Refresh recommendations for a shop.
      *
-     * @param string $shop_id
-     * @param string $shop_domain
+     * @param string $shopId
+     * @param string $shopDomain
      * @return void
      *
      * @throws RecommendationRefreshLimitException
      * @throws JobRecommendationRunningException
      */
-    public function refreshRecommendations(string $shop_id, string $shop_domain): void;
+    public function refreshRecommendations(string $shopId, string $shopDomain): void;
 
     /**
      * Cancel recommendations for a shop.
      *
-     * @param string $shop_id
+     * @param string $shopId
      * @return void
      */
-    public function cancelRecommendations(string $shop_id): void;
+    public function cancelRecommendations(string $shopId): void;
 
     /**
      * Get the processing status of a shop.
      *
-     * @param string $shop_id
+     * @param string $shopId
      * @return array
      */
-    public function getProcessingStatus(string $shop_id): array;
+    public function getProcessingStatus(string $shopId): array;
 
     /**
      * Get the recommendations for a shop.
      *
-     * @param string $shop_id
+     * @param string $shopId
      * @return array
      */
-    public function getShopRecommendations(string $shop_id): array;
+    public function getShopRecommendations(string $shopId): array;
 
     /**
      * Update the shop recommendation notification.
      *
-     * @param string $shop_id
-     * @param array $notification_data
+     * @param string $shopId
+     * @param array $notificationData
      * @return array
      */
-    public function updateShopRecommendationNotification(string $shop_id, array $notification_data): array;
+    public function updateShopRecommendationNotification(string $shopId, array $notificationData): array;
 }

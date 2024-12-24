@@ -20,7 +20,7 @@ class ShopRecommendationSchema extends MongoCollection
      * @var string[]
      */
     protected $fillable = [
-        'last_job_recommendation_id',
+        'last_recommendation_job_id',
         'refresh_count',
         'expires_at',
         'email',
@@ -47,7 +47,7 @@ class ShopRecommendationSchema extends MongoCollection
         'refresh_count' => 5,
         'email_notification' => true,
         'email' => '',
-        'last_job_recommendation_id' => '',
+        'last_recommendation_job_id' => '',
     ];
 
     /**
@@ -67,7 +67,7 @@ class ShopRecommendationSchema extends MongoCollection
      */
     public function getLastJobRecommendationId(): string
     {
-        return $this->getAttribute('last_job_recommendation_id');
+        return $this->getAttribute('last_recommendation_job_id');
     }
 
     /**
