@@ -10,7 +10,6 @@ use App\Contracts\Queries\User as IUserQuery;
 use App\Mail\ProductRecommendationRefreshed;
 use App\Objects\Enums\JobRecommendationStatus;
 use App\Objects\Values\UserDomain;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
 class EmailSenderService implements IEmailSender
@@ -61,20 +60,25 @@ class EmailSenderService implements IEmailSender
         JobRecommendationStatus $status,
     ): void {
         $shopRecommendation = $this->shopRecommendationQuery->getByShopId($shopId);
-        if (!$shopRecommendation->getEmailNotification()) {
+
+        if (!$this->shouldSendEmail($shopRecommendation)) {
             return;
         }
 
-        $email = $this->getShopEmail($shopRecommendation, $shopId, $shopDomain);
+        $email = $this->getOrUpdateShopEmail($shopRecommendation, $shopId, $shopDomain);
 
-        Log::info('Sending email to ' . $email. ' for shop ' . $shopDomain);
-        Mail::to($email)->queue(
-            new ProductRecommendationRefreshed(
-                $this->getShopName($shopDomain),
-                $status,
-                $email,
-            ),
-        );
+        $this->sendEmail($email, $shopDomain, $status);
+    }
+
+    /**
+     * Determine if email notification should be sent.
+     *
+     * @param ShopRecommendationSchema $shopRecommendation
+     * @return bool
+     */
+    private function shouldSendEmail(ShopRecommendationSchema $shopRecommendation): bool
+    {
+        return $shopRecommendation->getEmailNotification();
     }
 
     /**
@@ -85,7 +89,7 @@ class EmailSenderService implements IEmailSender
      * @param string $domain
      * @return string
      */
-    private function getShopEmail(
+    private function getOrUpdateShopEmail(
         ShopRecommendationSchema $shopRecommendation,
         string $shopId,
         string $domain,
@@ -93,7 +97,7 @@ class EmailSenderService implements IEmailSender
         $email = $shopRecommendation->getEmail();
 
         if (!$email) {
-            $email = $this->updateEmail($shopId, $domain);
+            $email = $this->updateShopEmail($shopId, $domain);
         }
 
         return $email;
@@ -106,10 +110,11 @@ class EmailSenderService implements IEmailSender
      * @param string $domain
      * @return string
      */
-    private function updateEmail(string $shopId, string $domain): string
+    private function updateShopEmail(string $shopId, string $domain): string
     {
         $user = $this->userQuery->getByDomain(UserDomain::fromNative($domain));
         $email = $user->getShopEmail();
+
         $this->shopRecommendationCommand->updateNotification(
             $shopId,
             true,
@@ -120,12 +125,33 @@ class EmailSenderService implements IEmailSender
     }
 
     /**
+     * Send email to the shop admin.
+     *
+     * @param string $email
+     * @param string $shopDomain
+     * @param JobRecommendationStatus $status
+     * @return void
+     */
+    private function sendEmail(string $email, string $shopDomain, JobRecommendationStatus $status): void
+    {
+        $shopName = $this->extractShopNameFromDomain($shopDomain);
+
+        Mail::to($email)->queue(
+            new ProductRecommendationRefreshed(
+                $shopName,
+                $status,
+                $email,
+            ),
+        );
+    }
+
+    /**
      * Get shop name from shop domain.
      *
      * @param string $shopDomain
      * @return string
      */
-    private function getShopName(string $shopDomain): string
+    private function extractShopNameFromDomain(string $shopDomain): string
     {
         return explode('.', $shopDomain)[0];
     }

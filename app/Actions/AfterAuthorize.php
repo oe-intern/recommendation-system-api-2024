@@ -3,6 +3,7 @@
 namespace App\Actions;
 
 use App\Contracts\Queries\User as UserQuery;
+use App\Models\User as UserModel;
 use App\Objects\Values\UserId;
 use Illuminate\Support\Arr;
 
@@ -36,6 +37,18 @@ class AfterAuthorize
         $user = $this->userQuery->getById($id);
         $jobs = config('shopify-app.after_authenticate_jobs', []);
 
+        $this->processJobs($jobs, $user);
+    }
+
+    /**
+     * Process the jobs.
+     *
+     * @param array $jobs
+     * @param UserModel $user
+     * @return void
+     */
+    private function processJobs(array $jobs, UserModel $user): void
+    {
         foreach ($jobs as $job) {
             $class = Arr::get($job, 'class');
             $inline = Arr::get($job, 'inline', false);

@@ -72,9 +72,11 @@ class BaseController extends Controller
         }
 
         $product = $this->productQuery->getByShopIdAndGid($shopId, $productGid);
+
         if (empty($product)) {
             throw new ProductNotFoundException($productGid);
         }
+
         return $product->getId();
     }
 }

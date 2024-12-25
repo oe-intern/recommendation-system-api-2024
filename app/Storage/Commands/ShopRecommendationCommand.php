@@ -91,11 +91,6 @@ class ShopRecommendationCommand implements IShopRecommendationCommand
      */
     public function updateNotification(string $shopId, bool $emailNotification, ?string $email): bool
     {
-        Log::info('updateNotification', [
-            'shop_id' => $shopId,
-            'email_notification' => $emailNotification,
-            'email' => $email,
-        ]);
         return $this->getShopRecommendation($shopId)->update([
             'email_notification' => $emailNotification,
             'email' => $email ?? '',

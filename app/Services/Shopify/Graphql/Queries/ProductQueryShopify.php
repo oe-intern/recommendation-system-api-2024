@@ -4,6 +4,8 @@ namespace App\Services\Shopify\Graphql\Queries;
 
 use App\Contracts\Shopify\Graphql\Queries\IProductQueryShopify;
 use App\Exceptions\ShopifyGraphqlException;
+use App\Lib\Utils;
+use App\Objects\Enums\ShopifyType;
 use App\Services\Shopify\Graphql\BaseGraphqlService;
 use JsonException;
 use Shopify\Exception\HttpRequestException;
@@ -20,21 +22,21 @@ class ProductQueryShopify extends BaseGraphqlService implements IProductQuerySho
      * Define the product fields.
      */
     private const PRODUCT_FIELDS = <<<'GRAPHQL'
-            id
-            handle
-            status
-            title
-            description
-            vendor
-            productType
-            featuredMedia {
-                preview {
-                    image {
-                        url
-                    }
-                }
-            }
-        GRAPHQL;
+                      id
+                      handle
+                      status
+                      title
+                      description
+                      vendor
+                      productType
+                      featuredMedia {
+                          preview {
+                              image {
+                                  url
+                              }
+                          }
+                      }
+                      GRAPHQL;
 
     /**
      * Fetch all products from the shop.
@@ -50,23 +52,7 @@ class ProductQueryShopify extends BaseGraphqlService implements IProductQuerySho
         $params = [
             'first' => self::ITEMS_PER_PAGE,
         ];
-
-        $query = <<<'GRAPHQL'
-            query Products($first: Int!, $after: String) {
-                products(first: $first, after: $after) {
-                    nodes {
-                        %s
-                    }
-                    pageInfo {
-                        hasNextPage
-                        endCursor
-                    }
-                }
-            }
-        GRAPHQL;
-
-        // Inject the product fields into the query.
-        $query = sprintf($query, self::PRODUCT_FIELDS);
+        $query = $this->buildProductQuery();
 
         $products = $this->all($query, $params);
 
@@ -85,23 +71,34 @@ class ProductQueryShopify extends BaseGraphqlService implements IProductQuerySho
      */
     public function fetchById(string $id): array
     {
-        $query = <<<'GRAPHQL'
-                query Product {
-                    node(id: "%s") {
-                        id
-                        ... on Product {
-                            %s
-                        }
-                    }
-                }
-            GRAPHQL;
-
-        // Inject the product fields into the query.
-        $query = sprintf($query, $this->formatShopifyId($id), self::PRODUCT_FIELDS);
+        $query = $this->buildProductByIdQuery($id);
 
         $product = $this->graphql($query);
 
         return $this->formatProduct($product['data']['node']);
+    }
+
+    /**
+     * Format Shopify product ID
+     *
+     * @param string $id
+     * @return string
+     */
+    private function formatShopifyId(string $id): string
+    {
+        return Utils::addPrefixGraphId($id, ShopifyType::PRODUCT);
+    }
+
+    /**
+     * Format the product data.
+     *
+     * @param array $product
+     * @return array
+     */
+    private function formatProduct(array $product): array
+    {
+        $product['variants'] = $product['variants']['nodes'] ?? [];
+        return $product;
     }
 
     /**
@@ -120,49 +117,74 @@ class ProductQueryShopify extends BaseGraphqlService implements IProductQuerySho
             return [];
         }
 
-        $query = <<<'GRAPHQL'
-                query Products {
-                    nodes(ids: ["%s"]) {
-                        ... on Product {
-                            %s
-                        }
-                    }
-                }
-            GRAPHQL;
-
-        $formattedIds = array_map([$this, 'formatShopifyId'], $ids);
-
-        // Inject the product fields into the query.
-        $query = sprintf($query, implode('", "', $formattedIds), self::PRODUCT_FIELDS);
+        $query = $this->buildProductsByIdsQuery($ids);
 
         $products = $this->graphql($query);
 
-        return array_map([$this, 'formatProduct'], array_filter($products['data']['nodes'], fn($product) => $product !== null));
+        return array_map([$this, 'formatProduct'],
+            array_filter($products['data']['nodes'], fn($product) => $product !== null));
     }
 
     /**
-     * Format Shopify product ID
+     * Build the query to fetch products by IDs.
+     *
+     * @param array $ids
+     * @return string
+     */
+    private function buildProductsByIdsQuery(array $ids): string
+    {
+        $formattedIds = array_map([$this, 'formatShopifyId'], $ids);
+
+        return sprintf(<<<'GRAPHQL'
+                           query Products {
+                               nodes(ids: ["%s"]) {
+                                   ... on Product {
+                                       %s
+                                   }
+                               }
+                           }
+                           GRAPHQL, implode('", "', $formattedIds), self::PRODUCT_FIELDS);
+    }
+
+    /**
+     * Build the query to fetch products.
+     *
+     * @return string
+     */
+    private function buildProductQuery(): string
+    {
+        return sprintf(<<<'GRAPHQL'
+                           query Products($first: Int!, $after: String) {
+                               products(first: $first, after: $after) {
+                                   nodes {
+                                       %s
+                                   }
+                                   pageInfo {
+                                       hasNextPage
+                                       endCursor
+                                   }
+                               }
+                           }
+                           GRAPHQL, ProductQueryShopify::PRODUCT_FIELDS);
+    }
+
+    /**
+     * Build the query to fetch a product by ID.
      *
      * @param string $id
      * @return string
      */
-    private function formatShopifyId(string $id): string
+    private function buildProductByIdQuery(string $id): string
     {
-        if (str_starts_with($id, 'gid://')) {
-            return $id;
-        }
-        return "gid://shopify/Product/$id";
-    }
-
-    /**
-     * Format the product data.
-     *
-     * @param array $product
-     * @return array
-     */
-    private function formatProduct(array $product): array
-    {
-        $product['variants'] = $product['variants']['nodes'] ?? [];
-        return $product;
+        return sprintf(<<<'GRAPHQL'
+                           query Product {
+                               node(id: "%s") {
+                                   id
+                                   ... on Product {
+                                       %s
+                                   }
+                               }
+                           }
+                           GRAPHQL, $this->formatShopifyId($id), self::PRODUCT_FIELDS);
     }
 }

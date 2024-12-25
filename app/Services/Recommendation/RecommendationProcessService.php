@@ -2,9 +2,9 @@
 
 namespace App\Services\Recommendation;
 
-use App\Contracts\ModelRecommendation\IRecommendationApi;
 use App\Contracts\Recommendation\IRecommendationProcess;
 use App\Contracts\Shopify\Graphql\Queries\IOrderQueryShopify;
+use App\Contracts\Shopify\Graphql\Queries\IProductQueryShopify;
 
 class RecommendationProcessService implements IRecommendationProcess
 {
@@ -14,16 +14,20 @@ class RecommendationProcessService implements IRecommendationProcess
     protected IOrderQueryShopify $orderQueryShopify;
 
     /**
-     * @var IRecommendationApi $recommendationApiService;
+     * @var IProductQueryShopify
      */
-    protected IRecommendationApi $recommendationApiService;
+    protected IProductQueryShopify $productQueryShopify;
 
     /**
      * @param IOrderQueryShopify $orderQueryShopify
+     * @param IProductQueryShopify $productQueryShopify
      */
-    public function __construct(IOrderQueryShopify $orderQueryShopify)
-    {
+    public function __construct(
+        IOrderQueryShopify $orderQueryShopify,
+        IProductQueryShopify $productQueryShopify,
+    ) {
         $this->orderQueryShopify = $orderQueryShopify;
+        $this->productQueryShopify = $productQueryShopify;
     }
 
     /**
@@ -48,22 +52,11 @@ class RecommendationProcessService implements IRecommendationProcess
             $productTypes = [];
 
             foreach ($lineItems as $lineItem) {
-                $productId = $lineItem['product']['id'] ?? null;
-                $productType = $lineItem['product']['productType'] ?? null;
-
-                if ($productId) {
-                    $productIds[] = $productId;
-                    $productOrderCount[$productId] = ($productOrderCount[$productId] ?? 0) + 1;
-                }
-
-                if ($productType) {
-                    $productTypes[] = $productType;
-                    $typeOrderCount[$productType] = ($typeOrderCount[$productType] ?? 0) + 1;
-                }
+                $this->processLineItem($lineItem, $productIds, $productTypes, $productOrderCount, $typeOrderCount);
             }
 
-            $this->calculateCombinations($productTypes, $typeTypeOrderCount);
-            $this->calculateCombinations($productIds, $productProductOrderCount);
+            $this->updateCombinationCounts($productTypes, $typeTypeOrderCount);
+            $this->updateCombinationCounts($productIds, $productProductOrderCount);
         }
 
         $this->calculateRatios($typeTypeOrderCount, $typeOrderCount);
@@ -77,13 +70,44 @@ class RecommendationProcessService implements IRecommendationProcess
     }
 
     /**
+     * Process each line item to update product and type counts.
+     *
+     * @param array $lineItem
+     * @param array $productIds
+     * @param array $productTypes
+     * @param array $productOrderCount
+     * @param array $typeOrderCount
+     * @return void
+     */
+    private function processLineItem(
+        array $lineItem,
+        array &$productIds,
+        array &$productTypes,
+        array &$productOrderCount,
+        array &$typeOrderCount,
+    ): void {
+        $productId = $lineItem['product']['id'] ?? null;
+        $productType = $lineItem['product']['productType'] ?? null;
+
+        if ($productId) {
+            $productIds[] = $productId;
+            $productOrderCount[$productId] = ($productOrderCount[$productId] ?? 0) + 1;
+        }
+
+        if ($productType) {
+            $productTypes[] = $productType;
+            $typeOrderCount[$productType] = ($typeOrderCount[$productType] ?? 0) + 1;
+        }
+    }
+
+    /**
      * Calculate the combinations of the items.
      *
      * @param array $items
      * @param $result
      * @return void
      */
-    private function calculateCombinations(array $items, &$result): void
+    private function updateCombinationCounts(array $items, &$result): void
     {
         $count = count($items);
         for ($i = 0; $i < $count; $i++) {
@@ -119,7 +143,5 @@ class RecommendationProcessService implements IRecommendationProcess
      * @param string $shopId
      * @return array
      */
-    public function processPreRecommendationData(string $shopId): array
-    {
-    }
+    public function processPreRecommendationData(string $shopId): array {}
 }

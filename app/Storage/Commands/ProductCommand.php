@@ -8,7 +8,6 @@ use App\Contracts\Commands\IProductCommand;
 use App\Contracts\Queries\IProductQuery;
 use App\Objects\Enums\RecommendationType;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use MongoDB\BSON\ObjectId;
 
 class ProductCommand implements IProductCommand
@@ -51,10 +50,7 @@ class ProductCommand implements IProductCommand
      */
     public function createMany(ShopCollection $shop, array $products): void
     {
-        $chunks = array_chunk($products, 100);
-        foreach ($chunks as $chunk) {
-            $shop->products()->createMany($chunk);
-        }
+        array_map(fn($chunk) => $shop->products()->createMany($chunk), array_chunk($products, 100));
     }
 
     /**
@@ -125,11 +121,6 @@ class ProductCommand implements IProductCommand
         array $recommendations,
         RecommendationType $recommendationType,
     ): bool {
-        Log::info('Update new product recommendation', [
-            'productId' => $productId,
-            'recommendations' => $recommendations,
-            'recommendationType' => $recommendationType,
-        ]);
         return ProductCollection::query()
             ->where('_id', $productId)
             ->update([
@@ -159,21 +150,17 @@ class ProductCommand implements IProductCommand
      */
     private function updateRecommendation(array $recommendationData, string $attribute): bool
     {
-        $collection = DB::connection('mongodb')->getCollection('products');
-        $operations = [];
-        foreach ($recommendationData as $productId => $recommendationIds) {
-            $operations[] = [
-                'updateOne' => [
-                    ['_id' => new ObjectId($productId)],
-                    ['$set' => [$attribute => $recommendationIds]],
-                ],
-            ];
-        }
-        if (empty($operations)) {
-            return true;
-        }
+        $operations = array_map(fn($productId, $recommendationIds)
+            => [
+            'updateOne' => [
+                ['_id' => new ObjectId($productId)],
+                ['$set' => [$attribute => $recommendationIds]],
+            ],
+        ], array_keys($recommendationData), array_values($recommendationData));
 
-        $result = $collection->bulkWrite($operations);
+        if (empty($operations)) return true;
+
+        $result = DB::connection('mongodb')->getCollection('products')->bulkWrite($operations);
         return $result->getModifiedCount() > 0;
     }
 
@@ -211,15 +198,14 @@ class ProductCommand implements IProductCommand
             'recommendation_type' => $recommendationType,
         ]);
 
-        foreach ($recommendations as $recommendedProductId) {
-            $this->addReferenceProduct($recommendedProductId, $productId);
-        }
-
-        foreach ($removedRecommendations as $removedRecommendation) {
-            $this->removeProductRecommendation($productId, $removedRecommendation);
-        }
-
+        $this->updateReferenceProduct($productId, $recommendations, $removedRecommendations);
         return true;
+    }
+
+    private function updateReferenceProduct(string $productId, array $referenceProductIds, array $removeReferenceProductIds): void
+    {
+        array_map(fn($recommendedProductId) => $this->addReferenceProduct($recommendedProductId, $productId), $referenceProductIds);
+        array_map(fn($removedRecommendation) => $this->removeProductRecommendation($productId, $removedRecommendation), $removeReferenceProductIds);
     }
 
     /**
@@ -236,7 +222,7 @@ class ProductCommand implements IProductCommand
         $product?->update([
             'referenced_ids' => array_unique(array_merge(
                 $product->getAttributeValue('referenced_ids'),
-                [$referenceProductId])
+                [$referenceProductId]),
             ),
         ]);
     }
@@ -316,7 +302,7 @@ class ProductCommand implements IProductCommand
      */
     public function delete(ProductCollection $product): bool
     {
-        $this->removeRelationshipRecommendation($product);
+        $this->clearRelationshipRecommendation($product);
 
         return $product->delete();
     }
@@ -327,7 +313,7 @@ class ProductCommand implements IProductCommand
      * @param ProductCollection $product
      * @return void
      */
-    private function removeRelationshipRecommendation(ProductCollection $product): void
+    private function clearRelationshipRecommendation(ProductCollection $product): void
     {
         $this->removeRelationshipRecommendationProduct($product);
 

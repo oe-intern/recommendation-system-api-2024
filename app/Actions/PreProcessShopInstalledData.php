@@ -5,18 +5,12 @@ namespace App\Actions;
 use App\Contracts\Commands\IProductCommand;
 use App\Contracts\Commands\IShopCommand;
 use App\Contracts\Objects\Transform\ShopifyTransform;
-use App\Contracts\Queries\IProductQuery;
 use App\Contracts\Queries\IShopQuery;
 use App\Contracts\Recommendation\IProduct;
 use App\Objects\Transform\ProductTransform;
 
 class PreProcessShopInstalledData
 {
-    /**
-     * @var IProductQuery
-     */
-    protected IProductQuery $productQuery;
-
     /**
      * @var IShopQuery
      */
@@ -45,7 +39,6 @@ class PreProcessShopInstalledData
     /**
      * Execute the job
      *
-     * @param IProductQuery $productQuery
      * @param IProductCommand $productCommand
      * @param IProduct $productService
      * @param IShopQuery $shopQuery
@@ -54,14 +47,12 @@ class PreProcessShopInstalledData
      * @return void
      */
     public function __construct(
-        IProductQuery $productQuery,
         IProductCommand $productCommand,
         IProduct $productService,
         IShopQuery $shopQuery,
         IShopCommand $shopCommand,
         ShopifyTransform $productTransform,
     ) {
-        $this->productQuery = $productQuery;
         $this->productCommand = $productCommand;
         $this->productService = $productService;
         $this->shopQuery = $shopQuery;
@@ -77,12 +68,36 @@ class PreProcessShopInstalledData
      */
     public function __invoke(string $domain, bool $isTrashed, array $products): void
     {
-        if ($isTrashed) {
-            $shop = $this->shopQuery->getByDomain($domain);
-            $this->productService->createOrUpdateMany($shop, $products);
-        } else {
-            $newShop = $this->shopCommand->create($domain);
-            $this->productCommand->createMany($newShop, $products);
-        }
+        $transformedProducts = $this->productTransform->shopifyDataListToCollectionDataList($products);
+
+        $isTrashed
+            ? $this->restoreShop($domain, $transformedProducts)
+            : $this->createNewShop($domain, $transformedProducts);
+    }
+
+    /**
+     * Handle the case where the shop is trashed.
+     *
+     * @param string $domain
+     * @param array $products
+     * @return void
+     */
+    private function restoreShop(string $domain, array $products): void
+    {
+        $shop = $this->shopQuery->getByDomain($domain);
+        $this->productService->createOrUpdateMany($shop, $products);
+    }
+
+    /**
+     * Handle the case where the shop is new.
+     *
+     * @param string $domain
+     * @param array $products
+     * @return void
+     */
+    private function createNewShop(string $domain, array $products): void
+    {
+        $newShop = $this->shopCommand->create($domain);
+        $this->productCommand->createMany($newShop, $products);
     }
 }

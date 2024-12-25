@@ -35,13 +35,13 @@ class JobRecommendationCommand implements IJobRecommendationCommand
     public function create(
         string $shopId,
         JobRecommendationStatus $status,
-        ?int $retryCount,
+        ?int $retryCount = 0,
     ): JobRecommendationCollection {
         return JobRecommendationCollection::query()
             ->create([
                 'shop_id' => $shopId,
                 'status' => $status->value,
-                'retry_count' => $retryCount ?? 0,
+                'retry_count' => $retryCount,
             ]);
     }
 

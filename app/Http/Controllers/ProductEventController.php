@@ -12,8 +12,8 @@ use App\Jobs\ProcessAddToCartEvent;
 use App\Jobs\ProcessClickEvent;
 use App\Objects\Enums\EventType;
 use App\Services\Shopify\UserContext;
-use Illuminate\Http\Response;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 
 class ProductEventController extends BaseController
 {

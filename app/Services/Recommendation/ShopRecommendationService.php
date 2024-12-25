@@ -106,8 +106,9 @@ class ShopRecommendationService implements IShopRecommendation
      */
     public function refreshRecommendations(string $shopId, string $shopDomain): void
     {
-        $this->checkAfterRefresh($shopId);
-        $products = $this->getProductsData();
+        $this->validateRefreshRequest($shopId);
+
+        $products = $this->fetchProducts();
         $orders = $this->getOrdersData($shopDomain);
 
         ExecuteRecommendationPipelineJob::dispatch($shopDomain, $products, $orders);
@@ -118,10 +119,9 @@ class ShopRecommendationService implements IShopRecommendation
      *
      * @return array
      */
-    private function getProductsData(): array
+    private function fetchProducts(): array
     {
-        $productsData = $this->productQueryShopify->fetchAll();
-        return $this->productTransform->shopifyDataListToModelApiListData($productsData);
+        return $this->productQueryShopify->fetchAll();
     }
 
     /**
@@ -143,24 +143,24 @@ class ShopRecommendationService implements IShopRecommendation
      * @throws RecommendationRefreshLimitException
      * @throws JobRecommendationRunningException
      */
-    private function checkAfterRefresh(string $shopId): void
+    private function validateRefreshRequest(string $shopId): void
     {
-        $this->checkAndReset($shopId);
+        $shopRecommendation = $this->getShopRecommendation($shopId);
+        $this->checkAndResetRecommendation($shopRecommendation, $shopId);
         $this->checkJobRunning($shopId);
     }
 
     /**
      * Check and reset the recommendation count for a shop.
      *
+     * @param ShopRecommendationSchema $shopRecommendation
      * @param string $shopId
      * @return void
      *
      * @throws RecommendationRefreshLimitException
      */
-    private function checkAndReset(string $shopId): void
+    private function checkAndResetRecommendation(ShopRecommendationSchema $shopRecommendation, string $shopId): void
     {
-        $shopRecommendation = $this->getShopRecommendation($shopId);
-
         if ($this->isExpired($shopRecommendation)) {
             $this->shopRecommendationCommand->resetRefreshRecommendation($shopId);
         }

@@ -46,34 +46,66 @@ class InstallShop
     public function __invoke(UserDomain $domain, Session $session): UserId
     {
         $user = $this->userQuery->getByDomain($domain, [], true);
+
         if ($user === null) {
-            $this->userCommand->make($domain, AccessToken::fromNative($session->getAccessToken()));
-            $user = $this->userQuery->getByDomain($domain);
-            $this->installShopData($domain, false);
+            return $this->createNewUser($domain, $session);
         }
 
         if ($user->trashed()) {
-            $user->restore();
-            $this->userCommand->setAccessToken($user->getId(), AccessToken::fromNative($session->getAccessToken()));
-            $this->installShopData($domain, true);
+            return $this->restoreUser($user, $session, $domain);
         }
 
         return $user->getId();
     }
 
     /**
-     * Install shop data
+     * Create a new user
+     *
+     * @param UserDomain $domain
+     * @param Session $session
+     * @return UserId
+     */
+    private function createNewUser(UserDomain $domain, Session $session): UserId
+    {
+        $this->userCommand->make($domain, AccessToken::fromNative($session->getAccessToken()));
+        $user = $this->userQuery->getByDomain($domain);
+
+        $this->processShopData($domain, false);
+
+        return $user->getId();
+    }
+
+    /**
+     * Restore user from trashed
+     *
+     * @param $user
+     * @param Session $session
+     * @param UserDomain $domain
+     * @return UserId
+     */
+    private function restoreUser($user, Session $session, UserDomain $domain): UserId
+    {
+        $user->restore();
+        $this->userCommand->setAccessToken($user->getId(), AccessToken::fromNative($session->getAccessToken()));
+
+        $this->processShopData($domain, true);
+
+        return $user->getId();
+    }
+
+    /**
+     * Process shop data to be installed
      *
      * @param UserDomain $domain
      * @param bool $isTrashed
      * @return void
      */
-    private function installShopData(UserDomain $domain, bool $isTrashed): void
+    private function processShopData(UserDomain $domain, bool $isTrashed): void
     {
         call_user_func(
             $this->shopInstalledData,
             $domain->toNative(),
-            $isTrashed
+            $isTrashed,
         );
     }
 }
