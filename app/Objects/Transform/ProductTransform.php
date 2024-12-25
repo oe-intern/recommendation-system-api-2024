@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Objects\Transform;
 
 use App\Contracts\Objects\Transform\ShopifyTransform as IShopifyTransform;
@@ -8,16 +10,14 @@ use App\Lib\Utils;
 class ProductTransform implements IShopifyTransform
 {
     /**
-     * Convert shopify data list to collection data list.
+     * Convert Shopify data list to collection data list.
      *
      * @param array $data
      * @return array
      */
     public function shopifyDataListToCollectionDataList(array $data): array
     {
-        return array_map(function ($product) {
-            return $this->shopifyDataToCollectionData($product);
-        }, $data);
+        return array_map([$this, 'shopifyDataToCollectionData'], $data);
     }
 
     /**
@@ -30,9 +30,9 @@ class ProductTransform implements IShopifyTransform
     {
         return ([
             'gid' => $this->getShopifyId($data),
-            'status' => data_get($data, 'status'),
-            'type' => data_get($data, 'productType'),
-            'handle' => data_get($data, 'handle'),
+            'status' => data_get($data, 'status', ''),
+            'type' => data_get($data, 'productType', ''),
+            'handle' => data_get($data, 'handle', ''),
         ]);
     }
 
@@ -46,9 +46,9 @@ class ProductTransform implements IShopifyTransform
     {
         return ([
             'gid' => $this->getWebhookId($data),
-            'status' => data_get($data, 'status'),
-            'type' => data_get($data, 'product_type'),
-            'handle' => data_get($data, 'handle'),
+            'status' => data_get($data, 'status', ''),
+            'type' => data_get($data, 'product_type', ''),
+            'handle' => data_get($data, 'handle', ''),
         ]);
     }
 
@@ -62,26 +62,13 @@ class ProductTransform implements IShopifyTransform
     {
         return ([
             'shopify_id' => data_get($data, 'id'),
-            'product_type' => data_get($data, 'productType'),
-            'name' => data_get($data, 'title'),
-            'vendor' => data_get($data, 'vendor'),
+            'product_type' => data_get($data, 'productType', ''),
+            'name' => data_get($data, 'title', ''),
+            'vendor' => data_get($data, 'vendor', ''),
             'image' => $this->getImageUrl($data),
-            'description' => data_get($data, 'description'),
-            'title' => data_get($data, 'title'),
+            'description' => data_get($data, 'description', ''),
+            'title' => data_get($data, 'title', ''),
         ]);
-    }
-
-    /**
-     * Convert shopify data list to model api list data.
-     *
-     * @param array $data
-     * @return array
-     */
-    public function shopifyDataListToModelApiListData(array $data): array
-    {
-        return array_map(function ($product) {
-            return $this->shopifyDataToModelApiData($product);
-        }, $data);
     }
 
     /**
@@ -104,6 +91,19 @@ class ProductTransform implements IShopifyTransform
     private function getWebhookId(array $product): string
     {
         return data_get($product, 'id');
+    }
+
+    /**
+     * Convert shopify data list to model api list data.
+     *
+     * @param array $data
+     * @return array
+     */
+    public function shopifyDataListToModelApiListData(array $data): array
+    {
+        return array_map(function ($product) {
+            return $this->shopifyDataToModelApiData($product);
+        }, $data);
     }
 
     /**

@@ -14,23 +14,35 @@ use Illuminate\Support\Facades\Http;
 class RecommendationApiService implements IRecommendationApi
 {
     /**
-     * Max retry attempts for the recommendation API.
-     *
-     * @var int
+     * Endpoints for the recommendation API.
      */
-    private int $MAX_RETRIES;
+    private const ENDPOINT_RECOMMEND = 'recommendation';
 
     /**
-     * Timeouts for the recommendation API.
-     *
-     * @var int
+     * Endpoints for the pre-recommendation API.
      */
-    private int $TIMEOUT; // seconds
+    private const ENDPOINT_PRE_RECOMMEND = 'pre-recommendation';
 
+    /**
+     * Endpoints for the product recommendation API.
+     */
+    private const ENDPOINT_PRODUCT_RECOMMEND = 'product';
     /**
      * @var string
      */
     protected string $baseUrl;
+    /**
+     * Max retry attempts for the recommendation API.
+     *
+     * @var int
+     */
+    private int $maxRetries; // seconds
+/**
+     * Timeouts for the recommendation API.
+     *
+     * @var int
+     */
+    private int $timeout;
 
     /**
      * RecommendationApiService constructor.
@@ -38,8 +50,8 @@ class RecommendationApiService implements IRecommendationApi
     public function __construct()
     {
         $this->baseUrl = config('services.recommendation.url');
-        $this->MAX_RETRIES = config('services.recommendation.max_retries');
-        $this->TIMEOUT = config('services.recommendation.timeout');
+        $this->maxRetries = config('services.recommendation.max_retries');
+        $this->timeout = config('services.recommendation.timeout');
     }
 
     /**
@@ -51,9 +63,33 @@ class RecommendationApiService implements IRecommendationApi
      */
     public function recommend(ShopProductRecommendationRequestDTO $data): JobRecommendationResponse
     {
-        $response = $this->makePostRequest('recommendation', $data->toArray());
+        $response = $this->makePostRequest(self::ENDPOINT_RECOMMEND, $data->toArray());
 
         return new JobRecommendationResponse($response['job_id'], $response['status']);
+    }
+
+    /**
+     * Call the external pre-recommend endpoint.
+     *
+     * @param ShopProductRecommendationRequestDTO $data
+     * @return array
+     * @throws Exception
+     */
+    public function preRecommend(ShopProductRecommendationRequestDTO $data): array
+    {
+        return $this->makePostRequest(self::ENDPOINT_PRE_RECOMMEND, $data->toArray());
+    }
+
+    /**
+     * Call the external recommend for 1 product endpoint.
+     *
+     * @param ProductRecommendationRequestDTO $data
+     * @return array
+     * @throws Exception
+     */
+    public function recommendProduct(ProductRecommendationRequestDTO $data): array
+    {
+        return $this->makePostRequest(self::ENDPOINT_PRODUCT_RECOMMEND, $data->toArray());
     }
 
     /**
@@ -69,34 +105,42 @@ class RecommendationApiService implements IRecommendationApi
     {
         try {
             $response = $this->getHttpRequest()->post("$this->baseUrl/$endpoint", $data);
-            return $this->handleResponse($response);
+            return $this->parseResponse($response, $endpoint);
         } catch (Exception $e) {
             throw new Exception("Failed to call the $endpoint endpoint.");
         }
     }
 
     /**
-     * Call the external pre-recommend endpoint.
+     * Get a new HTTP request instance.
      *
-     * @param ShopProductRecommendationRequestDTO $data
-     * @return array
-     * @throws Exception
+     * @return PendingRequest
      */
-    public function preRecommend(ShopProductRecommendationRequestDTO $data): array
+    private function getHttpRequest(): PendingRequest
     {
-        return $this->makePostRequest('pre-recommendation', $data->toArray());
+        return Http::timeout($this->timeout)->retry($this->maxRetries);
     }
 
     /**
-     * Call the external recommend for 1 product endpoint.
+     * Handle the response from the recommendation API.
      *
-     * @param ProductRecommendationRequestDTO $data
-     * @return array
+     * @param $response
+     * @param string $endpoint
+     * @return mixed
      * @throws Exception
      */
-    public function recommendProduct(ProductRecommendationRequestDTO $data): array
+    private function parseResponse($response, string $endpoint): array
     {
-        return $this->makePostRequest('product', $data->toArray());
+        if ($response->getStatusCode() !== 200) {
+            throw new Exception("Error in API call to endpoint: $endpoint");
+        }
+
+        $responseData = $response->json();
+        if (!isset($responseData['data'])) {
+            throw new Exception("Invalid response structure from $endpoint.");
+        }
+
+        return $responseData['data'];
     }
 
     /**
@@ -114,30 +158,8 @@ class RecommendationApiService implements IRecommendationApi
             $response['job_id'],
             $response['status'],
             $response['result_url'] ?? '',
-            null
+            null,
         );
-    }
-
-    /**
-     * Call the external recommend for check state of task recommendation endpoint.
-     *
-     * @param string $url
-     * @return array
-     *
-     * @throws Exception
-     */
-    public function getJobRecommendationResult(string $url): array
-    {
-        try {
-            $response = $this->getHttpRequest()->get($url);
-            if ($response->getStatusCode() !== 200) {
-                throw new Exception("Failed to call the getJobRecommendationResult endpoint.");
-            }
-
-            return $response->json();
-        } catch (Exception $e) {
-            throw new Exception("Failed to call the getJobRecommendationResult endpoint.");
-        }
     }
 
     /**
@@ -152,40 +174,28 @@ class RecommendationApiService implements IRecommendationApi
     {
         try {
             $response = $this->getHttpRequest()->get("$this->baseUrl/$endpoint");
-            return $this->handleResponse($response);
+            return $this->parseResponse($response, $endpoint);
         } catch (Exception $e) {
             throw new Exception("Failed to call the $endpoint endpoint.");
         }
     }
 
     /**
-     * Get a new HTTP request instance.
+     * Call the external recommend for check state of task recommendation endpoint.
      *
-     * @return PendingRequest
-     */
-    private function getHttpRequest(): PendingRequest
-    {
-        return Http::timeout($this->TIMEOUT)->retry($this->MAX_RETRIES);
-    }
-
-    /**
-     * Handle the response from the recommendation API.
+     * @param string $url
+     * @return array
      *
-     * @param $response
-     * @return mixed
      * @throws Exception
      */
-    private function handleResponse($response): array
+    public function getJobRecommendationResult(string $url): array
     {
+        $response = $this->getHttpRequest()->get($url);
+
         if ($response->getStatusCode() !== 200) {
-            throw new Exception("Failed to call the recommendation API.");
+            throw new Exception("Failed to fetch job recommendation result.");
         }
 
-        $responseData = $response->json();
-        if (!isset($responseData['data'])) {
-            throw new Exception("Unexpected response structure from getJobRecommendation.");
-        }
-
-        return $responseData['data'];
+        return $response->json();
     }
 }

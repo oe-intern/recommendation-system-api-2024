@@ -8,11 +8,13 @@ use App\Contracts\Commands\IJobRecommendationCommand;
 use App\Contracts\Commands\IShopRecommendationCommand;
 use App\Contracts\Mail\IEmailSender;
 use App\Contracts\ModelRecommendation\IRecommendationApi;
+use App\Contracts\Objects\Transform\ShopifyTransform;
 use App\Contracts\Queries\IProductQuery;
 use App\Contracts\Queries\IShopQuery;
 use App\Contracts\Recommendation\IProductRecommendation;
 use App\DTO\Payload\ShopProductRecommendationRequestDTO;
 use App\Objects\Enums\JobRecommendationStatus;
+use App\Objects\Transform\ProductTransform;
 use Exception;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -89,6 +91,11 @@ class ExecuteRecommendationPipelineJob implements ShouldQueue
     protected IEmailSender $emailSenderService;
 
     /**
+     * @var ProductTransform
+     */
+    protected ProductTransform $productTransform;
+
+    /**
      * Create a new job instance.
      *
      * @param string $domain
@@ -112,6 +119,7 @@ class ExecuteRecommendationPipelineJob implements ShouldQueue
      * @param IRecommendationApi $recommendationApiService
      * @param IJobRecommendationCommand $jobRecommendationCommand
      * @param IEmailSender $emailSenderService
+     * @param ShopifyTransform $productTransform
      */
     public function handle(
         IProductQuery $productQuery,
@@ -121,6 +129,7 @@ class ExecuteRecommendationPipelineJob implements ShouldQueue
         IRecommendationApi $recommendationApiService,
         IJobRecommendationCommand $jobRecommendationCommand,
         IEmailSender $emailSenderService,
+        ShopifyTransform $productTransform,
     ): void {
         $this->initializeServices(
             $productQuery,
@@ -130,8 +139,10 @@ class ExecuteRecommendationPipelineJob implements ShouldQueue
             $recommendationApiService,
             $jobRecommendationCommand,
             $emailSenderService,
+            $productTransform,
         );
 
+        $this->productsData = $this->productTransform->shopifyDataListToModelApiListData($this->productsData);
         $shop = $shopQuery->getByDomain($this->domain);
         $shopId = $shop->getId();
         $dataRequest = $this->getRequestData($this->domain);
@@ -172,6 +183,7 @@ class ExecuteRecommendationPipelineJob implements ShouldQueue
      * @param IRecommendationApi $recommendationApiService
      * @param IJobRecommendationCommand $jobRecommendationCommand
      * @param IEmailSender $emailSenderService
+     * @param ShopifyTransform $productTransform
      * @return void
      */
     private function initializeServices(
@@ -182,6 +194,7 @@ class ExecuteRecommendationPipelineJob implements ShouldQueue
         IRecommendationApi $recommendationApiService,
         IJobRecommendationCommand $jobRecommendationCommand,
         IEmailSender $emailSenderService,
+        ShopifyTransform $productTransform,
     ): void {
         $this->productQuery = $productQuery;
         $this->shopQuery = $shopQuery;
@@ -190,6 +203,7 @@ class ExecuteRecommendationPipelineJob implements ShouldQueue
         $this->recommendationApiService = $recommendationApiService;
         $this->jobRecommendationCommand = $jobRecommendationCommand;
         $this->emailSenderService = $emailSenderService;
+        $this->productTransform = $productTransform;
     }
 
     /**

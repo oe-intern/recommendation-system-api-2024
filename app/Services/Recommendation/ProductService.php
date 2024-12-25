@@ -125,11 +125,8 @@ class ProductService implements IProduct
         array $productsToDelete,
         ShopCollection $shop,
     ): void {
-        Log::info('length of new products: ' . count($newProducts));
         $this->deleteProducts($productsToDelete);
-        Log::info('length of existing products: ' . count($existingProducts));
         $this->updateProducts($existingProducts);
-        Log::info('length of products to delete: ' . count($productsToDelete));
         $this->createProducts($shop, $newProducts);
     }
 

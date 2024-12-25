@@ -23,7 +23,6 @@ interface  IJobRecommendationQuery
      */
     public function getLastByShopId(string $shopId): JobRecommendationCollection;
 
-
     /**
      * Get last job recommendation by Shop collection.
      *

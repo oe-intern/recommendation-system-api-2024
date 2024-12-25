@@ -30,7 +30,7 @@ class ProductEventService implements IProductEvent
     /**
      * @var int
      */
-    private int $PERFORMANCE_LIMIT = 3;
+    private int $performanceLimit = 3;
 
     /**
      * ProductEventService constructor.
@@ -42,7 +42,7 @@ class ProductEventService implements IProductEvent
     public function __construct(
         IProductQuery $productQuery,
         IEventCommand $eventCommand,
-        IEventQuery $eventQuery
+        IEventQuery $eventQuery,
     ) {
         $this->productQuery = $productQuery;
         $this->eventCommand = $eventCommand;
@@ -98,19 +98,16 @@ class ProductEventService implements IProductEvent
         $productIdsWithEvents = array_column($productEventData, 'id');
         $productIdsWithoutEvents = $this->productQuery->getProductsNotIn($shopId, $productIdsWithEvents);
 
-        $topProducts = array_slice($productEventData, 0, $this->PERFORMANCE_LIMIT);
+        $topProducts = array_slice($productEventData, 0, $this->performanceLimit);
 
-        $lowProducts    = $this->selectLowPerformingProducts(
+        $lowProducts = $this->selectLowPerformingProducts(
             $productIdsWithEvents,
             $productIdsWithoutEvents,
         );
 
-        $topProducts = $this->formatData($topProducts);
-        $lowProducts = $this->convertDataIdToGid($lowProducts);
-
         return [
-            'top' => $topProducts,
-            'low' => $lowProducts,
+            'top' => $this->formatData($topProducts),
+            'low' => $this->convertDataIdToGid($lowProducts),
         ];
     }
 
@@ -123,14 +120,16 @@ class ProductEventService implements IProductEvent
      */
     private function selectLowPerformingProducts(array $productIdsWithEvents, array $productIdsWithoutEvents): array
     {
-        if (count($productIdsWithoutEvents) > $this->PERFORMANCE_LIMIT) {
+        if (count($productIdsWithoutEvents) > $this->performanceLimit) {
             shuffle($productIdsWithoutEvents);
 
-            return $this->convertToEmptyEvent(array_slice($productIdsWithoutEvents, 0, $this->PERFORMANCE_LIMIT));
+            return $this->convertToEmptyEvent(array_slice($productIdsWithoutEvents, 0, $this->performanceLimit));
         }
 
-        return array_merge($this->convertToEmptyEvent($productIdsWithoutEvents),
-            array_slice($productIdsWithEvents, 0, count($productIdsWithoutEvents) - $this->PERFORMANCE_LIMIT));
+        return array_merge(
+            $this->convertToEmptyEvent($productIdsWithoutEvents),
+            array_slice($productIdsWithEvents, 0, count($productIdsWithoutEvents) - $this->performanceLimit)
+        );
     }
 
     /**
@@ -152,7 +151,10 @@ class ProductEventService implements IProductEvent
      */
     private function formatData(array $data): array
     {
-        return array_map(fn($product) => ['id' => data_get($product, 'gid'), 'quantity' => data_get($product, 'quantity')], $data);
+        return array_map(fn($product) => [
+            'id' => data_get($product, 'gid'),
+            'quantity' => data_get($product, 'quantity'),
+        ], $data);
     }
 
     /**
@@ -163,7 +165,10 @@ class ProductEventService implements IProductEvent
      */
     private function convertDataIdToGid(array $data): array
     {
-        return array_map(fn($product) => ['id' => $this->productQuery->getGidById($product['id']), 'quantity' => $product['quantity']], $data);
+        return array_map(fn($product) => [
+            'id' => $this->productQuery->getGidById($product['id']),
+            'quantity' => $product['quantity'],
+        ], $data);
     }
 
     /**
@@ -181,7 +186,7 @@ class ProductEventService implements IProductEvent
         ?string $productId,
         string $startDate,
         string $endDate,
-        ?string $groupBy
+        ?string $groupBy,
     ): array {
         $groupBy = $groupBy ? AnalyticGroupBy::from($groupBy) : null;
 
@@ -203,7 +208,7 @@ class ProductEventService implements IProductEvent
         ?string $productId,
         string $startDate,
         string $endDate,
-        ?string $groupBy
+        ?string $groupBy,
     ): array {
         $groupBy = $groupBy ? AnalyticGroupBy::from($groupBy) : null;
 

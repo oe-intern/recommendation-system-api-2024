@@ -69,10 +69,8 @@ class ProductQuery implements IProductQuery
      */
     private function getProductRecommendationIds(string $productId, string $attribute): array
     {
-        return ProductCollection::query()
-            ->where('id', $productId)
-            ->first()
-            ->getAttributeValue($attribute);
+        $product = $this->getById($productId);
+        return $product ? $product->getAttributeValue($attribute) : [];
     }
 
     /**
@@ -120,11 +118,11 @@ class ProductQuery implements IProductQuery
     public function validateProductIds(string $shopId, array $productIds): array
     {
         $existingProducts = $this->getByShopIdAndIds($shopId, $productIds);
-        $existing_product_ids = collect($existingProducts)->pluck('id')->toArray();
+        $existingProductIds = collect($existingProducts)->pluck('id')->toArray();
 
-        $not_existing = array_diff($productIds, $existing_product_ids);
-        if (!empty($not_existing)) {
-            throw new ProductNotFoundException($not_existing);
+        $nonExisting = array_diff($productIds, $existingProductIds);
+        if (!empty($nonExisting)) {
+            throw new ProductNotFoundException($nonExisting);
         }
 
         return $existingProducts;
@@ -142,11 +140,11 @@ class ProductQuery implements IProductQuery
     public function validateListProductGid(string $shopId, array $productGids): array
     {
         $existingProducts = $this->getByShopIdAndListGid($shopId, $productGids);
-        $existing_product_ids = collect($existingProducts)->pluck('gid')->toArray();
+        $existingProductIds = collect($existingProducts)->pluck('gid')->toArray();
 
-        $not_existing = array_diff($productGids, $existing_product_ids);
-        if (!empty($not_existing)) {
-            throw new ProductNotFoundException($not_existing);
+        $nonExisting = array_diff($productGids, $existingProductIds);
+        if (!empty($nonExisting)) {
+            throw new ProductNotFoundException($nonExisting);
         }
 
         return collect($existingProducts)->pluck('id')->toArray();

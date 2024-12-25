@@ -42,7 +42,7 @@ class EventQuery implements IEventQuery
         ?string $productId,
         string $startDate,
         string $endDate,
-        ?AnalyticGroupBy $groupBy
+        ?AnalyticGroupBy $groupBy,
     ): array {
         return $this->filterEventData(
             EventType::CLICK,
@@ -50,7 +50,34 @@ class EventQuery implements IEventQuery
             $productId,
             $startDate,
             $endDate,
-            $groupBy
+            $groupBy,
+        );
+    }
+
+    /**
+     * Filter add to cart data for a shop
+     *
+     * @param string $shopId
+     * @param string|null $productId
+     * @param string $startDate
+     * @param string $endDate
+     * @param AnalyticGroupBy|null $groupBy
+     * @return array
+     */
+    public function filterAddToCartData(
+        string $shopId,
+        ?string $productId,
+        string $startDate,
+        string $endDate,
+        ?AnalyticGroupBy $groupBy,
+    ): array {
+        return $this->filterEventData(
+            EventType::ADD_TO_CART,
+            $shopId,
+            $productId,
+            $startDate,
+            $endDate,
+            $groupBy,
         );
     }
 
@@ -71,7 +98,7 @@ class EventQuery implements IEventQuery
         ?string $productId,
         string $startDate,
         string $endDate,
-        ?AnalyticGroupBy $groupBy
+        ?AnalyticGroupBy $groupBy,
     ): array {
         $startDate = $this->getFirstDay($startDate);
         $endDate = $this->getEndDay($endDate);
@@ -83,7 +110,7 @@ class EventQuery implements IEventQuery
                 $productId,
                 $type,
                 $startDate,
-                $endDate
+                $endDate,
             ) {
                 return $collection->aggregate([
                     [
@@ -145,71 +172,6 @@ class EventQuery implements IEventQuery
     }
 
     /**
-     * Get the first day of the date.
-     *
-     * @param string $date
-     * @return UTCDateTime
-     */
-    private function getFirstDay(string $date): UTCDateTime
-    {
-        $startDay = Carbon::parse($date)->startOfDay();
-        return new UTCDateTime($startDay);
-    }
-
-    /**
-     * @param string $date
-     * @return UTCDateTime
-     */
-    private function getEndDay(string $date): UTCDateTime
-    {
-        $endDay = Carbon::parse($date)->endOfDay();
-        return new UTCDateTime($endDay);
-    }
-
-    /**
-     * Get the group by format for the query.
-     *
-     * @param AnalyticGroupBy|null $groupBy
-     * @return string
-     */
-    private function getGroupBy(?AnalyticGroupBy $groupBy): string
-    {
-        return match ($groupBy) {
-            AnalyticGroupBy::HOUR => '%Y-%m-%d %H',
-            AnalyticGroupBy::MONTH => '%Y-%m',
-            AnalyticGroupBy::YEAR => '%Y',
-            default => '%Y-%m-%d',
-        };
-    }
-
-    /**
-     * Filter add to cart data for a shop
-     *
-     * @param string $shopId
-     * @param string|null $productId
-     * @param string $startDate
-     * @param string $endDate
-     * @param AnalyticGroupBy|null $groupBy
-     * @return array
-     */
-    public function filterAddToCartData(
-        string $shopId,
-        ?string $productId,
-        string $startDate,
-        string $endDate,
-        ?AnalyticGroupBy $groupBy
-    ): array {
-        return $this->filterEventData(
-            EventType::ADD_TO_CART,
-            $shopId,
-            $productId,
-            $startDate,
-            $endDate,
-            $groupBy
-        );
-    }
-
-    /**
      * Get event data for a shop.
      *
      * @param string $shopId
@@ -220,7 +182,7 @@ class EventQuery implements IEventQuery
     public function getEventData(
         string $shopId,
         string $startDate,
-        string $endDate
+        string $endDate,
     ): array {
         $startDate = $this->getFirstDay($startDate);
         $endDate = $this->getEndDay($endDate);
@@ -271,10 +233,48 @@ class EventQuery implements IEventQuery
                             'quantity' => 1,
                             '_id' => 0,
                         ],
-                    ]
+                    ],
                 ]);
             });
 
         return collect($result)->toArray();
+    }
+
+    /**
+     * Get the first day of the date.
+     *
+     * @param string $date
+     * @return UTCDateTime
+     */
+    private function getFirstDay(string $date): UTCDateTime
+    {
+        $startDay = Carbon::parse($date)->startOfDay();
+        return new UTCDateTime($startDay);
+    }
+
+    /**
+     * @param string $date
+     * @return UTCDateTime
+     */
+    private function getEndDay(string $date): UTCDateTime
+    {
+        $endDay = Carbon::parse($date)->endOfDay();
+        return new UTCDateTime($endDay);
+    }
+
+    /**
+     * Get the group by format for the query.
+     *
+     * @param AnalyticGroupBy|null $groupBy
+     * @return string
+     */
+    private function getGroupBy(?AnalyticGroupBy $groupBy): string
+    {
+        return match ($groupBy) {
+            AnalyticGroupBy::HOUR => '%Y-%m-%d %H',
+            AnalyticGroupBy::MONTH => '%Y-%m',
+            AnalyticGroupBy::YEAR => '%Y',
+            default => '%Y-%m-%d',
+        };
     }
 }

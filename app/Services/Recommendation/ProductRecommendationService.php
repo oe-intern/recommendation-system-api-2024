@@ -13,6 +13,7 @@ use App\Exceptions\ProductNotFoundException;
 use App\Lib\Utils;
 use App\Objects\Enums\RecommendationState;
 use App\Objects\Enums\RecommendationType;
+use App\Objects\Enums\ShopifyType;
 
 class ProductRecommendationService implements IProductRecommendation
 {
@@ -78,7 +79,7 @@ class ProductRecommendationService implements IProductRecommendation
 
         $productIds = match ($recommendationType) {
             RecommendationType::AUTO => $this->getAutoRecommendation($shopId, $productId),
-            RecommendationType::MANUAL => $this->getManualRecommendation($shopId, $productId),
+            RecommendationType::MANUAL => $this->getManualRecommendation($productId),
             default => $this->getDefaultRecommendation($shopId, $productId),
         };
 
@@ -95,7 +96,6 @@ class ProductRecommendationService implements IProductRecommendation
     private function getAutoRecommendation(string $shopId, string $productId): array
     {
         $productIds = $this->productQuery->getAutoRecommendationProducts($productId);
-
         $activeProducts = $this->productQuery->getActiveProducts($productIds);
         $numberOfItems = $this->shopQuery->getById($shopId)->settings()->get()->getNumberOfItems();
 
@@ -105,11 +105,10 @@ class ProductRecommendationService implements IProductRecommendation
     /**
      * Get list of also viewed products for a product from manual recommendation.
      *
-     * @param string $shopId
      * @param string $productId
      * @return array
      */
-    private function getManualRecommendation(string $shopId, string $productId): array
+    private function getManualRecommendation(string $productId): array
     {
         $productIds = $this->productQuery->getManualProducts($productId);
         return $this->productQuery->getActiveProducts($productIds);
@@ -331,20 +330,6 @@ class ProductRecommendationService implements IProductRecommendation
     }
 
     /**
-     * Format Shopify product ID
-     *
-     * @param string $id
-     * @return string
-     */
-    private function formatShopifyId(string $id): string
-    {
-        if (str_starts_with($id, 'gid://')) {
-            return $id;
-        }
-        return "gid://shopify/Product/$id";
-    }
-
-    /**
      * Match recommendation data with product data.
      *
      * @param array $recommendationData
@@ -355,18 +340,32 @@ class ProductRecommendationService implements IProductRecommendation
     private function matchData(array $recommendationData, array $productData, string $attribute): array
     {
         $result = [];
+
         foreach ($productData as $gid => $id) {
-            $formattedGid = $this->formatShopifyId($gid);
+            $formattedGid = Utils::addPrefixGraphId($gid, ShopifyType::PRODUCT);
+
             if (!isset($recommendationData[$formattedGid])) {
                 continue;
             }
 
             $recommendationGids = $recommendationData[$formattedGid];
-            $recommendations = array_map(fn($item) => $productData[Utils::getIdFromGid($item)], $recommendationGids);
-
-            $result[$id] = $recommendations;
+            $result[$id] = $this->mapRecommendationGidsToProducts($recommendationGids, $productData);
         }
 
         return $result;
+    }
+
+    /**
+     * Map recommendation GIDs to product IDs
+     *
+     * @param array $recommendationGids
+     * @param array $productData
+     * @return array
+     */
+    private function mapRecommendationGidsToProducts(array $recommendationGids, array $productData): array
+    {
+        return array_map(function ($item) use ($productData) {
+            return $productData[Utils::getIdFromGid($item)] ?? null;
+        }, $recommendationGids);
     }
 }
