@@ -6,8 +6,11 @@ use App\Contracts\Commands\IEventCommand;
 use App\Contracts\Queries\IEventQuery;
 use App\Contracts\Queries\IProductQuery;
 use App\Contracts\Recommendation\IProductEvent;
+use App\DTO\Request\AddToCartEventRequestDTO;
+use App\DTO\Request\ClickEventRequestDTO;
+use App\DTO\Request\GetEventAnalyticRequestDTO;
+use App\DTO\Request\GetProductPerformanceRequestDTO;
 use App\Exceptions\ProductNotFoundException;
-use App\Objects\Enums\AnalyticGroupBy;
 use App\Objects\Enums\EventType;
 
 class ProductEventService implements IProductEvent
@@ -53,48 +56,60 @@ class ProductEventService implements IProductEvent
      * Handle click event.
      *
      * @param string $shopId
-     * @param string $productId
-     * @param mixed $data
+     * @param ClickEventRequestDTO $requestDTO
      * @return void
      *
      * @throws ProductNotFoundException
      */
-    public function click(string $shopId, string $productId, mixed $data): void
+    public function click(string $shopId, ClickEventRequestDTO $requestDTO): void
     {
-        $this->productQuery->validateProductId($shopId, $productId);
+        $this->productQuery->validateProductId($shopId, $requestDTO->productId);
 
-        $this->eventCommand->trigger($shopId, $productId, EventType::CLICK, $data, null);
+        $this->eventCommand->trigger(
+            $shopId,
+            $requestDTO->productId,
+            EventType::CLICK,
+            $requestDTO->data,
+            null,
+        );
     }
 
     /**
      * Handle add to cart event.
      *
      * @param string $shopId
-     * @param string $productId
-     * @param mixed $data
-     * @param int|null $quantity
+     * @param AddToCartEventRequestDTO $requestDTO
      * @return void
      *
      * @throws ProductNotFoundException
      */
-    public function addToCart(string $shopId, string $productId, mixed $data, ?int $quantity): void
+    public function addToCart(string $shopId, AddToCartEventRequestDTO $requestDTO): void
     {
-        $this->productQuery->validateProductId($shopId, $productId);
+        $this->productQuery->validateProductId($shopId, $requestDTO->productId);
 
-        $this->eventCommand->trigger($shopId, $productId, EventType::ADD_TO_CART, $data, $quantity);
+        $this->eventCommand->trigger(
+            $shopId,
+            $requestDTO->productId,
+            EventType::ADD_TO_CART,
+            $requestDTO->data,
+            $requestDTO->numberOfItems,
+        );
     }
 
     /**
      * Get event analytic.
      *
      * @param string $shopId
-     * @param string $startDate
-     * @param string $endDate
+     * @param GetProductPerformanceRequestDTO $requestDTO
      * @return array
      */
-    public function getProductPerformance(string $shopId, string $startDate, string $endDate): array
+    public function getProductPerformance(string $shopId, GetProductPerformanceRequestDTO $requestDTO): array
     {
-        $productEventData = $this->eventQuery->getEventData($shopId, $startDate, $endDate);
+        $productEventData = $this->eventQuery->getEventData(
+            $shopId,
+            $requestDTO->startDate,
+            $requestDTO->endDate,
+        );
         $productIdsWithEvents = array_column($productEventData, 'id');
         $productIdsWithoutEvents = $this->productQuery->getProductsNotIn($shopId, $productIdsWithEvents);
 
@@ -128,7 +143,7 @@ class ProductEventService implements IProductEvent
 
         return array_merge(
             $this->convertToEmptyEvent($productIdsWithoutEvents),
-            array_slice($productIdsWithEvents, 0, count($productIdsWithoutEvents) - $this->performanceLimit)
+            array_slice($productIdsWithEvents, 0, count($productIdsWithoutEvents) - $this->performanceLimit),
         );
     }
 
@@ -175,43 +190,39 @@ class ProductEventService implements IProductEvent
      * Get click data.
      *
      * @param string $shopId
-     * @param string|null $productId
-     * @param string $startDate
-     * @param string $endDate
-     * @param string|null $groupBy
+     * @param GetEventAnalyticRequestDTO $requestDTO
      * @return array
      */
     public function getClickData(
         string $shopId,
-        ?string $productId,
-        string $startDate,
-        string $endDate,
-        ?string $groupBy,
+        GetEventAnalyticRequestDTO $requestDTO,
     ): array {
-        $groupBy = $groupBy ? AnalyticGroupBy::from($groupBy) : null;
-
-        return $this->eventQuery->filterClickData($shopId, $productId, $startDate, $endDate, $groupBy);
+        return $this->eventQuery->filterClickData(
+            $shopId,
+            $requestDTO->productId,
+            $requestDTO->startDate,
+            $requestDTO->endDate,
+            $requestDTO->groupBy,
+        );
     }
 
     /**
      * Get add to cart data.
      *
      * @param string $shopId
-     * @param string|null $productId
-     * @param string $startDate
-     * @param string $endDate
-     * @param string|null $groupBy
+     * @param GetEventAnalyticRequestDTO $requestDTO
      * @return array
      */
     public function getAddToCartData(
         string $shopId,
-        ?string $productId,
-        string $startDate,
-        string $endDate,
-        ?string $groupBy,
+        GetEventAnalyticRequestDTO $requestDTO,
     ): array {
-        $groupBy = $groupBy ? AnalyticGroupBy::from($groupBy) : null;
-
-        return $this->eventQuery->filterAddToCartData($shopId, $productId, $startDate, $endDate, $groupBy);
+        return $this->eventQuery->filterAddToCartData(
+            $shopId,
+            $requestDTO->productId,
+            $requestDTO->startDate,
+            $requestDTO->endDate,
+            $requestDTO->groupBy,
+        );
     }
 }
