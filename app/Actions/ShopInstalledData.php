@@ -88,6 +88,6 @@ class ShopInstalledData
         ExecuteRecommendationPipelineJob::dispatchSync(
             $domain,
             $productsData,
-        )->onQueue(config('queue.queues.recommendation'));
+        );
     }
 }
