@@ -2,6 +2,7 @@
 
 namespace App\Contracts\Recommendation;
 
+use App\DTO\Request\UpdateNotificationSettingsRequestDTO;
 use App\Exceptions\JobRecommendationRunningException;
 use App\Exceptions\RecommendationRefreshLimitException;
 
@@ -47,8 +48,8 @@ interface IShopRecommendation
      * Update the shop recommendation notification.
      *
      * @param string $shopId
-     * @param array $notificationData
+     * @param UpdateNotificationSettingsRequestDTO $requestDTO
      * @return array
      */
-    public function updateShopRecommendationNotification(string $shopId, array $notificationData): array;
+    public function updateShopRecommendationNotification(string $shopId, UpdateNotificationSettingsRequestDTO $requestDTO): array;
 }

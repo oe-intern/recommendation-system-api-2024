@@ -37,8 +37,7 @@ class ProductCommand implements IProductCommand
      */
     public function create(ShopCollection $shop, array $product): ProductCollection
     {
-        $product['shop_id'] = $shop->getId();
-        return ProductCollection::query()->create($product);
+        return $shop->products()->create($product);
     }
 
     /**

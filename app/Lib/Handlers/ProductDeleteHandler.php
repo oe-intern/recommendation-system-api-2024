@@ -17,6 +17,7 @@ class ProductDeleteHandler extends BaseShopHandler
      */
     protected function processData(string $shopId, array $body): void
     {
-        DeleteProductJob::dispatch($shopId, $body);
+        DeleteProductJob::dispatch($shopId, $body)
+            ->onQueue(config('queue.queues.product'));
     }
 }

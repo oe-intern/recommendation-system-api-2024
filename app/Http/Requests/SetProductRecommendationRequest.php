@@ -1,24 +1,21 @@
 <?php
 
-namespace App\Http\Middleware;
+namespace App\Http\Requests;
 
 use App\Objects\Enums\RecommendationType;
-use Closure;
-use Illuminate\Http\Request;
+use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rules\Enum;
 
-class SetProductRecommendationRequest
+class SetProductRecommendationRequest extends FormRequest
 {
     /**
      * Handle an incoming request.
      *
-     * @param Request $request
-     * @param Closure $next
-     * @return mixed
+     * @return string[]
      */
-    public function handle(Request $request, Closure $next): mixed
+    public function rules(): array
     {
-        $request->validate([
+        return [
             'recommended_ids' => 'required|array',
             'recommended_ids.*' => 'string',
             'recommendation_type' => [
@@ -26,9 +23,7 @@ class SetProductRecommendationRequest
                 'nullable',
                 'string',
                 new Enum(RecommendationType::class),
-            ]
-        ]);
-
-        return $next($request);
+            ],
+        ];
     }
 }

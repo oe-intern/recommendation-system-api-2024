@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Contracts\Recommendation\IProductEvent;
+use App\DTO\Request\ClickEventRequestDTO;
 use App\Exceptions\ProductNotFoundException;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -20,25 +21,18 @@ class ProcessClickEvent implements ShouldQueue
     protected string $shopId;
 
     /**
-     * @var string
+     * @var ClickEventRequestDTO
      */
-    protected string $productId;
-
-    /**
-     * @var mixed
-     */
-    protected mixed $data;
+    protected ClickEventRequestDTO $clickEventRequestDTO;
 
     /**
      * @param string $shopId
-     * @param string $productId
-     * @param mixed $data
+     * @param ClickEventRequestDTO $clickEventRequestDTO
      */
-    public function __construct(string $shopId, string $productId, mixed $data)
+    public function __construct(string $shopId, ClickEventRequestDTO $clickEventRequestDTO)
     {
         $this->shopId = $shopId;
-        $this->productId = $productId;
-        $this->data = $data;
+        $this->clickEventRequestDTO = $clickEventRequestDTO;
     }
 
     /**
@@ -53,8 +47,7 @@ class ProcessClickEvent implements ShouldQueue
     {
         $productEventService->click(
             $this->shopId,
-            $this->productId,
-            $this->data
+            $this->clickEventRequestDTO,
         );
     }
 }

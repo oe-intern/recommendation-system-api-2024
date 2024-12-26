@@ -6,16 +6,7 @@ use App\Http\Middleware\EnsureShopifyInstalled;
 use App\Http\Middleware\EnsureShopifySession;
 use App\Http\Middleware\VerifyAuthenticationToken;
 use App\Http\Middleware\VerifyHmac;
-use App\Http\Middleware\SetProductRecommendationRequest;
-use App\Http\Middleware\SetRecommendationTypeRequest;
-use App\Http\Middleware\AddToCartEventRequest;
-use App\Http\Middleware\ClickEventRequest;
-use App\Http\Middleware\EventAnalyticRequest;
-use App\Http\Middleware\ShopSettingRequest;
-use App\Http\Middleware\UpdateNotificationSettingsRequest;
-use App\Http\Middleware\ActiveRecommendationRequest;
 use App\Http\Middleware\IdentifyShopDomain;
-use App\Http\Middleware\ProductPerformanceRequest;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -43,15 +34,6 @@ return Application::configure(basePath: dirname(__DIR__))
             'verify.token' => VerifyAuthenticationToken::class,
             'access_control_headers' => AccessControlHeaders::class,
             'csp_header' => CspHeader::class,
-            'validate.product.recommendation.request' => SetProductRecommendationRequest::class,
-            'validate.product.recommendation_type.request' => SetRecommendationTypeRequest::class,
-            'validate.event.analytic' => EventAnalyticRequest::class,
-            'validate.event.add_to_cart.request' => AddToCartEventRequest::class,
-            'validate.event.click.request' => ClickEventRequest::class,
-            'validate.event.performance.request' => ProductPerformanceRequest::class,
-            'validate.shop.auto_recommendation.request' => ActiveRecommendationRequest::class,
-            'validate.shop.settings.request' => ShopSettingRequest::class,
-            'validate.shop.notification_settings.request' => UpdateNotificationSettingsRequest::class,
             'identify.shop.domain' => IdentifyShopDomain::class,
         ]);
     })

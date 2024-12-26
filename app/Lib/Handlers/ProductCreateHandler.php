@@ -17,6 +17,7 @@ class ProductCreateHandler extends BaseShopHandler
      */
     protected function processData(string $shopId, array $body): void
     {
-        CreateProductJob::dispatch($shopId, $body);
+        CreateProductJob::dispatch($shopId, $body)
+            ->onQueue(config('queue.queues.product'));
     }
 }

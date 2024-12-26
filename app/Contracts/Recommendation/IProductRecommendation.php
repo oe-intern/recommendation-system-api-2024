@@ -3,6 +3,10 @@
 namespace App\Contracts\Recommendation;
 
 use App\Collections\ProductCollection;
+use App\DTO\Request\SetActiveRecommendationRequestDTO;
+use App\DTO\Request\SetProductRecommendationRequestDTO;
+use App\DTO\Request\SetRecommendationTypeRequestDTO;
+use App\DTO\Request\UpdateShopSettingRequestDTO;
 use App\Exceptions\ProductNotFoundException;
 
 interface IProductRecommendation
@@ -33,8 +37,7 @@ interface IProductRecommendation
      *
      * @param string $shopId
      * @param string $productId
-     * @param array $recommendedGids
-     * @param string|null $recommendationType
+     * @param SetProductRecommendationRequestDTO $requestDTO
      * @return ProductCollection
      *
      * @throws ProductNotFoundException
@@ -42,8 +45,7 @@ interface IProductRecommendation
     public function setRecommendedProducts(
         string $shopId,
         string $productId,
-        array $recommendedGids,
-        ?string $recommendationType,
+        SetProductRecommendationRequestDTO $requestDTO,
     ): ProductCollection;
 
     /**
@@ -51,7 +53,7 @@ interface IProductRecommendation
      *
      * @param string $shopId
      * @param string $productId
-     * @param string $recommendationType
+     * @param SetRecommendationTypeRequestDTO $requestDTO
      * @return ProductCollection
      *
      * @throws ProductNotFoundException
@@ -59,7 +61,7 @@ interface IProductRecommendation
     public function setRecommendationType(
         string $shopId,
         string $productId,
-        string $recommendationType
+        SetRecommendationTypeRequestDTO $requestDTO,
     ): ProductCollection;
 
     /**
@@ -74,25 +76,25 @@ interface IProductRecommendation
      * Set auto recommendation for a shop.
      *
      * @param string $shopId
-     * @param array $settings
+     * @param UpdateShopSettingRequestDTO $requestDTO
      *
      * @return array
      */
     public function setShopSettings(
         string $shopId,
-        array $settings
+        UpdateShopSettingRequestDTO $requestDTO
     ): array;
 
     /**
      * Activate recommendation for all product of a shop.
      *
      * @param string $shopId
-     * @param string $status
+     * @param SetActiveRecommendationRequestDTO $requestDTO
      * @return bool
      */
     public function activateRecommendation(
         string $shopId,
-        string $status,
+        SetActiveRecommendationRequestDTO $requestDTO,
     ): bool;
 
     /**

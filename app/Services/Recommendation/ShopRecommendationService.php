@@ -13,6 +13,7 @@ use App\Contracts\Queries\IShopRecommendationQuery;
 use App\Contracts\Recommendation\IRecommendationProcess;
 use App\Contracts\Recommendation\IShopRecommendation;
 use App\Contracts\Shopify\Graphql\Queries\IProductQueryShopify;
+use App\DTO\Request\UpdateNotificationSettingsRequestDTO;
 use App\Exceptions\JobRecommendationRunningException;
 use App\Exceptions\RecommendationRefreshLimitException;
 use App\Jobs\ExecuteRecommendationPipelineJob;
@@ -109,9 +110,9 @@ class ShopRecommendationService implements IShopRecommendation
         $this->validateRefreshRequest($shopId);
 
         $products = $this->fetchProducts();
-        $orders = $this->getOrdersData($shopDomain);
 
-        ExecuteRecommendationPipelineJob::dispatch($shopDomain, $products, $orders);
+        ExecuteRecommendationPipelineJob::dispatch($shopDomain, $products)
+            ->onQueue(config('queue.queues.recommendation'));
     }
 
     /**
@@ -122,17 +123,6 @@ class ShopRecommendationService implements IShopRecommendation
     private function fetchProducts(): array
     {
         return $this->productQueryShopify->fetchAll();
-    }
-
-    /**
-     * Get order data to install
-     *
-     * @param string $domain
-     * @return array
-     */
-    private function getOrdersData(string $domain): array
-    {
-        return $this->recommendationProcess->processOrderData($domain);
     }
 
     /**
@@ -282,15 +272,18 @@ class ShopRecommendationService implements IShopRecommendation
      * Update the shop enable recommendation notification & email for shop recommendation.
      *
      * @param string $shopId
-     * @param array $notificationData
+     * @param UpdateNotificationSettingsRequestDTO $requestDTO
      * @return array
      */
-    public function updateShopRecommendationNotification(string $shopId, array $notificationData): array
-    {
-        $email = data_get($notificationData, 'email');
-        $emailNotification = data_get($notificationData, 'email_notification');
-
-        $this->shopRecommendationCommand->updateNotification($shopId, $emailNotification, $email);
+    public function updateShopRecommendationNotification(
+        string $shopId,
+        UpdateNotificationSettingsRequestDTO $requestDTO,
+    ): array {
+        $this->shopRecommendationCommand->updateNotification(
+            $shopId,
+            $requestDTO->emailNotification,
+            $requestDTO->email,
+        );
         $shopRecommendation = $this->getShopRecommendation($shopId);
 
         return [

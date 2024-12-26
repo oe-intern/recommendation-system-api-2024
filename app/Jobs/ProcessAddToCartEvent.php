@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\Contracts\Queries\IProductQuery;
 use App\Contracts\Recommendation\IProductEvent;
+use App\DTO\Request\AddToCartEventRequestDTO;
 use App\Exceptions\ProductNotFoundException;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -21,32 +22,18 @@ class ProcessAddToCartEvent implements ShouldQueue
     protected string $shopId;
 
     /**
-     * @var string
+     * @var AddToCartEventRequestDTO
      */
-    protected string $productId;
-
-    /**
-     * @var mixed
-     */
-    protected mixed $data;
-
-    /*
-     * @var int
-     */
-    protected int $numberOfItems;
+    protected AddToCartEventRequestDTO $addToCartEventRequestDTO;
 
     /**
      * @param string $shopId
-     * @param string $productId
-     * @param mixed $data
-     * @param int|null $numberOfItems
+     * @param AddToCartEventRequestDTO $addToCartEventRequestDTO
      */
-    public function __construct(string $shopId, string $productId, mixed $data, ?int $numberOfItems)
+    public function __construct(string $shopId, AddToCartEventRequestDTO $addToCartEventRequestDTO)
     {
         $this->shopId = $shopId;
-        $this->productId = $productId;
-        $this->data = $data;
-        $this->numberOfItems = $numberOfItems;
+        $this->addToCartEventRequestDTO = $addToCartEventRequestDTO;
     }
 
     /**
@@ -62,9 +49,7 @@ class ProcessAddToCartEvent implements ShouldQueue
     {
         $productEventService->addToCart(
             $this->shopId,
-            $this->productId,
-            $this->data,
-            $this->numberOfItems,
+            $this->addToCartEventRequestDTO,
         );
     }
 }

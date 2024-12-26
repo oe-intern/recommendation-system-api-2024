@@ -9,6 +9,10 @@ use App\Contracts\Queries\IProductQuery;
 use App\Contracts\Queries\IShopQuery;
 use App\Contracts\Recommendation\IProductRecommendation;
 use App\Contracts\Shopify\Graphql\Queries\IProductQueryShopify;
+use App\DTO\Request\SetActiveRecommendationRequestDTO;
+use App\DTO\Request\SetProductRecommendationRequestDTO;
+use App\DTO\Request\SetRecommendationTypeRequestDTO;
+use App\DTO\Request\UpdateShopSettingRequestDTO;
 use App\Exceptions\ProductNotFoundException;
 use App\Lib\Utils;
 use App\Objects\Enums\RecommendationState;
@@ -149,8 +153,7 @@ class ProductRecommendationService implements IProductRecommendation
      *
      * @param string $shopId
      * @param string $productId
-     * @param array $recommendedGids
-     * @param string|null $recommendationType
+     * @param SetProductRecommendationRequestDTO $requestDTO
      * @return ProductCollection
      *
      * @throws ProductNotFoundException
@@ -158,11 +161,11 @@ class ProductRecommendationService implements IProductRecommendation
     public function setRecommendedProducts(
         string $shopId,
         string $productId,
-        array $recommendedGids,
-        ?string $recommendationType,
+        SetProductRecommendationRequestDTO $requestDTO,
     ): ProductCollection {
-        $recommendationType = RecommendationType::tryFrom($recommendationType);
-        $recommendedIds = $this->productQuery->validateListProductGid($shopId, $recommendedGids);
+        $recommendedIds = $this->productQuery->validateListProductGid(
+            $shopId, $requestDTO->recommendedIds,
+        );
         $product = $this->productQuery->getById($productId);
         $recommendedIds = array_unique(array_filter($recommendedIds, fn($id) => (string)$id !== $productId));
 
@@ -170,7 +173,7 @@ class ProductRecommendationService implements IProductRecommendation
             $product,
             $shopId,
             $recommendedIds,
-            $recommendationType ?? $product->getRecommendationType(),
+            $requestDTO->recommendationType ?? $product->getRecommendationType(),
         );
 
         return $product;
@@ -181,7 +184,7 @@ class ProductRecommendationService implements IProductRecommendation
      *
      * @param string $shopId
      * @param string $productId
-     * @param string $recommendationType
+     * @param SetRecommendationTypeRequestDTO $requestDTO
      * @return ProductCollection
      *
      * @throws ProductNotFoundException
@@ -189,14 +192,13 @@ class ProductRecommendationService implements IProductRecommendation
     public function setRecommendationType(
         string $shopId,
         string $productId,
-        string $recommendationType,
+        SetRecommendationTypeRequestDTO $requestDTO,
     ): ProductCollection {
         $this->productQuery->validateProductId($shopId, $productId);
 
-        $recommendationType = RecommendationType::tryFrom($recommendationType);
         $product = $this->productQuery->getById($productId);
 
-        $this->productCommand->setRecommendationType($product, $recommendationType);
+        $this->productCommand->setRecommendationType($product, $requestDTO->recommendationType);
 
         return $product;
     }
@@ -217,15 +219,22 @@ class ProductRecommendationService implements IProductRecommendation
      * Set auto recommendation for a shop.
      *
      * @param string $shopId
-     * @param array $settings
+     * @param UpdateShopSettingRequestDTO $requestDTO
      *
      * @return array
      */
     public function setShopSettings(
         string $shopId,
-        array $settings,
+        UpdateShopSettingRequestDTO $requestDTO,
     ): array {
         $shop = $this->shopQuery->getById($shopId);
+        $settings = [
+            'number_of_items' => $requestDTO->numberOfItems,
+            'layout' => $requestDTO->layout,
+            'background_color' => $requestDTO->backgroundColor,
+            'text_color' => $requestDTO->textColor,
+        ];
+
         return $this->shopSettingCommand->setShopSettings($shop, $settings);
     }
 
@@ -233,14 +242,14 @@ class ProductRecommendationService implements IProductRecommendation
      * Activate recommendation for all product of a shop.
      *
      * @param string $shopId
-     * @param string $status
+     * @param SetActiveRecommendationRequestDTO $requestDTO
      * @return bool
      */
     public function activateRecommendation(
         string $shopId,
-        string $status,
+        SetActiveRecommendationRequestDTO $requestDTO,
     ): bool {
-        $status = RecommendationState::from($status);
+        $status = $requestDTO->status;
         if ($status === $this->getShopRecommendationState($shopId)) {
             return true;
         }
@@ -251,6 +260,19 @@ class ProductRecommendationService implements IProductRecommendation
         };
 
         return true;
+    }
+
+    /**
+     * Get shop recommendation state.
+     *
+     * @param string $shopId
+     * @return RecommendationState
+     */
+    private function getShopRecommendationState(string $shopId): RecommendationState
+    {
+        return $this->shopQuery
+            ->getById($shopId)
+            ->settings()->get()->getAutoRecommendation();
     }
 
     /**
@@ -266,18 +288,6 @@ class ProductRecommendationService implements IProductRecommendation
     }
 
     /**
-     * Deactivate recommendation for all product of a shop.
-     *
-     * @param string $shopId
-     * @return void
-     */
-    private function deactivate(string $shopId): void
-    {
-        $this->settingShop($shopId, RecommendationState::INACTIVE);
-        $this->productCommand->deactivateRecommendation($shopId);
-    }
-
-    /**
      * Set recommendation state for a shop.
      *
      * @param string $shopId
@@ -290,15 +300,15 @@ class ProductRecommendationService implements IProductRecommendation
     }
 
     /**
-     * Get shop recommendation state.
+     * Deactivate recommendation for all product of a shop.
      *
      * @param string $shopId
-     * @return RecommendationState
+     * @return void
      */
-    private function getShopRecommendationState(string $shopId): RecommendationState
+    private function deactivate(string $shopId): void
     {
-        return $this->shopQuery->getById($shopId)
-            ->settings()->get()->getAutoRecommendation();
+        $this->settingShop($shopId, RecommendationState::INACTIVE);
+        $this->productCommand->deactivateRecommendation($shopId);
     }
 
     /**

@@ -7,10 +7,10 @@ use App\Contracts\Commands\IShopRecommendationCommand;
 use App\Contracts\Mail\IEmailSender;
 use App\Contracts\Queries\IShopRecommendationQuery;
 use App\Contracts\Queries\User as IUserQuery;
+use App\Jobs\SendEmailJob;
 use App\Mail\ProductRecommendationRefreshed;
 use App\Objects\Enums\JobRecommendationStatus;
 use App\Objects\Values\UserDomain;
-use Illuminate\Support\Facades\Mail;
 
 class EmailSenderService implements IEmailSender
 {
@@ -30,6 +30,11 @@ class EmailSenderService implements IEmailSender
     protected IUserQuery $userQuery;
 
     /**
+     * Email queue name.
+     */
+    private string $emailQueue;
+
+    /**
      * EmailSenderService constructor.
      *
      * @param IShopRecommendationQuery $shopRecommendationQuery
@@ -44,6 +49,7 @@ class EmailSenderService implements IEmailSender
         $this->shopRecommendationQuery = $shopRecommendationQuery;
         $this->shopRecommendationCommand = $shopRecommendationCommand;
         $this->userQuery = $userQuery;
+        $this->emailQueue = config('queue.queues.email');
     }
 
     /**
@@ -136,13 +142,13 @@ class EmailSenderService implements IEmailSender
     {
         $shopName = $this->extractShopNameFromDomain($shopDomain);
 
-        Mail::to($email)->queue(
-            new ProductRecommendationRefreshed(
-                $shopName,
-                $status,
-                $email,
-            ),
+        $mailable = new ProductRecommendationRefreshed(
+            $shopName,
+            $status,
+            $email,
         );
+
+        SendEmailJob::dispatch($mailable)->onQueue($this->emailQueue);
     }
 
     /**

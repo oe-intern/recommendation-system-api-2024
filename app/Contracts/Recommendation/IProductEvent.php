@@ -2,6 +2,10 @@
 
 namespace App\Contracts\Recommendation;
 
+use App\DTO\Request\AddToCartEventRequestDTO;
+use App\DTO\Request\ClickEventRequestDTO;
+use App\DTO\Request\GetEventAnalyticRequestDTO;
+use App\DTO\Request\GetProductPerformanceRequestDTO;
 use App\Exceptions\ProductNotFoundException;
 
 interface IProductEvent
@@ -10,75 +14,59 @@ interface IProductEvent
      * Handle click event.
      *
      * @param string $shopId
-     * @param string $productId
-     * @param mixed $data
+     * @param ClickEventRequestDTO $requestDTO
      * @return void
      *
      * @throws ProductNotFoundException
      */
-    public function click(string $shopId, string $productId, mixed $data): void;
+    public function click(string $shopId, ClickEventRequestDTO $requestDTO): void;
 
     /**
      * Handle add to cart event.
      *
      * @param string $shopId
-     * @param string $productId
-     * @param mixed $data
-     * @param int|null $quantity
+     * @param AddToCartEventRequestDTO $requestDTO
      * @return void
      *
      * @throws ProductNotFoundException
      */
-    public function addToCart(string $shopId, string $productId, mixed $data, ?int $quantity): void;
+    public function addToCart(string $shopId, AddToCartEventRequestDTO $requestDTO): void;
 
     /**
      * Get event analytic.
      *
      * @param string $shopId
-     * @param string $startDate
-     * @param string $endDate
+     * @param GetProductPerformanceRequestDTO $requestDTO
      * @return array
      */
-    public function getProductPerformance(string $shopId, string $startDate, string $endDate): array;
+    public function getProductPerformance(string $shopId, GetProductPerformanceRequestDTO $requestDTO): array;
 
     /**
      * Get click data for a product.
      *
      * @param string $shopId
-     * @param string|null $productId
-     * @param string $startDate
-     * @param string $endDate
-     * @param string|null $groupBy
+     * @param GetEventAnalyticRequestDTO $requestDTO
      * @return array
      *
      * @throws ProductNotFoundException
      */
     public function getClickData(
         string $shopId,
-        ?string $productId,
-        string $startDate,
-        string $endDate,
-        ?string $groupBy
+        GetEventAnalyticRequestDTO $requestDTO,
     ): array;
 
     /**
      * Get add to cart data for a product.
      *
      * @param string $shopId
-     * @param string|null $productId
-     * @param string $startDate
-     * @param string $endDate
-     * @param string|null $groupBy
+     * @param GetEventAnalyticRequestDTO $requestDTO
      * @return array
      *
      * @throws ProductNotFoundException
      */
     public function getAddToCartData(
         string $shopId,
-        ?string $productId,
-        string $startDate,
-        string $endDate,
-        ?string $groupBy
+        GetEventAnalyticRequestDTO $requestDTO,
     ): array;
 
 

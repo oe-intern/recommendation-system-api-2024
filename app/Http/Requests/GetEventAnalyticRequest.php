@@ -1,24 +1,21 @@
 <?php
 
-namespace App\Http\Middleware;
+namespace App\Http\Requests;
 
 use App\Objects\Enums\AnalyticGroupBy;
-use Closure;
-use Illuminate\Http\Request;
+use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rules\Enum;
 
-class EventAnalyticRequest
+class GetEventAnalyticRequest extends FormRequest
 {
     /**
      * Handle an incoming request.
      *
-     * @param Request $request
-     * @param Closure $next
-     * @return mixed
+     * @return string[]
      */
-    public function handle(Request $request, Closure $next): mixed
+    public function rules(): array
     {
-        $request->validate([
+        return [
             'group_by' => [
                 'sometimes',
                 new Enum(AnalyticGroupBy::class),
@@ -26,8 +23,6 @@ class EventAnalyticRequest
             'product_id' => 'sometimes|nullable|string',
             'start_date' => 'required|date_format:Y-m-d|before_or_equal:end_date',
             'end_date' => 'required|date_format:Y-m-d|before_or_equal:today',
-        ]);
-
-        return $next($request);
+        ];
     }
 }
