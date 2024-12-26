@@ -5,10 +5,11 @@ namespace App\Http\Controllers;
 use App\Contracts\Queries\IProductQuery;
 use App\Contracts\Queries\IShopQuery;
 use App\Contracts\Recommendation\IProductRecommendation;
-use App\Exceptions\MissingProductIdException;
-use App\Exceptions\ProductNotFoundException;
+use App\DTO\Request\SetActiveRecommendationRequestDTO;
+use App\DTO\Request\UpdateShopSettingRequestDTO;
 use App\Exceptions\ShopNotFoundException;
-use App\Lib\Utils;
+use App\Http\Requests\SetActiveRecommendationRequest;
+use App\Http\Requests\UpdateShopSettingRequest;
 use App\Services\Shopify\UserContext;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -32,7 +33,7 @@ class ShopSettingController extends BaseController
         UserContext $userContext,
         IProductRecommendation $productRecommendationService,
         IProductQuery $productQuery,
-        IShopQuery $shopQuery
+        IShopQuery $shopQuery,
     ) {
         parent::__construct($userContext, $productQuery, $shopQuery);
         $this->productRecommendationService = $productRecommendationService;
@@ -56,22 +57,17 @@ class ShopSettingController extends BaseController
     /**
      * Set auto recommendation settings for a shop.
      *
-     * @param Request $request
+     * @param UpdateShopSettingRequest $request
      * @return Response
      *
      * @throws ShopNotFoundException
      */
-    public function setShopSetting(Request $request): Response
+    public function setShopSetting(UpdateShopSettingRequest $request): Response
     {
         $shopId = $this->getShopId();
-        $settings = [
-            'number_of_items' => $request->input('number_of_items'),
-            'layout' => $request->input('layout'),
-            'background_color' => $request->input('background_color'),
-            'text_color' => $request->input('text_color')
-        ];
+        $updateShopSettingRequestDTO = UpdateShopSettingRequestDTO::fromRequest($request);
 
-        $settings = $this->productRecommendationService->setShopSettings($shopId, $settings);
+        $settings = $this->productRecommendationService->setShopSettings($shopId, $updateShopSettingRequestDTO);
 
         return response()->success('Auto recommendation settings has been set.', $settings);
     }
@@ -79,18 +75,18 @@ class ShopSettingController extends BaseController
     /**
      * Activate recommendation for all product of a shop.
      *
-     * @param Request $request
+     * @param SetActiveRecommendationRequest $request
      * @return Response
      *
      * @throws ShopNotFoundException
      */
-    public function activateRecommendation(Request $request): Response
+    public function activateRecommendation(SetActiveRecommendationRequest $request): Response
     {
         $shopId = $this->getShopId();
-        $status = $request->input('status');
+        $setActiveRecommendationRequestDTO = SetActiveRecommendationRequestDTO::fromRequest($request);
 
-        $this->productRecommendationService->activateRecommendation($shopId, $status);
+        $this->productRecommendationService->activateRecommendation($shopId, $setActiveRecommendationRequestDTO);
 
-        return response()->success('Recommendation has been ' . $status . 'd.');
+        return response()->success('Recommendation has been ' . $setActiveRecommendationRequestDTO->status->value . 'D.');
     }
 }

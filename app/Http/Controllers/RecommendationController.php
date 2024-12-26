@@ -6,9 +6,11 @@ use App\Contracts\Queries\IProductQuery;
 use App\Contracts\Queries\IShopQuery;
 use App\Contracts\Recommendation\IProductRecommendation;
 use App\Contracts\Recommendation\IShopRecommendation;
+use App\DTO\Request\UpdateNotificationSettingsRequestDTO;
 use App\Exceptions\JobRecommendationRunningException;
 use App\Exceptions\RecommendationRefreshLimitException;
 use App\Exceptions\ShopNotFoundException;
+use App\Http\Requests\UpdateNotificationSettingsRequest;
 use App\Services\Shopify\UserContext;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -63,19 +65,19 @@ class RecommendationController extends BaseController
     /**
      * Set shop recommendations.
      *
-     * @param Request $request
+     * @param UpdateNotificationSettingsRequest $request
      * @return Response
      * @throws ShopNotFoundException
      */
-    public function setShopRecommendations(Request $request): Response
+    public function setShopRecommendations(UpdateNotificationSettingsRequest $request): Response
     {
         $shopId = $this->getShopId();
-        $settings = [
-            'email' => $request->input('email'),
-            'email_notification' => $request->input('email_notification'),
-        ];
+        $updateNotificationSettingsRequestDTO = UpdateNotificationSettingsRequestDTO::fromRequest($request);
 
-        $settings = $this->shopRecommendationService->updateShopRecommendationNotification($shopId, $settings);
+        $settings = $this->shopRecommendationService->updateShopRecommendationNotification(
+            $shopId,
+            $updateNotificationSettingsRequestDTO,
+        );
 
         return response()->success('Shop recommendations has been set.', $settings);
     }

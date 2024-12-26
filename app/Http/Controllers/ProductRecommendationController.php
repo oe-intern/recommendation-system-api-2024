@@ -5,9 +5,13 @@ namespace App\Http\Controllers;
 use App\Contracts\Queries\IProductQuery;
 use App\Contracts\Queries\IShopQuery;
 use App\Contracts\Recommendation\IProductRecommendation;
+use App\DTO\Request\SetProductRecommendationRequestDTO;
+use App\DTO\Request\SetRecommendationTypeRequestDTO;
 use App\Exceptions\MissingProductIdException;
 use App\Exceptions\ProductNotFoundException;
 use App\Exceptions\ShopNotFoundException;
+use App\Http\Requests\SetProductRecommendationRequest;
+use App\Http\Requests\SetRecommendationTypeRequest;
 use App\Lib\Utils;
 use App\Services\Shopify\UserContext;
 use Illuminate\Http\Request;
@@ -60,27 +64,30 @@ class ProductRecommendationController extends BaseController
         );
 
         return response()->success('Recommendations retrieved successfully', $products);
-
     }
 
     /**
      * Set state of the recommendation for admin.
      *
      * @param string $productId
-     * @param Request $request
+     * @param SetRecommendationTypeRequest $request
      * @return Response
      *
      * @throws MissingProductIdException
      * @throws ProductNotFoundException
      * @throws ShopNotFoundException
      */
-    public function setRecommendationType(string $productId, Request $request): Response
+    public function setRecommendationType(string $productId, SetRecommendationTypeRequest $request): Response
     {
         $shopId = $this->getShopId();
         $productId = $this->getProductId($shopId, $productId);
-        $type = $request->input('recommendation_type');
+        $setRecommendationTypeRequestDTO = SetRecommendationTypeRequestDTO::fromRequest($request);
 
-        $product = $this->productRecommendationService->setRecommendationType($shopId, $productId, $type);
+        $product = $this->productRecommendationService->setRecommendationType(
+            $shopId,
+            $productId,
+            $setRecommendationTypeRequestDTO,
+        );
 
         $responseData = [
             'id' => $product->getGid(),
@@ -93,25 +100,27 @@ class ProductRecommendationController extends BaseController
      * Set list manual recommendation for a product by admin.
      *
      * @param string $productId
-     * @param Request $request
+     * @param SetProductRecommendationRequest $request
      * @return Response
      *
      * @throws MissingProductIdException
      * @throws ProductNotFoundException
      * @throws ShopNotFoundException
      */
-    public function setManualRecommendation(string $productId, Request $request): Response
+    public function setManualRecommendation(string $productId, SetProductRecommendationRequest $request): Response
     {
         $shopId = $this->getShopId();
         $productId = $this->getProductId($shopId, $productId);
-        $recommendedGids = array_map([Utils::class, 'getIdFromGid'], $request->input('recommended_ids'));
-        $recommendationType = $request->input('recommendation_type');
+        $setProductRecommendationRequestDTO = SetProductRecommendationRequestDTO::fromRequest($request);
+        $setProductRecommendationRequestDTO->recommendedIds = array_map(
+            [Utils::class, 'getIdFromGid'],
+            $setProductRecommendationRequestDTO->recommendedIds,
+        );
 
         $product = $this->productRecommendationService->setRecommendedProducts(
             $shopId,
             $productId,
-            $recommendedGids,
-            $recommendationType,
+            $setProductRecommendationRequestDTO,
         );
 
         $responseData = [

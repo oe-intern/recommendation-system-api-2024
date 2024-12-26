@@ -5,14 +5,21 @@ namespace App\Http\Controllers;
 use App\Contracts\Queries\IProductQuery;
 use App\Contracts\Queries\IShopQuery;
 use App\Contracts\Recommendation\IProductEvent;
+use App\DTO\Request\AddToCartEventRequestDTO;
+use App\DTO\Request\ClickEventRequestDTO;
+use App\DTO\Request\GetEventAnalyticRequestDTO;
+use App\DTO\Request\GetProductPerformanceRequestDTO;
 use App\Exceptions\MissingProductIdException;
 use App\Exceptions\ProductNotFoundException;
 use App\Exceptions\ShopNotFoundException;
+use App\Http\Requests\AddToCartEventRequest;
+use App\Http\Requests\ClickEventRequest;
+use App\Http\Requests\GetEventAnalyticRequest;
+use App\Http\Requests\GetProductPerformanceRequest;
 use App\Jobs\ProcessAddToCartEvent;
 use App\Jobs\ProcessClickEvent;
 use App\Objects\Enums\EventType;
 use App\Services\Shopify\UserContext;
-use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
 class ProductEventController extends BaseController
@@ -43,14 +50,14 @@ class ProductEventController extends BaseController
     /**
      * Get list of events for a shop.
      *
-     * @param Request $request
+     * @param GetEventAnalyticRequest $request
      * @return Response
      *
      * @throws MissingProductIdException
      * @throws ProductNotFoundException
      * @throws ShopNotFoundException
      */
-    public function getClickAnalytic(Request $request): Response
+    public function getClickAnalytic(GetEventAnalyticRequest $request): Response
     {
         return $this->getStatisticsData($request, EventType::CLICK);
     }
@@ -58,22 +65,7 @@ class ProductEventController extends BaseController
     /**
      * Get list of events for a shop.
      *
-     * @param Request $request
-     * @return Response
-     *
-     * @throws MissingProductIdException
-     * @throws ProductNotFoundException
-     * @throws ShopNotFoundException
-     */
-    public function getAddToCartAnalytic(Request $request): Response
-    {
-        return $this->getStatisticsData($request, EventType::ADD_TO_CART);
-    }
-
-    /**
-     * Get list of events for a shop.
-     *
-     * @param Request $request
+     * @param GetEventAnalyticRequest $request
      * @param EventType $eventType
      * @return Response
      *
@@ -81,39 +73,53 @@ class ProductEventController extends BaseController
      * @throws ProductNotFoundException
      * @throws ShopNotFoundException
      */
-    private function getStatisticsData(Request $request, EventType $eventType): Response
+    private function getStatisticsData(GetEventAnalyticRequest $request, EventType $eventType): Response
     {
         $shopId = $this->getShopId();
-        $productId = $request->query('product_id');
-        $productId = $productId ? $this->getProductId($shopId, $productId) : null;
-        $startDate = $request->query('start_date');
-        $endDate = $request->query('end_date');
-        $groupBy = $request->query('group_by');
+        $getEventAnalyticRequestDTO = GetEventAnalyticRequestDTO::fromRequest($request);
+        $productId = $getEventAnalyticRequestDTO->productId;
+        $getEventAnalyticRequestDTO->productId = $productId
+            ? $this->getProductId($shopId, $productId)
+            : null;
 
         $events = match ($eventType) {
             EventType::CLICK => $this->productEventService
-                ->getClickData($shopId, $productId, $startDate, $endDate, $groupBy),
+                ->getClickData($shopId, $getEventAnalyticRequestDTO),
             EventType::ADD_TO_CART => $this->productEventService
-                ->getAddToCartData($shopId, $productId, $startDate, $endDate, $groupBy),
+                ->getAddToCartData($shopId, $getEventAnalyticRequestDTO),
         };
 
         return response()->success('Events retrieved successfully', $events);
     }
 
     /**
+     * Get list of events for a shop.
+     *
+     * @param GetEventAnalyticRequest $request
+     * @return Response
+     *
+     * @throws MissingProductIdException
+     * @throws ProductNotFoundException
+     * @throws ShopNotFoundException
+     */
+    public function getAddToCartAnalytic(GetEventAnalyticRequest $request): Response
+    {
+        return $this->getStatisticsData($request, EventType::ADD_TO_CART);
+    }
+
+    /**
      * Get info analytic for a about max, min events for a shop.
      *
-     * @param Request $request
+     * @param GetProductPerformanceRequest $request
      * @return Response
      * @throws ShopNotFoundException
      */
-    public function getProductPerformance(Request $request): Response
+    public function getProductPerformance(GetProductPerformanceRequest $request): Response
     {
         $shopId = $this->getShopId();
-        $startDate = $request->query('start_date');
-        $endDate = $request->query('end_date');
+        $productPerformanceRequestDTO = GetProductPerformanceRequestDTO::fromRequest($request);
 
-        $events = $this->productEventService->getProductPerformance($shopId, $startDate, $endDate);
+        $events = $this->productEventService->getProductPerformance($shopId, $productPerformanceRequestDTO);
 
         return response()->success('Events retrieved successfully', $events);
     }
@@ -121,22 +127,21 @@ class ProductEventController extends BaseController
     /**
      * Increment the number of add to cart events for a product.
      *
-     * @param Request $request
+     * @param AddToCartEventRequest $request
      * @return Response
      *
      * @throws MissingProductIdException
      * @throws ProductNotFoundException
      * @throws ShopNotFoundException
      */
-    public function addToCart(Request $request): Response
+    public function addToCart(AddToCartEventRequest $request): Response
     {
-        $productId = $request->input('product_id');
-        $data = $request->input('data');
-        $numberOfItems = $request->input('number_of_items');
         $shopId = $this->getShopId();
-        $productId = $this->getProductId($shopId, $productId);
+        $addCartEventRequestDTO = AddToCartEventRequestDTO::fromRequest($request);
+        $addCartEventRequestDTO->productId = $this->getProductId($shopId, $addCartEventRequestDTO->productId);
 
-        ProcessAddToCartEvent::dispatch($shopId, $productId, $data, $numberOfItems);
+        ProcessAddToCartEvent::dispatch($shopId, $addCartEventRequestDTO)
+            ->onQueue(config('queue.queues.event-queue'));
 
         return response()->success('Events updated successfully');
     }
@@ -144,21 +149,21 @@ class ProductEventController extends BaseController
     /**
      * Increment the number of click events for a product.
      *
-     * @param Request $request
+     * @param ClickEventRequest $request
      * @return Response
      *
      * @throws MissingProductIdException
      * @throws ProductNotFoundException
      * @throws ShopNotFoundException
      */
-    public function click(Request $request): Response
+    public function click(ClickEventRequest $request): Response
     {
-        $productId = $request->input('product_id');
-        $data = $request->input('data');
         $shopId = $this->getShopId();
-        $productId = $this->getProductId($shopId, $productId);
+        $clickEventRequestDTO = ClickEventRequestDTO::fromRequest($request);
+        $clickEventRequestDTO->productId = $this->getProductId($shopId, $clickEventRequestDTO->productId);
 
-        ProcessClickEvent::dispatch($shopId, $productId, $data);
+        ProcessClickEvent::dispatch($shopId, $clickEventRequestDTO)
+            ->onQueue(config('queue.queues.event-queue'));
 
         return response()->success('Events updated successfully');
     }
