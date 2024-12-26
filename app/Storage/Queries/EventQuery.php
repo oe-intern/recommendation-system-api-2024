@@ -34,7 +34,7 @@ class EventQuery implements IEventQuery
      * @param string|null $productId
      * @param string $startDate
      * @param string $endDate
-     * @param AnalyticGroupBy|null $groupBy
+     * @param AnalyticGroupBy $groupBy
      * @return array
      */
     public function filterClickData(
@@ -42,7 +42,7 @@ class EventQuery implements IEventQuery
         ?string $productId,
         string $startDate,
         string $endDate,
-        ?AnalyticGroupBy $groupBy,
+        AnalyticGroupBy $groupBy,
     ): array {
         return $this->filterEventData(
             EventType::CLICK,
@@ -61,7 +61,7 @@ class EventQuery implements IEventQuery
      * @param string|null $productId
      * @param string $startDate
      * @param string $endDate
-     * @param AnalyticGroupBy|null $groupBy
+     * @param AnalyticGroupBy $groupBy
      * @return array
      */
     public function filterAddToCartData(
@@ -69,7 +69,7 @@ class EventQuery implements IEventQuery
         ?string $productId,
         string $startDate,
         string $endDate,
-        ?AnalyticGroupBy $groupBy,
+        AnalyticGroupBy $groupBy,
     ): array {
         return $this->filterEventData(
             EventType::ADD_TO_CART,
@@ -89,7 +89,7 @@ class EventQuery implements IEventQuery
      * @param string|null $productId
      * @param string $startDate
      * @param string $endDate
-     * @param AnalyticGroupBy|null $groupBy
+     * @param AnalyticGroupBy $groupBy
      * @return array
      */
     private function filterEventData(
@@ -98,7 +98,7 @@ class EventQuery implements IEventQuery
         ?string $productId,
         string $startDate,
         string $endDate,
-        ?AnalyticGroupBy $groupBy,
+        AnalyticGroupBy $groupBy,
     ): array {
         $startDate = $this->getFirstDay($startDate);
         $endDate = $this->getEndDay($endDate);
@@ -201,7 +201,7 @@ class EventQuery implements IEventQuery
                     ],
                     [
                         '$group' => [
-                            '_id' => '$productId',
+                            '_id' => '$product_id',
                             'quantity' => ['$sum' => '$quantity'],
                         ],
                     ],
