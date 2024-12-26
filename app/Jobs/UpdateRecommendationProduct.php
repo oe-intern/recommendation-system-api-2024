@@ -9,15 +9,16 @@ use App\Contracts\Queries\IProductQuery;
 use App\Contracts\Queries\IShopQuery;
 use App\Contracts\Shopify\Graphql\Queries\IProductQueryShopify;
 use App\DTO\Payload\ProductRecommendationRequestDTO;
-use App\Objects\Enums\RecommendationType;
-use App\Objects\Transform\ProductTransform;
+use App\Lib\Utils;
 use App\Models\User;
+use App\Objects\Enums\RecommendationType;
+use App\Objects\Enums\ShopifyType;
+use App\Objects\Transform\ProductTransform;
 use App\Services\Shopify\UserContext;
 use Exception;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
-use Illuminate\Support\Facades\Log;
 
 class UpdateRecommendationProduct implements ShouldQueue
 {
@@ -114,10 +115,10 @@ class UpdateRecommendationProduct implements ShouldQueue
             $shopQuery,
             $productTransform,
         );
-        Log::info('Update recommendation for product ' . $this->productId);
+
         $requestData = $this->getRequestData();
         $recommendations = $this->getRecommendations($requestData);
-        Log::info('Recommendations for product ' . $this->productId . ' ' . json_encode($recommendations));
+
         $this->updateRecommendationProduct($this->productId, $recommendations);
     }
 
@@ -169,11 +170,12 @@ class UpdateRecommendationProduct implements ShouldQueue
     {
         $products = $this->productQueryShopify->fetchAll();
         $productsData = $this->productTransform->shopifyDataListToModelApiListData($products);
+        $productGid = $this->productQuery->getGidById($this->productId);
 
         return new ProductRecommendationRequestDTO(
             self::MAX_RECOMMENDATION_PRODUCTS,
             $productsData,
-            $this->productId,
+            Utils::addPrefixGraphId($productGid, ShopifyType::PRODUCT),
         );
     }
 
@@ -185,7 +187,11 @@ class UpdateRecommendationProduct implements ShouldQueue
      */
     private function getRecommendations(ProductRecommendationRequestDTO $requestData): array
     {
-        $recommendationsResponse = $this->retryFetchingRecommendations($requestData);
+        $recommendationsResponse = array_map(
+            [Utils::class, 'getIdFromGid'],
+            $this->retryFetchingRecommendations($requestData),
+        );
+
         return $this->productQuery->getIdsByGids($recommendationsResponse);
     }
 
