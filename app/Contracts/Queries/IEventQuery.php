@@ -13,7 +13,7 @@ interface IEventQuery
      * @param string|null $productId
      * @param string $startDate
      * @param string $endDate
-     * @param AnalyticGroupBy|null $groupBy
+     * @param AnalyticGroupBy $groupBy
      * @return array
      */
     public function filterClickData(
@@ -21,7 +21,7 @@ interface IEventQuery
         ?string $productId,
         string $startDate,
         string $endDate,
-        ?AnalyticGroupBy $groupBy
+        AnalyticGroupBy $groupBy
     ): array;
 
     /**
@@ -31,7 +31,7 @@ interface IEventQuery
      * @param string|null $productId
      * @param string $startDate
      * @param string $endDate
-     * @param AnalyticGroupBy|null $groupBy
+     * @param AnalyticGroupBy $groupBy
      * @return array
      */
     public function filterAddToCartData(
@@ -39,7 +39,7 @@ interface IEventQuery
         ?string $productId,
         string $startDate,
         string $endDate,
-        ?AnalyticGroupBy $groupBy
+        AnalyticGroupBy $groupBy
     ): array;
 
     /**
