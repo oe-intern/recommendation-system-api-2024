@@ -49,7 +49,7 @@ class CreateProduct implements ShouldQueue
         IProductCommand $productCommand,
         IShopQuery $shopQuery,
         IProductQuery $productQuery,
-        ProductTransform $productTransform
+        ProductTransform $productTransform,
     ): void {
         $shop = $shopQuery->getById($this->shopId);
 
@@ -62,7 +62,8 @@ class CreateProduct implements ShouldQueue
             $productData = $productTransform->webhookDataToCollectionData($this->product);
             $newProduct = $productCommand->create($shop, $productData);
 
-            UpdateRecommendationProduct::dispatch($newProduct->getId(), $shop->getDomain());
+            UpdateRecommendationProduct::dispatch($newProduct->getId(), $shop->getDomain())
+                ->onQueue(config('queue.queues.product'));
         }
     }
 }

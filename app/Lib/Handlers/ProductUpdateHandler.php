@@ -17,6 +17,7 @@ class ProductUpdateHandler extends BaseShopHandler
      */
     protected function processData(string $shopId, array $body): void
     {
-        UpdateProductJob::dispatch($shopId, $body);
+        UpdateProductJob::dispatch($shopId, $body)
+            ->onQueue(config('queue.queues.product'));
     }
 }
