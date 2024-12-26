@@ -66,7 +66,7 @@ return [
         'redis' => [
             'driver' => 'redis',
             'connection' => env('REDIS_QUEUE_CONNECTION', 'default'),
-            'queue' => env('REDIS_QUEUE', 'default'),
+            'queue' => [env('REDIS_QUEUE', 'default'), 'recommendation-queue', 'event-queue', 'email-queue', 'product-queue'],
             'retry_after' => (int) env('REDIS_QUEUE_RETRY_AFTER', 90),
             'block_for' => null,
             'after_commit' => false,
@@ -109,4 +109,18 @@ return [
         'table' => 'failed_jobs',
     ],
 
+    /*
+     * --------------------------------------------------------------------------
+     * Queue Worker Configuration
+     * --------------------------------------------------------------------------
+     *
+     * Here you may define the queue worker settings used by your application
+     */
+
+    'queues' => [
+        'email' => 'email-queue',
+        'event' => 'event-queue',
+        'product' => 'product-queue',
+        'recommendation' => 'recommendation-queue',
+    ],
 ];
