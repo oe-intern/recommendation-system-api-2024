@@ -14,8 +14,10 @@ use App\Contracts\Queries\IShopQuery;
 use App\Contracts\Recommendation\IProductRecommendation;
 use App\Contracts\Recommendation\IRecommendationProcess;
 use App\DTO\Payload\ShopProductRecommendationRequestDTO;
+use App\Models\User;
 use App\Objects\Enums\JobRecommendationStatus;
 use App\Objects\Transform\ProductTransform;
+use App\Services\Shopify\UserContext;
 use Exception;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -170,7 +172,7 @@ class ExecuteRecommendationPipelineJob implements ShouldQueue
                     $shopId,
                     $this->domain,
                     $dataRequest
-                );
+                )->onQueue('recommendation-queue');
                 return;
             } catch (Exception $e) {
                 $retry++;
@@ -215,6 +217,8 @@ class ExecuteRecommendationPipelineJob implements ShouldQueue
         $this->emailSenderService = $emailSenderService;
         $this->productTransform = $productTransform;
         $this->recommendationProcess = $recommendationProcess;
+
+        $this->setContext();
     }
 
     /**
@@ -347,5 +351,15 @@ class ExecuteRecommendationPipelineJob implements ShouldQueue
     private function sendEmail(JobRecommendationStatus $status, string $shopId, string $shopDomain): void
     {
         $this->emailSenderService->sendRecommendationEmail($shopId, $shopDomain, $status);
+    }
+
+    /**
+     * Set user context
+     */
+    private function setContext(): void
+    {
+        $userContext = app(UserContext::class);
+        $shopSession = User::query()->where('name', $this->domain)->first();
+        $userContext->setUser($shopSession);
     }
 }

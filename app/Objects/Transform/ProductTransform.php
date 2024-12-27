@@ -90,7 +90,7 @@ class ProductTransform implements IShopifyTransform
      */
     private function getWebhookId(array $product): string
     {
-        return data_get($product, 'id');
+        return (string)data_get($product, 'id');
     }
 
     /**

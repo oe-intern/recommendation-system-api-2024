@@ -141,7 +141,7 @@ class ProductEventController extends BaseController
         $addCartEventRequestDTO->productId = $this->getProductId($shopId, $addCartEventRequestDTO->productId);
 
         ProcessAddToCartEvent::dispatch($shopId, $addCartEventRequestDTO)
-            ->onQueue(config('queue.queues.event-queue'));
+            ->onQueue(config('queue.queues.event'));
 
         return response()->success('Events updated successfully');
     }
@@ -163,7 +163,7 @@ class ProductEventController extends BaseController
         $clickEventRequestDTO->productId = $this->getProductId($shopId, $clickEventRequestDTO->productId);
 
         ProcessClickEvent::dispatch($shopId, $clickEventRequestDTO)
-            ->onQueue(config('queue.queues.event-queue'));
+            ->onQueue(config('queue.queues.event'));
 
         return response()->success('Events updated successfully');
     }

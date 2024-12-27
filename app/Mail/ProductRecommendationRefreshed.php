@@ -45,6 +45,7 @@ class ProductRecommendationRefreshed extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
+            to: [$this->email],
             subject: 'Shop product recommendation refreshed',
         );
     }
@@ -57,7 +58,7 @@ class ProductRecommendationRefreshed extends Mailable
         return new Content(
             view: 'mails.product_recommendation_refreshed',
             with: [
-                'shop_domain' => $this->shopDomain,
+                'shopDomain' => $this->shopDomain,
                 'status' => $this->status,
                 'email' => $this->email,
             ],
