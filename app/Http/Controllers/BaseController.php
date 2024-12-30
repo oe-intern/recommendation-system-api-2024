@@ -8,9 +8,12 @@ use App\Contracts\Queries\IShopQuery;
 use App\Exceptions\ShopNotFoundException;
 use App\Exceptions\MissingProductIdException;
 use App\Services\Shopify\UserContext;
+use App\Traits\ApiResponse;
 
 class BaseController extends Controller
 {
+    use ApiResponse;
+
     /**
      * @var UserContext
      */
