@@ -3,6 +3,9 @@
 namespace App\Contracts\Recommendation;
 
 use App\DTO\Request\UpdateNotificationSettingsRequestDTO;
+use App\DTO\Response\GetJobProcessingStatusResponse;
+use App\DTO\Response\GetShopRecommendationResponse;
+use App\DTO\Response\UpdateShopRecommendationNotificationResponse;
 use App\Exceptions\JobRecommendationRunningException;
 use App\Exceptions\RecommendationRefreshLimitException;
 
@@ -32,24 +35,27 @@ interface IShopRecommendation
      * Get the processing status of a shop.
      *
      * @param string $shopId
-     * @return array
+     * @return GetJobProcessingStatusResponse
      */
-    public function getProcessingStatus(string $shopId): array;
+    public function getProcessingStatus(string $shopId): GetJobProcessingStatusResponse;
 
     /**
      * Get the recommendations for a shop.
      *
      * @param string $shopId
-     * @return array
+     * @return GetShopRecommendationResponse
      */
-    public function getShopRecommendations(string $shopId): array;
+    public function getShopRecommendations(string $shopId): GetShopRecommendationResponse;
 
     /**
      * Update the shop recommendation notification.
      *
      * @param string $shopId
      * @param UpdateNotificationSettingsRequestDTO $requestDTO
-     * @return array
+     * @return UpdateShopRecommendationNotificationResponse
      */
-    public function updateShopRecommendationNotification(string $shopId, UpdateNotificationSettingsRequestDTO $requestDTO): array;
+    public function updateShopRecommendationNotification(
+        string $shopId,
+        UpdateNotificationSettingsRequestDTO $requestDTO,
+    ): UpdateShopRecommendationNotificationResponse;
 }

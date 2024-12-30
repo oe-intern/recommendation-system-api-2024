@@ -14,6 +14,9 @@ use App\Contracts\Recommendation\IRecommendationProcess;
 use App\Contracts\Recommendation\IShopRecommendation;
 use App\Contracts\Shopify\Graphql\Queries\IProductQueryShopify;
 use App\DTO\Request\UpdateNotificationSettingsRequestDTO;
+use App\DTO\Response\GetJobProcessingStatusResponse;
+use App\DTO\Response\GetShopRecommendationResponse;
+use App\DTO\Response\UpdateShopRecommendationNotificationResponse;
 use App\Exceptions\JobRecommendationRunningException;
 use App\Exceptions\RecommendationRefreshLimitException;
 use App\Jobs\ExecuteRecommendationPipelineJob;
@@ -225,15 +228,13 @@ class ShopRecommendationService implements IShopRecommendation
      * Get the processing status of the recommendations for a shop.
      *
      * @param string $shopId
-     * @return array
+     * @return GetJobProcessingStatusResponse
      */
-    public function getProcessingStatus(string $shopId): array
+    public function getProcessingStatus(string $shopId): GetJobProcessingStatusResponse
     {
         $jobRecommendation = $this->getLatestJobRecommendation($shopId);
 
-        return [
-            'status' => $jobRecommendation->getStatus(),
-        ];
+        return new GetJobProcessingStatusResponse($jobRecommendation);
     }
 
     /**
@@ -254,18 +255,13 @@ class ShopRecommendationService implements IShopRecommendation
      * Get the shop recommendations information.
      *
      * @param string $shopId
-     * @return array
+     * @return GetShopRecommendationResponse
      */
-    public function getShopRecommendations(string $shopId): array
+    public function getShopRecommendations(string $shopId): GetShopRecommendationResponse
     {
         $shopRecommendation = $this->getShopRecommendation($shopId);
 
-        return [
-            'refresh_count' => $shopRecommendation->getRefreshCount(),
-            'expires_at' => $shopRecommendation->getExpiresAt(),
-            'email' => $shopRecommendation->getEmail(),
-            'email_notification' => $shopRecommendation->getEmailNotification(),
-        ];
+        return new GetShopRecommendationResponse($shopRecommendation);
     }
 
     /**
@@ -273,12 +269,12 @@ class ShopRecommendationService implements IShopRecommendation
      *
      * @param string $shopId
      * @param UpdateNotificationSettingsRequestDTO $requestDTO
-     * @return array
+     * @return UpdateShopRecommendationNotificationResponse
      */
     public function updateShopRecommendationNotification(
         string $shopId,
         UpdateNotificationSettingsRequestDTO $requestDTO,
-    ): array {
+    ): UpdateShopRecommendationNotificationResponse {
         $this->shopRecommendationCommand->updateNotification(
             $shopId,
             $requestDTO->emailNotification,
@@ -286,9 +282,6 @@ class ShopRecommendationService implements IShopRecommendation
         );
         $shopRecommendation = $this->getShopRecommendation($shopId);
 
-        return [
-            'email' => $shopRecommendation->getEmail(),
-            'email_notification' => $shopRecommendation->getEmailNotification(),
-        ];
+        return new UpdateShopRecommendationNotificationResponse($shopRecommendation);
     }
 }

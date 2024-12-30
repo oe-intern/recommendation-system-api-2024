@@ -14,6 +14,7 @@ use App\Http\Requests\UpdateNotificationSettingsRequest;
 use App\Services\Shopify\UserContext;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Log;
 
 class RecommendationController extends BaseController
 {
@@ -57,9 +58,12 @@ class RecommendationController extends BaseController
     {
         $shopId = $this->getShopId();
 
-        $shopRecommendations = $this->shopRecommendationService->getShopRecommendations($shopId);
+        $response = $this->shopRecommendationService->getShopRecommendations($shopId);
 
-        return response()->success('Shop recommendations retrieved successfully', $shopRecommendations);
+        return $this->successResponse(
+            'Shop recommendations retrieved successfully',
+            $response->toArray()
+        );
     }
 
     /**
@@ -74,12 +78,16 @@ class RecommendationController extends BaseController
         $shopId = $this->getShopId();
         $updateNotificationSettingsRequestDTO = UpdateNotificationSettingsRequestDTO::fromRequest($request);
 
-        $settings = $this->shopRecommendationService->updateShopRecommendationNotification(
-            $shopId,
-            $updateNotificationSettingsRequestDTO,
-        );
+        $response = $this->shopRecommendationService
+            ->updateShopRecommendationNotification(
+                $shopId,
+                $updateNotificationSettingsRequestDTO,
+            );
 
-        return response()->success('Shop recommendations has been set.', $settings);
+        return $this->successResponse(
+            'Shop recommendations has been set.',
+            $response->toArray()
+        );
     }
 
     /**
@@ -91,9 +99,12 @@ class RecommendationController extends BaseController
     {
         $shopId = $this->getShopId();
 
-        $processingData = $this->shopRecommendationService->getProcessingStatus($shopId);
+        $response = $this->shopRecommendationService->getProcessingStatus($shopId);
 
-        return response()->success('Processing recommendation retrieved successfully', $processingData);
+        return $this->successResponse(
+            'Processing recommendation retrieved successfully',
+            $response->toArray()
+        );
     }
 
     /**
@@ -109,7 +120,7 @@ class RecommendationController extends BaseController
 
         $this->shopRecommendationService->refreshRecommendations($shopId, $shopDomain);
 
-        return response()->success('Processing recommendation has been started.');
+        return $this->successResponse('Processing recommendation has been started.');
     }
 
     /**

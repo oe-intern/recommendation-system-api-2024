@@ -82,14 +82,17 @@ class ProductEventController extends BaseController
             ? $this->getProductId($shopId, $productId)
             : null;
 
-        $events = match ($eventType) {
+        $response = match ($eventType) {
             EventType::CLICK => $this->productEventService
                 ->getClickData($shopId, $getEventAnalyticRequestDTO),
             EventType::ADD_TO_CART => $this->productEventService
                 ->getAddToCartData($shopId, $getEventAnalyticRequestDTO),
         };
 
-        return response()->success('Events retrieved successfully', $events);
+        return $this->successResponse(
+            'Events retrieved successfully',
+            $response->toArray(),
+        );
     }
 
     /**
@@ -119,9 +122,12 @@ class ProductEventController extends BaseController
         $shopId = $this->getShopId();
         $productPerformanceRequestDTO = GetProductPerformanceRequestDTO::fromRequest($request);
 
-        $events = $this->productEventService->getProductPerformance($shopId, $productPerformanceRequestDTO);
+        $response = $this->productEventService->getProductPerformance($shopId, $productPerformanceRequestDTO);
 
-        return response()->success('Events retrieved successfully', $events);
+        return $this->successResponse(
+            'Events retrieved successfully',
+            $response->toArray(),
+        );
     }
 
     /**
@@ -143,7 +149,7 @@ class ProductEventController extends BaseController
         ProcessAddToCartEvent::dispatch($shopId, $addCartEventRequestDTO)
             ->onQueue(config('queue.queues.event'));
 
-        return response()->success('Events updated successfully');
+        return $this->successResponse('Events updated successfully');
     }
 
     /**
@@ -165,6 +171,6 @@ class ProductEventController extends BaseController
         ProcessClickEvent::dispatch($shopId, $clickEventRequestDTO)
             ->onQueue(config('queue.queues.event'));
 
-        return response()->success('Events updated successfully');
+        return $this->successResponse('Events updated successfully');
     }
 }

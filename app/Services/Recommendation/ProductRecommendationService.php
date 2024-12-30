@@ -2,7 +2,6 @@
 
 namespace App\Services\Recommendation;
 
-use App\Collections\ProductCollection;
 use App\Contracts\Commands\IProductCommand;
 use App\Contracts\Commands\IShopSettingCommand;
 use App\Contracts\Queries\IProductQuery;
@@ -13,6 +12,10 @@ use App\DTO\Request\SetActiveRecommendationRequestDTO;
 use App\DTO\Request\SetProductRecommendationRequestDTO;
 use App\DTO\Request\SetRecommendationTypeRequestDTO;
 use App\DTO\Request\UpdateShopSettingRequestDTO;
+use App\DTO\Response\GetRecommendedProductsResponse;
+use App\DTO\Response\SetManualRecommendationResponse;
+use App\DTO\Response\SetRecommendationTypeResponse;
+use App\DTO\Response\ShopSettingsResponse;
 use App\Exceptions\ProductNotFoundException;
 use App\Lib\Utils;
 use App\Objects\Enums\RecommendationState;
@@ -74,9 +77,9 @@ class ProductRecommendationService implements IProductRecommendation
      *
      * @param string $shopId
      * @param string $productId
-     * @return array
+     * @return GetRecommendedProductsResponse
      */
-    public function getRecommendedProducts(string $shopId, string $productId): array
+    public function getRecommendedProducts(string $shopId, string $productId): GetRecommendedProductsResponse
     {
         $product = $this->productQuery->getByShopIdAndId($shopId, $productId);
         $recommendationType = $product->getRecommendationType();
@@ -87,7 +90,9 @@ class ProductRecommendationService implements IProductRecommendation
             default => $this->getDefaultRecommendation($shopId, $productId),
         };
 
-        return $this->productQuery->getHandleAndGidByIds($productIds);
+        return new GetRecommendedProductsResponse(
+            $this->productQuery->getHandleAndGidByIds($productIds),
+        );
     }
 
     /**
@@ -122,12 +127,15 @@ class ProductRecommendationService implements IProductRecommendation
      * Get list of manual product gid for a product.
      *
      * @param string $productId
-     * @return array
+     * @return GetRecommendedProductsResponse
      */
-    public function getManualProducts(string $productId): array
+    public function getManualProducts(string $productId): GetRecommendedProductsResponse
     {
         $productIds = $this->productQuery->getManualProducts($productId);
-        return $this->productQuery->getListGidByIds($productIds);
+
+        return new GetRecommendedProductsResponse(
+            $this->productQuery->getHandleAndGidByIds($productIds),
+        );
     }
 
     /**
@@ -154,7 +162,7 @@ class ProductRecommendationService implements IProductRecommendation
      * @param string $shopId
      * @param string $productId
      * @param SetProductRecommendationRequestDTO $requestDTO
-     * @return ProductCollection
+     * @return SetManualRecommendationResponse
      *
      * @throws ProductNotFoundException
      */
@@ -162,7 +170,7 @@ class ProductRecommendationService implements IProductRecommendation
         string $shopId,
         string $productId,
         SetProductRecommendationRequestDTO $requestDTO,
-    ): ProductCollection {
+    ): SetManualRecommendationResponse {
         $recommendedIds = $this->productQuery->validateListProductGid(
             $shopId, $requestDTO->recommendedIds,
         );
@@ -176,7 +184,10 @@ class ProductRecommendationService implements IProductRecommendation
             $requestDTO->recommendationType ?? $product->getRecommendationType(),
         );
 
-        return $product;
+        return new SetManualRecommendationResponse(
+            $product,
+            $this->productQuery->getManualProducts($productId),
+        );
     }
 
     /**
@@ -185,7 +196,7 @@ class ProductRecommendationService implements IProductRecommendation
      * @param string $shopId
      * @param string $productId
      * @param SetRecommendationTypeRequestDTO $requestDTO
-     * @return ProductCollection
+     * @return SetRecommendationTypeResponse
      *
      * @throws ProductNotFoundException
      */
@@ -193,26 +204,29 @@ class ProductRecommendationService implements IProductRecommendation
         string $shopId,
         string $productId,
         SetRecommendationTypeRequestDTO $requestDTO,
-    ): ProductCollection {
+    ): SetRecommendationTypeResponse {
         $this->productQuery->validateProductId($shopId, $productId);
 
         $product = $this->productQuery->getById($productId);
 
         $this->productCommand->setRecommendationType($product, $requestDTO->recommendationType);
 
-        return $product;
+        return new SetRecommendationTypeResponse($product);
     }
 
     /**
      * Get settings for auto recommendation.
      *
      * @param string $shopId
-     * @return array
+     * @return ShopSettingsResponse
      */
-    public function getShopSettings(string $shopId): array
+    public function getShopSettings(string $shopId): ShopSettingsResponse
     {
         $shop = $this->shopQuery->getById($shopId);
-        return $this->shopQuery->getShopSettings($shop);
+
+        return new ShopSettingsResponse(
+            $this->shopQuery->getShopSettings($shop),
+        );
     }
 
     /**
@@ -221,12 +235,12 @@ class ProductRecommendationService implements IProductRecommendation
      * @param string $shopId
      * @param UpdateShopSettingRequestDTO $requestDTO
      *
-     * @return array
+     * @return ShopSettingsResponse
      */
     public function setShopSettings(
         string $shopId,
         UpdateShopSettingRequestDTO $requestDTO,
-    ): array {
+    ): ShopSettingsResponse {
         $shop = $this->shopQuery->getById($shopId);
         $settings = [
             'number_of_items' => $requestDTO->numberOfItems,
@@ -235,7 +249,9 @@ class ProductRecommendationService implements IProductRecommendation
             'text_color' => $requestDTO->textColor,
         ];
 
-        return $this->shopSettingCommand->setShopSettings($shop, $settings);
+        return new ShopSettingsResponse(
+            $this->shopSettingCommand->setShopSettings($shop, $settings),
+        );
     }
 
     /**

@@ -10,6 +10,8 @@ use App\DTO\Request\AddToCartEventRequestDTO;
 use App\DTO\Request\ClickEventRequestDTO;
 use App\DTO\Request\GetEventAnalyticRequestDTO;
 use App\DTO\Request\GetProductPerformanceRequestDTO;
+use App\DTO\Response\GetEventDataResponse;
+use App\DTO\Response\GetProductPerformanceResponse;
 use App\Exceptions\ProductNotFoundException;
 use App\Objects\Enums\EventType;
 
@@ -101,10 +103,12 @@ class ProductEventService implements IProductEvent
      *
      * @param string $shopId
      * @param GetProductPerformanceRequestDTO $requestDTO
-     * @return array
+     * @return GetProductPerformanceResponse
      */
-    public function getProductPerformance(string $shopId, GetProductPerformanceRequestDTO $requestDTO): array
-    {
+    public function getProductPerformance(
+        string $shopId,
+        GetProductPerformanceRequestDTO $requestDTO,
+    ): GetProductPerformanceResponse {
         $productEventData = $this->eventQuery->getEventData(
             $shopId,
             $requestDTO->startDate,
@@ -120,10 +124,10 @@ class ProductEventService implements IProductEvent
             $productIdsWithoutEvents,
         );
 
-        return [
-            'top' => $this->formatData($topProducts),
-            'low' => $this->convertDataIdToGid($lowProducts),
-        ];
+        return new GetProductPerformanceResponse(
+            $this->formatData($topProducts),
+            $this->convertDataIdToGid($lowProducts),
+        );
     }
 
     /**
@@ -191,18 +195,20 @@ class ProductEventService implements IProductEvent
      *
      * @param string $shopId
      * @param GetEventAnalyticRequestDTO $requestDTO
-     * @return array
+     * @return GetEventDataResponse
      */
     public function getClickData(
         string $shopId,
         GetEventAnalyticRequestDTO $requestDTO,
-    ): array {
-        return $this->eventQuery->filterClickData(
-            $shopId,
-            $requestDTO->productId,
-            $requestDTO->startDate,
-            $requestDTO->endDate,
-            $requestDTO->groupBy,
+    ): GetEventDataResponse {
+        return new GetEventDataResponse(
+            $this->eventQuery->filterClickData(
+                $shopId,
+                $requestDTO->productId,
+                $requestDTO->startDate,
+                $requestDTO->endDate,
+                $requestDTO->groupBy,
+            ),
         );
     }
 
@@ -211,18 +217,20 @@ class ProductEventService implements IProductEvent
      *
      * @param string $shopId
      * @param GetEventAnalyticRequestDTO $requestDTO
-     * @return array
+     * @return GetEventDataResponse
      */
     public function getAddToCartData(
         string $shopId,
         GetEventAnalyticRequestDTO $requestDTO,
-    ): array {
-        return $this->eventQuery->filterAddToCartData(
-            $shopId,
-            $requestDTO->productId,
-            $requestDTO->startDate,
-            $requestDTO->endDate,
-            $requestDTO->groupBy,
+    ): GetEventDataResponse {
+        return new GetEventDataResponse(
+            $this->eventQuery->filterAddToCartData(
+                $shopId,
+                $requestDTO->productId,
+                $requestDTO->startDate,
+                $requestDTO->endDate,
+                $requestDTO->groupBy,
+            ),
         );
     }
 }

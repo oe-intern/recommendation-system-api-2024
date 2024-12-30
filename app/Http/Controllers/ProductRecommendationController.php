@@ -58,12 +58,15 @@ class ProductRecommendationController extends BaseController
         $shopId = $this->getShopId();
         $productId = $this->getProductId($shopId, $productId);
 
-        $products = $this->productRecommendationService->getRecommendedProducts(
+        $response = $this->productRecommendationService->getRecommendedProducts(
             $shopId,
             $productId,
         );
 
-        return response()->success('Recommendations retrieved successfully', $products);
+        return $this->successResponse(
+            'Recommendations retrieved successfully',
+            $response->toArray()
+        );
     }
 
     /**
@@ -83,17 +86,16 @@ class ProductRecommendationController extends BaseController
         $productId = $this->getProductId($shopId, $productId);
         $setRecommendationTypeRequestDTO = SetRecommendationTypeRequestDTO::fromRequest($request);
 
-        $product = $this->productRecommendationService->setRecommendationType(
+        $response = $this->productRecommendationService->setRecommendationType(
             $shopId,
             $productId,
             $setRecommendationTypeRequestDTO,
         );
 
-        $responseData = [
-            'id' => $product->getGid(),
-            'recommendation_type' => $product->getRecommendationType(),
-        ];
-        return response()->success('Recommendation type has been set.', $responseData);
+        return $this->successResponse(
+            'Recommendation type has been set.',
+            $response->toArray()
+        );
     }
 
     /**
@@ -117,18 +119,16 @@ class ProductRecommendationController extends BaseController
             $setProductRecommendationRequestDTO->recommendedIds,
         );
 
-        $product = $this->productRecommendationService->setRecommendedProducts(
+        $response = $this->productRecommendationService->setRecommendedProducts(
             $shopId,
             $productId,
             $setProductRecommendationRequestDTO,
         );
 
-        $responseData = [
-            'id' => $product->getGid(),
-            'recommended_ids' => $this->productQuery->getListGidByIds($product->getManualIds()),
-            'recommendation_type' => $product->getRecommendationType(),
-        ];
-        return response()->success('Manual recommendation has been set.', $responseData);
+        return $this->successResponse(
+            'Manual recommendation has been set.',
+            $response->toArray()
+        );
     }
 
     /**
@@ -147,9 +147,12 @@ class ProductRecommendationController extends BaseController
         $shopId = $this->getShopId();
         $productId = $this->getProductId($shopId, $productId);
 
-        $manualGids = $this->productRecommendationService->getManualProducts($productId);
+        $response = $this->productRecommendationService->getManualProducts($productId);
 
-        return response()->success('Manual recommendation has been set.', $manualGids);
+        return $this->successResponse(
+            'Manual recommendation has been set.',
+            $response->toArray()
+        );
     }
 
     public function getRecommendationTypes()
