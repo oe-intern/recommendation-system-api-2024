@@ -49,9 +49,12 @@ class ShopSettingController extends BaseController
     {
         $shopId = $this->getShopId();
 
-        $settings = $this->productRecommendationService->getShopSettings($shopId);
+        $response = $this->productRecommendationService->getShopSettings($shopId);
 
-        return response()->success('Auto recommendation settings retrieved successfully', $settings);
+        return $this->successResponse(
+            'Auto recommendation settings retrieved successfully',
+            $response->toArray(),
+        );
     }
 
     /**
@@ -67,9 +70,12 @@ class ShopSettingController extends BaseController
         $shopId = $this->getShopId();
         $updateShopSettingRequestDTO = UpdateShopSettingRequestDTO::fromRequest($request);
 
-        $settings = $this->productRecommendationService->setShopSettings($shopId, $updateShopSettingRequestDTO);
+        $response = $this->productRecommendationService->setShopSettings($shopId, $updateShopSettingRequestDTO);
 
-        return response()->success('Auto recommendation settings has been set.', $settings);
+        return $this->successResponse(
+            'Auto recommendation settings has been set.',
+            $response->toArray(),
+        );
     }
 
     /**
@@ -87,6 +93,8 @@ class ShopSettingController extends BaseController
 
         $this->productRecommendationService->activateRecommendation($shopId, $setActiveRecommendationRequestDTO);
 
-        return response()->success('Recommendation has been ' . $setActiveRecommendationRequestDTO->status->value . 'D.');
+        return $this->successResponse(
+            'Recommendation has been ' . $setActiveRecommendationRequestDTO->status->value . 'D.',
+        );
     }
 }
