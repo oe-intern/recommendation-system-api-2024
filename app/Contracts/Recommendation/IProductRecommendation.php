@@ -2,11 +2,14 @@
 
 namespace App\Contracts\Recommendation;
 
-use App\Collections\ProductCollection;
 use App\DTO\Request\SetActiveRecommendationRequestDTO;
 use App\DTO\Request\SetProductRecommendationRequestDTO;
 use App\DTO\Request\SetRecommendationTypeRequestDTO;
 use App\DTO\Request\UpdateShopSettingRequestDTO;
+use App\DTO\Response\GetRecommendedProductsResponse;
+use App\DTO\Response\SetManualRecommendationResponse;
+use App\DTO\Response\SetRecommendationTypeResponse;
+use App\DTO\Response\ShopSettingsResponse;
 use App\Exceptions\ProductNotFoundException;
 
 interface IProductRecommendation
@@ -16,21 +19,21 @@ interface IProductRecommendation
      *
      * @param string $shopId
      * @param string $productId
-     * @return array
+     * @return GetRecommendedProductsResponse
      *
      * @throws ProductNotFoundException
      */
-    public function getRecommendedProducts(string $shopId, string $productId): array;
+    public function getRecommendedProducts(string $shopId, string $productId): GetRecommendedProductsResponse;
 
     /**
      * Get list of manual products gid for a product.
      *
      * @param string $productId
-     * @return array
+     * @return GetRecommendedProductsResponse
      *
      * @throws ProductNotFoundException
      */
-    public function getManualProducts(string $productId): array;
+    public function getManualProducts(string $productId): GetRecommendedProductsResponse;
 
     /**
      * Set list of recommended products for a product.
@@ -38,7 +41,7 @@ interface IProductRecommendation
      * @param string $shopId
      * @param string $productId
      * @param SetProductRecommendationRequestDTO $requestDTO
-     * @return ProductCollection
+     * @return SetManualRecommendationResponse
      *
      * @throws ProductNotFoundException
      */
@@ -46,7 +49,7 @@ interface IProductRecommendation
         string $shopId,
         string $productId,
         SetProductRecommendationRequestDTO $requestDTO,
-    ): ProductCollection;
+    ): SetManualRecommendationResponse;
 
     /**
      * Set the recommendation type for a product.
@@ -54,7 +57,7 @@ interface IProductRecommendation
      * @param string $shopId
      * @param string $productId
      * @param SetRecommendationTypeRequestDTO $requestDTO
-     * @return ProductCollection
+     * @return SetRecommendationTypeResponse
      *
      * @throws ProductNotFoundException
      */
@@ -62,15 +65,15 @@ interface IProductRecommendation
         string $shopId,
         string $productId,
         SetRecommendationTypeRequestDTO $requestDTO,
-    ): ProductCollection;
+    ): SetRecommendationTypeResponse;
 
     /**
      * Get settings for auto recommendation.
      *
      * @param string $shopId
-     * @return array
+     * @return ShopSettingsResponse
      */
-    public function getShopSettings(string $shopId): array;
+    public function getShopSettings(string $shopId): ShopSettingsResponse;
 
     /**
      * Set auto recommendation for a shop.
@@ -78,12 +81,12 @@ interface IProductRecommendation
      * @param string $shopId
      * @param UpdateShopSettingRequestDTO $requestDTO
      *
-     * @return array
+     * @return ShopSettingsResponse
      */
     public function setShopSettings(
         string $shopId,
-        UpdateShopSettingRequestDTO $requestDTO
-    ): array;
+        UpdateShopSettingRequestDTO $requestDTO,
+    ): ShopSettingsResponse;
 
     /**
      * Activate recommendation for all product of a shop.

@@ -6,6 +6,8 @@ use App\DTO\Request\AddToCartEventRequestDTO;
 use App\DTO\Request\ClickEventRequestDTO;
 use App\DTO\Request\GetEventAnalyticRequestDTO;
 use App\DTO\Request\GetProductPerformanceRequestDTO;
+use App\DTO\Response\GetEventDataResponse;
+use App\DTO\Response\GetProductPerformanceResponse;
 use App\Exceptions\ProductNotFoundException;
 
 interface IProductEvent
@@ -37,37 +39,40 @@ interface IProductEvent
      *
      * @param string $shopId
      * @param GetProductPerformanceRequestDTO $requestDTO
-     * @return array
+     * @return GetProductPerformanceResponse
      */
-    public function getProductPerformance(string $shopId, GetProductPerformanceRequestDTO $requestDTO): array;
+    public function getProductPerformance(
+        string $shopId,
+        GetProductPerformanceRequestDTO $requestDTO,
+    ): GetProductPerformanceResponse;
 
     /**
      * Get click data for a product.
      *
      * @param string $shopId
      * @param GetEventAnalyticRequestDTO $requestDTO
-     * @return array
+     * @return GetEventDataResponse
      *
      * @throws ProductNotFoundException
      */
     public function getClickData(
         string $shopId,
         GetEventAnalyticRequestDTO $requestDTO,
-    ): array;
+    ): GetEventDataResponse;
 
     /**
      * Get add to cart data for a product.
      *
      * @param string $shopId
      * @param GetEventAnalyticRequestDTO $requestDTO
-     * @return array
+     * @return GetEventDataResponse
      *
      * @throws ProductNotFoundException
      */
     public function getAddToCartData(
         string $shopId,
         GetEventAnalyticRequestDTO $requestDTO,
-    ): array;
+    ): GetEventDataResponse;
 
 
 }
