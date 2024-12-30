@@ -6,6 +6,7 @@ use App\DTO\Request\SetActiveRecommendationRequestDTO;
 use App\DTO\Request\SetProductRecommendationRequestDTO;
 use App\DTO\Request\SetRecommendationTypeRequestDTO;
 use App\DTO\Request\UpdateShopSettingRequestDTO;
+use App\DTO\Response\GetProductRecommendationTypeResponse;
 use App\DTO\Response\GetRecommendedProductsResponse;
 use App\DTO\Response\SetManualRecommendationResponse;
 use App\DTO\Response\SetRecommendationTypeResponse;
@@ -50,6 +51,18 @@ interface IProductRecommendation
         string $productId,
         SetProductRecommendationRequestDTO $requestDTO,
     ): SetManualRecommendationResponse;
+
+    /**
+     * Get product recommendation type.
+     *
+     * @param string $shopId
+     * @param string $productId
+     * @return GetProductRecommendationTypeResponse
+     */
+    public function getProductRecommendationType(
+        string $shopId,
+        string $productId
+    ): GetProductRecommendationTypeResponse;
 
     /**
      * Set the recommendation type for a product.

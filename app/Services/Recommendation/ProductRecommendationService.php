@@ -12,6 +12,7 @@ use App\DTO\Request\SetActiveRecommendationRequestDTO;
 use App\DTO\Request\SetProductRecommendationRequestDTO;
 use App\DTO\Request\SetRecommendationTypeRequestDTO;
 use App\DTO\Request\UpdateShopSettingRequestDTO;
+use App\DTO\Response\GetProductRecommendationTypeResponse;
 use App\DTO\Response\GetRecommendedProductsResponse;
 use App\DTO\Response\SetManualRecommendationResponse;
 use App\DTO\Response\SetRecommendationTypeResponse;
@@ -134,7 +135,7 @@ class ProductRecommendationService implements IProductRecommendation
         $productIds = $this->productQuery->getManualProducts($productId);
 
         return new GetRecommendedProductsResponse(
-            $this->productQuery->getHandleAndGidByIds($productIds),
+            $this->productQuery->getListGidByIds($productIds),
         );
     }
 
@@ -188,6 +189,22 @@ class ProductRecommendationService implements IProductRecommendation
             $product,
             $this->productQuery->getManualProducts($productId),
         );
+    }
+
+    /**
+     * Get product recommendation type.
+     *
+     * @param string $shopId
+     * @param string $productId
+     * @return GetProductRecommendationTypeResponse
+     */
+    public function getProductRecommendationType(
+        string $shopId,
+        string $productId
+    ): GetProductRecommendationTypeResponse {
+        $product = $this->productQuery->getByShopIdAndId($shopId, $productId);
+
+        return new GetProductRecommendationTypeResponse($product);
     }
 
     /**
