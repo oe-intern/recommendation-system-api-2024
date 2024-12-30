@@ -155,8 +155,27 @@ class ProductRecommendationController extends BaseController
         );
     }
 
-    public function getRecommendationTypes()
+    /**
+     * Get product recommendation types.
+     *
+     * @param string $productId
+     * @param Request $request
+     * @return Response
+     *
+     * @throws MissingProductIdException
+     * @throws ProductNotFoundException
+     * @throws ShopNotFoundException
+     */
+    public function getRecommendationType(string $productId, Request $request): Response
     {
-        // TODO: Implement getRecommendationTypes() method.
+        $shopId = $this->getShopId();
+        $productId = $this->getProductId($shopId, $productId);
+
+        $response = $this->productRecommendationService->getProductRecommendationType($shopId, $productId);
+
+        return $this->successResponse(
+            'Recommendation types retrieved successfully',
+            $response->toArray()
+        );
     }
 }
