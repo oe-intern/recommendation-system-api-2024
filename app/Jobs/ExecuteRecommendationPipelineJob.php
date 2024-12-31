@@ -3,6 +3,7 @@
 
 namespace App\Jobs;
 
+use App\Actions\UpdateDefaultRecommendation;
 use App\Collections\JobRecommendationCollection;
 use App\Contracts\Commands\IJobRecommendationCommand;
 use App\Contracts\Commands\IShopRecommendationCommand;
@@ -11,6 +12,7 @@ use App\Contracts\ModelRecommendation\IRecommendationApi;
 use App\Contracts\Objects\Transform\ShopifyTransform;
 use App\Contracts\Queries\IProductQuery;
 use App\Contracts\Queries\IShopQuery;
+use App\Contracts\Queries\IShopRecommendationQuery;
 use App\Contracts\Recommendation\IProductRecommendation;
 use App\Contracts\Recommendation\IRecommendationProcess;
 use App\DTO\Payload\ShopProductRecommendationRequestDTO;
@@ -42,6 +44,11 @@ class ExecuteRecommendationPipelineJob implements ShouldQueue
      * @var int
      */
     private const DELAY_RECOMMEND_PROCESS = 20;
+
+    /**
+     * @var UpdateDefaultRecommendation
+     */
+    private UpdateDefaultRecommendation $updateDefaultRecommendation;
 
     /**
      * @var string
@@ -104,6 +111,11 @@ class ExecuteRecommendationPipelineJob implements ShouldQueue
     protected IRecommendationProcess $recommendationProcess;
 
     /**
+     * @var IShopRecommendationQuery
+     */
+    protected IShopRecommendationQuery $shopRecommendationQuery;
+
+    /**
      * Create a new job instance.
      *
      * @param string $domain
@@ -127,6 +139,8 @@ class ExecuteRecommendationPipelineJob implements ShouldQueue
      * @param IEmailSender $emailSenderService
      * @param ShopifyTransform $productTransform
      * @param IRecommendationProcess $recommendationProcess
+     * @param UpdateDefaultRecommendation $updateDefaultRecommendation
+     * @param IShopRecommendationQuery $shopRecommendationQuery
      */
     public function handle(
         IProductQuery $productQuery,
@@ -138,6 +152,8 @@ class ExecuteRecommendationPipelineJob implements ShouldQueue
         IEmailSender $emailSenderService,
         ShopifyTransform $productTransform,
         IRecommendationProcess $recommendationProcess,
+        UpdateDefaultRecommendation $updateDefaultRecommendation,
+        IShopRecommendationQuery $shopRecommendationQuery,
     ): void {
         $this->initializeServices(
             $productQuery,
@@ -149,36 +165,38 @@ class ExecuteRecommendationPipelineJob implements ShouldQueue
             $emailSenderService,
             $productTransform,
             $recommendationProcess,
+            $updateDefaultRecommendation,
+            $shopRecommendationQuery,
         );
 
         $this->ordersData = $this->getOrdersData($this->domain);
         $this->productsData = $this->productTransform->shopifyDataListToModelApiListData($this->productsData);
         $shop = $shopQuery->getByDomain($this->domain);
         $shopId = $shop->getId();
-        $dataRequest = $this->getRequestData($this->domain);
+
+        $dataRequest = $this->getRequestData();
         $gidToIdMap = $this->getMapIdWithKeyGid($shopId);
-        $retry = 0;
+
+        if ($this->isDefaultRecommendationOnly($shopId)) {
+            $this->updateDefaultRecommendation($dataRequest, $gidToIdMap);
+
+            return;
+        }
 
         $job = $this->createPendingJob($shopId);
 
-        do {
-            try {
-                $this->updateDefaultRecommendation($dataRequest, $gidToIdMap);
-                $this->updateJobStatus($job->getId(), JobRecommendationStatus::SUCCESS, []);
+        $this->retry(function () use ($dataRequest, $gidToIdMap, $job, $shopId) {
+            $this->updateDefaultRecommendation($dataRequest, $gidToIdMap);
+            $this->updateJobStatus($job->getId(), JobRecommendationStatus::SUCCESS, []);
 
-                ProcessShopInstalledData::dispatch(
-                    $gidToIdMap,
-                    $this->productsData,
-                    $shopId,
-                    $this->domain,
-                    $dataRequest
-                )->onQueue('recommendation-queue');
-                return;
-            } catch (Exception $e) {
-                $retry++;
-                sleep(self::DELAY_RECOMMEND_PROCESS);
-            }
-        } while ($retry < self::MAX_RETRY_PROCESS);
+            ProcessShopInstalledData::dispatch(
+                $gidToIdMap,
+                $this->productsData,
+                $shopId,
+                $this->domain,
+                $dataRequest,
+            )->onQueue(config('queue.queues.recommendation'));
+        });
 
         $this->handleJobException($job->getId(), $shopId, $this->domain);
     }
@@ -195,6 +213,8 @@ class ExecuteRecommendationPipelineJob implements ShouldQueue
      * @param IEmailSender $emailSenderService
      * @param ShopifyTransform $productTransform
      * @param IRecommendationProcess $recommendationProcess
+     * @param UpdateDefaultRecommendation $updateDefaultRecommendation
+     * @param IShopRecommendationQuery $shopRecommendationQuery
      * @return void
      */
     private function initializeServices(
@@ -207,6 +227,8 @@ class ExecuteRecommendationPipelineJob implements ShouldQueue
         IEmailSender $emailSenderService,
         ShopifyTransform $productTransform,
         IRecommendationProcess $recommendationProcess,
+        UpdateDefaultRecommendation $updateDefaultRecommendation,
+        IShopRecommendationQuery $shopRecommendationQuery,
     ): void {
         $this->productQuery = $productQuery;
         $this->shopQuery = $shopQuery;
@@ -217,17 +239,50 @@ class ExecuteRecommendationPipelineJob implements ShouldQueue
         $this->emailSenderService = $emailSenderService;
         $this->productTransform = $productTransform;
         $this->recommendationProcess = $recommendationProcess;
+        $this->updateDefaultRecommendation = $updateDefaultRecommendation;
+        $this->shopRecommendationQuery = $shopRecommendationQuery;
 
         $this->setContext();
     }
 
     /**
+     * Check if default recommendation only (refresh count = 0)
+     *
+     * @param string $shopId
+     * @return bool
+     */
+    private function isDefaultRecommendationOnly(string $shopId): bool
+    {
+        return $this->shopRecommendationQuery->getByShopId($shopId)->getRefreshCount() === 0;
+    }
+
+    /**
+     * Handle install data and retry if failure
+     *
+     * @param callable $callback
+     * @return void
+     */
+    private function retry(callable $callback): void
+    {
+        $retry = 0;
+        do {
+            try {
+                $callback();
+                return;
+            } catch (Exception $e) {
+                $retry++;
+                Log::warning("Retry $retry failed for shop: $this->domain", ['exception' => $e]);
+                sleep(self::DELAY_RECOMMEND_PROCESS);
+            }
+        } while ($retry < self::MAX_RETRY_PROCESS);
+    }
+
+    /**
      * Get request data for recommendation api
      *
-     * @param string $domain
      * @return ShopProductRecommendationRequestDTO
      */
-    private function getRequestData(string $domain): ShopProductRecommendationRequestDTO
+    private function getRequestData(): ShopProductRecommendationRequestDTO
     {
         return $this->mergeData();
     }
@@ -298,19 +353,16 @@ class ExecuteRecommendationPipelineJob implements ShouldQueue
      * @param ShopProductRecommendationRequestDTO $dataRequest
      * @param array $gidToIdMap
      * @return void
-     * @throws Exception
      */
     private function updateDefaultRecommendation(
         ShopProductRecommendationRequestDTO $dataRequest,
         array $gidToIdMap,
     ): void {
-        try {
-            $recommendationData = $this->recommendationApiService->preRecommend($dataRequest);
-            $this->productRecommendationService->updateManyDefaultRecommendation($recommendationData, $gidToIdMap);
-        } catch (Exception $e) {
-            Log::error('Error updating default recommendation.', ['error' => $e->getMessage()]);
-            throw $e;
-        }
+        call_user_func(
+            $this->updateDefaultRecommendation,
+            $dataRequest,
+            $gidToIdMap,
+        );
     }
 
     /**
